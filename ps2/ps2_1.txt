@@ -1,0 +1,5 @@
+a. You must use VGA support to add a non-scrolling status bar. Figure out how to use VGA registers to separate the screen into two distinct regions. Explain the necessary register value settings, how the VGA acts upon them, and any relevant constraints hat must be obeyed when setting up the status bar.
+
+b. You must change the VGA’s color palette. Figure out how to do so, and explain the sequence of register operations necessary to et a given color to a given 18-bit RGB (red, green, blue) value.
+
+Color Compare Register 

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cur_dir=~/Desktop/ECE\ 391/PS1
+cd "$cur_dir"
+touch "$cur_dir"/ece391ps1.txt
+
+cat "$cur_dir"/ece391ps1_1.s > ece391ps1.txt
+echo >> ece391ps1.txt
+echo >> ece391ps1.txt
+cat "$cur_dir"/ece391ps1_2.c >> ece391ps1.txt

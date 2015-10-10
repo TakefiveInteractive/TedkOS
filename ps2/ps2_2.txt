@@ -1,0 +1,73 @@
+Documentation in Files
+
+a. For each of the following messages sent from the computer to the Tux controller, briefly
+explain when it should be sent, what effect it has on the device, and what message or messages
+are returned to the computer as a result: MTCP BIOC ON, MTCP LED SET.
+
+MTCP_BIOC_ON:
+
+When it should be sent:
+It should be sent when the button been pressed.
+
+What effect it has on the device:
+It would case an interrupt to the program indicating theevent of button been pressed that
+needs immediate attention. The processor then syspend its current activities and save
+its state, and execute interrupt handler to handle the event.
+
+What messages are returned to the computer:
+MTCP_ACK would be returned, a response when the MTC successfully completes a command.
+
+MTCP_LED_SET:
+
+When it should be sent:
+It is set immediately, and is sent when the LED display is in USR mode.
+
+What effect it has on the device:
+When the LED display is in USR mode, the LED will read the data from corresponding registers.
+The first byte of argument specifies which of the LED's to set, and also determines how
+many bytes will follow, one byte for each led to set.
+
+What messages are returned to the computer:
+Nothing would be returned to the computer.
+
+
+b. For each of the following messages sent from the Tux controller to the computer, briefly
+explain when the device sends the message and what information is conveyed by the message:
+MTCP ACK, MTCP BIOC EVENT, MTCP RESET.
+
+MTCP_ACK:
+MTCP_ACK is sent when MTCP_BIOC_ON, MTCP_BIOC_OFF, MTCP_DBG_OFF is called. It conveyed a bit
+or boolean that states whether MTC successfully completes a command.
+
+MTCP_BIOC_EVENT:
+MTCP_BIOC_EVENT is generated when the button interrupt-on-change mode is enabled and a button
+is either pressed or released. It conveyed the message of what button is been pressed. And
+the packet format is shown as below:
+Packet format:
+	Byte 0 - MTCP_BIOC_EVENT
+	byte 1  +-7-----4-+-3-+-2-+-1-+---0---+
+		| 1 X X X | C | B | A | START |
+		+---------+---+---+---+-------+
+	byte 2  +-7-----4-+---3---+--2---+--1---+-0--+
+		| 1 X X X | right | down | left | up |
+		+---------+-------+------+------+----+
+
+MTCP_RESET:
+MTCP_RESET is generated when the devide re-initializes itself after a power-up, a RESET
+button press, or an MTCP_RESET_DEV command. It conveyed the message of if MTCP is reset.
+And the packet format is shown as follow:
+Packet Format:
+	Byte 0 - MTCP_RESET
+	Byte 1 - reserved
+	Byte 2 - reserved
+
+
+c. Now read the function header for tuxctl handle packet in tuxctl-ioctl.c—you will have to
+follow the pointer there to answer the question, too. In some cases, you may want to send a
+message to the Tux controller in response to a message just received by the computer(using
+tuxctl ldisc put). However, if the output buffer for the device is full, you cannot do so
+imme- diately. Nor can the code (executing in tuxctl handle packet) wait (e.g., go to sleep).
+Explain in one sentence why the code cannot wait.
+
+tuxctl_handler_packet is called by tuxctl_ldisc_data_callback, which is run in the interrupt
+context and cannot wait on any semaphores.
