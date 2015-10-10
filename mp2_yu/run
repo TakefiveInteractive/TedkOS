@@ -1,0 +1,7 @@
+#!/bin/bash
+//make
+cd module
+make
+sudo /sbin/rmmod tuxctl
+sudo /sbin/insmod ./tuxctl.ko
+
