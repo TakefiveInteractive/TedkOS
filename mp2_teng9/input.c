@@ -399,23 +399,22 @@ main ()
     cmd_t cmd;
     static const char* const cmd_name[NUM_COMMANDS] = {
         "none", "right", "left", "up", "down",
-	"move left", "enter", "move right", "typed command", "quit"
+        "move left", "enter", "move right", "typed command", "quit"
     };
 
     /* Grant ourselves permission to use ports 0-1023 */
     if (ioperm (0, 1024, 1) == -1) {
-	perror ("ioperm");
-	return 3;
+        perror ("ioperm");
+        return 3;
     }
 
     init_input ();
     while (1) {
         while ((cmd = get_command ()) == last_cmd);
-	last_cmd = cmd;
-	printf ("command issued: %s\n", cmd_name[cmd]);
-	if (cmd == CMD_QUIT)
-	    break;
-	display_time_on_tux (83);
+        last_cmd = cmd;
+        printf ("command issued: %s\n", cmd_name[cmd]);
+        if (cmd == CMD_QUIT) break;
+        display_time_on_tux (83);
     }
     shutdown_input ();
     return 0;
