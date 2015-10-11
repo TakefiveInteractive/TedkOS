@@ -27,15 +27,15 @@
 #include "mtcp.h"
 
 #define debug(str, ...) \
-	printk(KERN_DEBUG "%s: " str, __FUNCTION__, ## __VA_ARGS__)
+    printk(KERN_DEBUG "%s: " str, __FUNCTION__, ## __VA_ARGS__)
 
 #define LED_BUF_SIZE 6
 #define LED_SCREEN_NUM 4
 
 volatile int transmitting = 0;
 volatile unsigned int led_saved_arg;
-volatile unsigned char button_b;
-volatile unsigned char button_c;
+volatile unsigned char button_b = 0xff;
+volatile unsigned char button_c = 0xff;
 static const char CMD_MTCP_BIOC_ON = MTCP_BIOC_ON;
 static const char CMD_MTCP_LED_USR = MTCP_LED_USR;
 
@@ -48,7 +48,7 @@ static unsigned char led_font[16] = {
 };
 
 int tuxctl_set_led(struct tty_struct* tty, unsigned long arg);
-int tuxctl_set_button(unsigned long* arg);
+uint8_t tuxctl_translate_button(void);
 
 /************************ Protocol Implementation *************************/
 
@@ -74,6 +74,9 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
             transmitting = 0;
             tuxctl_ldisc_put(tty, &CMD_MTCP_BIOC_ON, 1);
             tuxctl_set_led(tty, led_saved_arg);
+            // Clear button state
+            button_b = 0xff;
+            button_c = 0xff;
             transmitting = 1;
             break;
         case MTCP_ACK:
@@ -106,10 +109,10 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
  ******************************************************************************/
 int
 tuxctl_ioctl (struct tty_struct* tty, struct file* file,
-	      unsigned cmd, unsigned long arg)
+          unsigned cmd, unsigned long arg)
 {
     int ret;
-    int ptr;
+    int res;
 
     if (transmitting) return -EINVAL;
 
@@ -123,11 +126,9 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
     case TUX_BUTTONS:
         if (!arg) return -EINVAL;
 
-        ptr = 0x0;
-        ptr |= (button_b & 0x0F);
-        ptr |= (button_c & 0x0F) << 4;
-
-        ret = copy_to_user((int*)arg, &ptr, sizeof(int));
+        res = tuxctl_translate_button();
+        debug("%x", res);
+        ret = copy_to_user((int*) arg, &res, sizeof(int));
         if (ret > 0)
             return -EINVAL;
         else
@@ -145,24 +146,41 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
 
 }
 
-int tuxctl_set_button(unsigned long* arg)
-{
-    unsigned char low = button_b & 0x0F;
-    unsigned char high = button_c & 0x0F;
-    unsigned char mixed = 0x0;
-    unsigned char direction;
-    int i;
-    int mask = 0x01;
-    unsigned long lll;
-    for (i = 0; i < 4; i++) {
-        direction = high & mask;
-        mixed |= direction;
-        mask = mask << 1;
-    }
+static inline void tux_set_bit(uint8_t *x, int bitNum, int val) {
+    if (val)
+        *x |= (1 << bitNum);
+    else
+        *x &= ~(1 << bitNum);
+}
 
-    mixed = (high << 4) | low;
-    lll = (unsigned long)mixed;
-    return copy_to_user(arg, &lll, sizeof(long));
+static inline int tux_get_bit(uint8_t x, int bitNum) {
+    return (x & (1 << bitNum)) != 0;
+}
+
+uint8_t tuxctl_translate_button()
+{
+    uint8_t button2 = ~button_b;
+    uint8_t button3 = ~button_c;
+
+    char right = tux_get_bit(button3, 3);
+    char left = tux_get_bit(button3, 1);
+    char down = tux_get_bit(button3, 2);
+    char up = tux_get_bit(button3, 0);
+    char c = tux_get_bit(button2, 3);
+    char b = tux_get_bit(button2, 2);
+    char a = tux_get_bit(button2, 1);
+    char start = tux_get_bit(button2, 0);
+
+    uint8_t res = 0;
+    tux_set_bit(&res, 7, right);
+    tux_set_bit(&res, 6, left);
+    tux_set_bit(&res, 5, down);
+    tux_set_bit(&res, 4, up);
+    tux_set_bit(&res, 3, c);
+    tux_set_bit(&res, 2, b);
+    tux_set_bit(&res, 1, a);
+    tux_set_bit(&res, 0, start);
+    return res;
 }
 
 int tuxctl_set_led(struct tty_struct* tty, unsigned long arg)

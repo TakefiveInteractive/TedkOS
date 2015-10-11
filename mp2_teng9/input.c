@@ -1,4 +1,4 @@
-/*									tab:8
+/*                                  tab:8
  *
  * input.c - source file for input control to maze game
  *
@@ -22,26 +22,26 @@
  * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE,
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Author:	    Steve Lumetta
- * Version:	    7
+ * Author:      Steve Lumetta
+ * Version:     7
  * Creation Date:   Thu Sep  9 22:25:48 2004
- * Filename:	    input.c
+ * Filename:        input.c
  * History:
- *	SL	1	Thu Sep  9 22:25:48 2004
- *		First written.
- *	SL	2	Sat Sep 12 14:34:19 2009
- *		Integrated original release back into main code base.
- *	SL	3	Sun Sep 13 03:51:23 2009
- *		Replaced parallel port with Tux controller code for demo.
- *	SL	4	Sun Sep 13 12:49:02 2009
- *		Changed init_input order slightly to avoid leaving keyboard
+ *  SL  1   Thu Sep  9 22:25:48 2004
+ *      First written.
+ *  SL  2   Sat Sep 12 14:34:19 2009
+ *      Integrated original release back into main code base.
+ *  SL  3   Sun Sep 13 03:51:23 2009
+ *      Replaced parallel port with Tux controller code for demo.
+ *  SL  4   Sun Sep 13 12:49:02 2009
+ *      Changed init_input order slightly to avoid leaving keyboard
  *              in odd state on failure.
- *	SL	5	Sun Sep 13 16:30:32 2009
- *		Added a reasonably robust direct Tux control for demo mode.
- *	SL	6	Wed Sep 14 02:06:41 2011
- *		Updated input control and test driver for adventure game.
- *	SL	7	Wed Sep 14 17:07:38 2011
- *		Added keyboard input support when using Tux kernel mode.
+ *  SL  5   Sun Sep 13 16:30:32 2009
+ *      Added a reasonably robust direct Tux control for demo mode.
+ *  SL  6   Wed Sep 14 02:06:41 2011
+ *      Updated input control and test driver for adventure game.
+ *  SL  7   Wed Sep 14 17:07:38 2011
+ *      Added keyboard input support when using Tux kernel mode.
  */
 
 #include <ctype.h>
@@ -68,17 +68,17 @@
 /* stores original terminal settings */
 static struct termios tio_orig;
 
-#define PACKET_UP 239
-#define PACKET_RIGHT 127
-#define PACKET_DOWN 191
-#define PACKET_LEFT 223
-#define PACKET_MOVE_LEFT 253
-#define PACKET_ENTER 251
-#define PACKET_MOVE_RIGHT 247
-#define PACKET_QUIT 254
+#define PACKET_UP 16
+#define PACKET_RIGHT 128
+#define PACKET_DOWN 32
+#define PACKET_LEFT 64
+#define PACKET_MOVE_LEFT 2
+#define PACKET_ENTER 4
+#define PACKET_MOVE_RIGHT 8
+#define PACKET_QUIT 1
 
 
-int button_did_pressed;
+int button_did_pressed = 0;
 int fd;
 
 void get_tux_command(cmd_t *pushed);
@@ -112,15 +112,15 @@ init_input ()
      */
     if (fcntl (fileno (stdin), F_SETFL, O_NONBLOCK) != 0) {
         perror ("fcntl to make stdin non-blocking");
-	return -1;
+    return -1;
     }
 
     /*
      * Save current terminal attributes for stdin.
      */
     if (tcgetattr (fileno (stdin), &tio_orig) != 0) {
-	perror ("tcgetattr to read stdin terminal settings");
-	return -1;
+    perror ("tcgetattr to read stdin terminal settings");
+    return -1;
     }
 
     /*
@@ -133,8 +133,8 @@ init_input ()
     tio_new.c_cc[VMIN] = 1;
     tio_new.c_cc[VTIME] = 0;
     if (tcsetattr (fileno (stdin), TCSANOW, &tio_new) != 0) {
-	perror ("tcsetattr to set stdin terminal settings");
-	return -1;
+    perror ("tcsetattr to set stdin terminal settings");
+    return -1;
     }
 
     /* Return success. */
@@ -169,11 +169,11 @@ typed_a_char (char c)
 
     if (8 == c || 127 == c) {
         if (0 < len) {
-	    typing[len - 1] = '\0';
-	}
+        typing[len - 1] = '\0';
+    }
     } else if (MAX_TYPED_LEN > len) {
-	typing[len] = c;
-	typing[len + 1] = '\0';
+    typing[len] = c;
+    typing[len + 1] = '\0';
     }
 }
 
