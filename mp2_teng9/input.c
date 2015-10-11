@@ -8,18 +8,18 @@
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice and the following
  * two paragraphs appear in all copies of this software.
- * 
- * IN NO EVENT SHALL THE AUTHOR OR THE UNIVERSITY OF ILLINOIS BE LIABLE TO 
- * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL 
- * DAMAGES ARISING OUT  OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, 
- * EVEN IF THE AUTHOR AND/OR THE UNIVERSITY OF ILLINOIS HAS BEEN ADVISED 
+ *
+ * IN NO EVENT SHALL THE AUTHOR OR THE UNIVERSITY OF ILLINOIS BE LIABLE TO
+ * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+ * DAMAGES ARISING OUT  OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION,
+ * EVEN IF THE AUTHOR AND/OR THE UNIVERSITY OF ILLINOIS HAS BEEN ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * THE AUTHOR AND THE UNIVERSITY OF ILLINOIS SPECIFICALLY DISCLAIM ANY 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE 
+ *
+ * THE AUTHOR AND THE UNIVERSITY OF ILLINOIS SPECIFICALLY DISCLAIM ANY
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
  * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND NEITHER THE AUTHOR NOR
- * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE, 
+ * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE,
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
  * Author:	    Steve Lumetta
@@ -56,9 +56,10 @@
 
 #include "assert.h"
 #include "input.h"
+#include "module/tuxctl-ioctl.h"
 
 /* set to 1 and compile this file by itself to test functionality */
-#define TEST_INPUT_DRIVER 0
+//TEST_INPUT_DRIVER
 
 /* set to 1 to use tux controller; otherwise, uses keyboard input */
 #define USE_TUX_CONTROLLER 0
@@ -67,8 +68,23 @@
 /* stores original terminal settings */
 static struct termios tio_orig;
 
+#define PACKET_UP 239
+#define PACKET_RIGHT 127
+#define PACKET_DOWN 191
+#define PACKET_LEFT 223
+#define PACKET_MOVE_LEFT 253
+#define PACKET_ENTER 251
+#define PACKET_MOVE_RIGHT 247
+#define PACKET_QUIT 254
 
-/* 
+
+int button_did_pressed;
+int fd;
+
+void get_tux_command(cmd_t *pushed);
+
+
+/*
  * init_input
  *   DESCRIPTION: Initializes the input controller.  As both keyboard and
  *                Tux controller control modes use the keyboard for the quit
@@ -76,7 +92,7 @@ static struct termios tio_orig;
  *                rather than the usual terminal mode.
  *   INPUTS: none
  *   OUTPUTS: none
- *   RETURN VALUE: 0 on success, -1 on failure 
+ *   RETURN VALUE: 0 on success, -1 on failure
  *   SIDE EFFECTS: changes terminal settings on stdin; prints an error
  *                 message on failure
  */
@@ -84,6 +100,11 @@ int
 init_input ()
 {
     struct termios tio_new;
+
+
+    fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
+    int temp = N_MOUSE;
+    ioctl(fd, TIOCSETD, &temp);
 
     /*
      * Set non-blocking mode so that stdin can be read without blocking
@@ -156,7 +177,7 @@ typed_a_char (char c)
     }
 }
 
-/* 
+/*
  * get_command
  *   DESCRIPTION: Reads a command from the input controller.  As some
  *                controllers provide only absolute input (e.g., go
@@ -167,7 +188,7 @@ typed_a_char (char c)
  *   RETURN VALUE: command issued by the input controller
  *   SIDE EFFECTS: drains any keyboard input
  */
-cmd_t 
+cmd_t
 get_command ()
 {
 #if (USE_TUX_CONTROLLER == 0) /* use keyboard control with arrow keys */
@@ -183,7 +204,7 @@ get_command ()
 	/* Backquote is used to quit the game. */
 	if (ch == '`')
 	    return CMD_QUIT;
-	
+
 #if (USE_TUX_CONTROLLER == 0) /* use keyboard control with arrow keys */
 	/*
 	 * Arrow keys deliver the byte sequence 27, 91, and 'A' to 'D';
@@ -239,8 +260,8 @@ get_command ()
 		    state = 0;
 		    if (valid_typing (ch)) {
 			/*
-			 * Note that we may be discarding an ESC (27) and 
-			 * a bracket (91), but we don't use either as 
+			 * Note that we may be discarding an ESC (27) and
+			 * a bracket (91), but we don't use either as
 			 * typed input anyway.
 			 */
 			typed_a_char (ch);
@@ -270,6 +291,8 @@ get_command ()
 #endif /* USE_TUX_CONTROLLER */
     }
 
+    get_tux_command(&pushed);
+
     /*
      * Once a direction is pushed, that command remains active
      * until a turn is taken.
@@ -280,13 +303,62 @@ get_command ()
     return pushed;
 }
 
-/* 
+void
+get_tux_command(cmd_t *pushed) {
+    int arg = 0xFFFFFF00;
+    ioctl(fd, TUX_BUTTONS, &arg);
+
+    switch (arg)
+    {
+        case PACKET_UP:
+            *pushed = CMD_UP;
+            break;
+
+        case PACKET_DOWN:
+            *pushed = CMD_DOWN;
+            break;
+
+        case PACKET_LEFT:
+            *pushed = CMD_LEFT;
+            break;
+
+        case PACKET_RIGHT:
+            *pushed = CMD_RIGHT;
+            break;
+    }
+
+    if(arg == button_did_pressed) return;
+
+    switch(arg)
+    {
+        case PACKET_ENTER:
+            *pushed = CMD_ENTER;
+            break;
+
+        case PACKET_QUIT:
+            *pushed = CMD_QUIT;
+            break;
+
+        case PACKET_MOVE_LEFT:
+            *pushed = CMD_MOVE_LEFT;
+            break;
+
+        case PACKET_MOVE_RIGHT:
+            *pushed = CMD_MOVE_RIGHT;
+            break;
+    }
+
+    button_did_pressed = arg;
+}
+
+
+/*
  * shutdown_input
  *   DESCRIPTION: Cleans up state associated with input control.  Restores
  *                original terminal settings.
  *   INPUTS: none
  *   OUTPUTS: none
- *   RETURN VALUE: none 
+ *   RETURN VALUE: none
  *   SIDE EFFECTS: restores original terminal settings
  */
 void
@@ -295,22 +367,27 @@ shutdown_input ()
     (void)tcsetattr (fileno (stdin), TCSANOW, &tio_orig);
 }
 
-
-/* 
+/*
  * display_time_on_tux
  *   DESCRIPTION: Show number of elapsed seconds as minutes:seconds
  *                on the Tux controller's 7-segment displays.
  *   INPUTS: num_seconds -- total seconds elapsed so far
  *   OUTPUTS: none
- *   RETURN VALUE: none 
+ *   RETURN VALUE: none
  *   SIDE EFFECTS: changes state of controller's display
  */
 void
 display_time_on_tux (int num_seconds)
 {
 #if (USE_TUX_CONTROLLER != 0)
-#error "Tux controller code is not operational yet."
 #endif
+    int min = num_seconds / 60;
+    int sec = num_seconds % 60;
+    unsigned long led_time = 0xF4FF0000;
+    if (min < 10) led_time &= 0xFFF7FFFF;
+    led_time |= ((min & 0x00FF) << 8);
+    led_time |= (((sec / 10) * 16 + (sec % 10)) & 0x00FF);
+    ioctl(fd, TUX_SET_LED, led_time);
 }
 
 
@@ -321,7 +398,7 @@ main ()
     cmd_t last_cmd = CMD_NONE;
     cmd_t cmd;
     static const char* const cmd_name[NUM_COMMANDS] = {
-        "none", "right", "left", "up", "down", 
+        "none", "right", "left", "up", "down",
 	"move left", "enter", "move right", "typed command", "quit"
     };
 
