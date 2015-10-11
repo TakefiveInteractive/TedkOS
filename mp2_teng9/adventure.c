@@ -187,6 +187,7 @@ cancel_status_thread (void* ignore)
     (void)pthread_cancel (status_thread_id);
 }
 
+/* Thread that bumps the seconds elapsed every second */
 static
 void ticker_thread (void * param)
 {
@@ -199,6 +200,22 @@ void ticker_thread (void * param)
         usleep(1000000);
     }
 }
+
+/*
+ * cancel_ticker_thread
+ *   DESCRIPTION: Terminates the ticker helper thread.  Used as
+ *                a cleanup method to ensure proper shutdown.
+ *   INPUTS: none (ignored)
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
+static void
+cancel_ticker_thread (void* ignore)
+{
+    (void)pthread_cancel (timer_thread_id);
+}
+
 
 /*
  * game_loop

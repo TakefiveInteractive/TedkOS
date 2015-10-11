@@ -201,93 +201,92 @@ get_command ()
     /* Read all characters from stdin. */
     while ((ch = getc (stdin)) != EOF) {
 
-	/* Backquote is used to quit the game. */
-	if (ch == '`')
-	    return CMD_QUIT;
+        /* Backquote is used to quit the game. */
+        if (ch == '`') return CMD_QUIT;
 
 #if (USE_TUX_CONTROLLER == 0) /* use keyboard control with arrow keys */
-	/*
-	 * Arrow keys deliver the byte sequence 27, 91, and 'A' to 'D';
-	 * we use a small finite state machine to identify them.
-	 *
-	 * Insert, home, and page up keys deliver 27, 91, '2'/'1'/'5' and
-	 * then a tilde.  We recognize the digits and don't check for the
-	 * tilde.
-	 */
-	switch (state) {
-	    case 0:
-	        if (27 == ch) {
-		    state = 1;
-		} else if (valid_typing (ch)) {
-		    typed_a_char (ch);
-		} else if (10 == ch || 13 == ch) {
-		    pushed = CMD_TYPED;
-		}
-		break;
-	    case 1:
-		if (91 == ch) {
-		    state = 2;
-		} else {
-		    state = 0;
-		    if (valid_typing (ch)) {
-			/*
-			 * Note that we may be discarding an ESC (27), but
-			 * we don't use that as typed input anyway.
-			 */
-			typed_a_char (ch);
-		    } else if (10 == ch || 13 == ch) {
-			pushed = CMD_TYPED;
-		    }
-		}
-		break;
-	    case 2:
-	        if (ch >= 'A' && ch <= 'D') {
-		    switch (ch) {
-			case 'A': pushed = CMD_UP; break;
-			case 'B': pushed = CMD_DOWN; break;
-			case 'C': pushed = CMD_RIGHT; break;
-			case 'D': pushed = CMD_LEFT; break;
-		    }
-		    state = 0;
-		} else if (ch == '1' || ch == '2' || ch == '5') {
-		    switch (ch) {
-			case '2': pushed = CMD_MOVE_LEFT; break;
-			case '1': pushed = CMD_ENTER; break;
-			case '5': pushed = CMD_MOVE_RIGHT; break;
-		    }
-		    state = 3; /* Consume a '~'. */
-		} else {
-		    state = 0;
-		    if (valid_typing (ch)) {
-			/*
-			 * Note that we may be discarding an ESC (27) and
-			 * a bracket (91), but we don't use either as
-			 * typed input anyway.
-			 */
-			typed_a_char (ch);
-		    } else if (10 == ch || 13 == ch) {
-			pushed = CMD_TYPED;
-		    }
-		}
-		break;
-	    case 3:
-		state = 0;
-	        if ('~' == ch) {
-		    /* Consume it silently. */
-		} else if (valid_typing (ch)) {
-		    typed_a_char (ch);
-		} else if (10 == ch || 13 == ch) {
-		    pushed = CMD_TYPED;
-		}
-		break;
-	}
+        /*
+         * Arrow keys deliver the byte sequence 27, 91, and 'A' to 'D';
+         * we use a small finite state machine to identify them.
+         *
+         * Insert, home, and page up keys deliver 27, 91, '2'/'1'/'5' and
+         * then a tilde.  We recognize the digits and don't check for the
+         * tilde.
+         */
+        switch (state) {
+        case 0:
+            if (27 == ch) {
+                state = 1;
+            } else if (valid_typing (ch)) {
+                typed_a_char (ch);
+            } else if (10 == ch || 13 == ch) {
+                pushed = CMD_TYPED;
+            }
+            break;
+        case 1:
+            if (91 == ch) {
+                state = 2;
+            } else {
+                state = 0;
+                if (valid_typing (ch)) {
+                    /*
+                     * Note that we may be discarding an ESC (27), but
+                     * we don't use that as typed input anyway.
+                     */
+                    typed_a_char (ch);
+                } else if (10 == ch || 13 == ch) {
+                    pushed = CMD_TYPED;
+                }
+            }
+            break;
+        case 2:
+            if (ch >= 'A' && ch <= 'D') {
+                switch (ch) {
+                    case 'A': pushed = CMD_UP; break;
+                    case 'B': pushed = CMD_DOWN; break;
+                    case 'C': pushed = CMD_RIGHT; break;
+                    case 'D': pushed = CMD_LEFT; break;
+                }
+                state = 0;
+            } else if (ch == '1' || ch == '2' || ch == '5') {
+                switch (ch) {
+                    case '2': pushed = CMD_MOVE_LEFT; break;
+                    case '1': pushed = CMD_ENTER; break;
+                    case '5': pushed = CMD_MOVE_RIGHT; break;
+                }
+                state = 3; /* Consume a '~'. */
+            } else {
+                state = 0;
+                if (valid_typing (ch)) {
+                    /*
+                     * Note that we may be discarding an ESC (27) and
+                     * a bracket (91), but we don't use either as
+                     * typed input anyway.
+                     */
+                    typed_a_char (ch);
+                } else if (10 == ch || 13 == ch) {
+                    pushed = CMD_TYPED;
+                }
+            }
+            break;
+        case 3:
+            state = 0;
+            if ('~' == ch) {
+                /* Consume it silently. */
+            } else if (valid_typing (ch)) {
+                typed_a_char (ch);
+            } else if (10 == ch || 13 == ch) {
+                pushed = CMD_TYPED;
+            }
+            break;
+        }
 #else /* USE_TUX_CONTROLLER */
-	/* Tux controller mode; still need to support typed commands. */
-	if (valid_typing (ch)) {
-	    typed_a_char (ch);
-	} else if (10 == ch || 13 == ch) {
-	    pushed = CMD_TYPED;
-	}
+        /* Tux controller mode; still need to support typed commands. */
+        if (valid_typing (ch)) {
+            typed_a_char (ch);
+        } else if (10 == ch || 13 == ch) {
+            pushed = CMD_TYPED;
+        }
 #endif /* USE_TUX_CONTROLLER */
     }
 
@@ -304,7 +303,8 @@ get_command ()
 }
 
 void
-get_tux_command(cmd_t *pushed) {
+get_tux_command(cmd_t *pushed)
+{
     int arg = 0xFFFFFF00;
     ioctl(fd, TUX_BUTTONS, &arg);
 

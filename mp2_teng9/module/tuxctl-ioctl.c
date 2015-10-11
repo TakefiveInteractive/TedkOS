@@ -39,6 +39,7 @@ volatile unsigned char button_c;
 static const char CMD_MTCP_BIOC_ON = MTCP_BIOC_ON;
 static const char CMD_MTCP_LED_USR = MTCP_LED_USR;
 
+/* Font for digits 0 to f */
 static unsigned char led_font[16] = {
      0xE7, 0x06, 0xCB, 0x8F,
      0x2E, 0xAD, 0xED, 0x86,
@@ -143,7 +144,6 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
     }
 
 }
-
 
 int tuxctl_set_button(unsigned long* arg)
 {
