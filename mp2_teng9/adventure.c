@@ -166,6 +166,7 @@ static game_info_t game_info; /* game information */
  * condition variable msg_cv (while holding the msg_lock).
  */
 static pthread_t status_thread_id;
+static pthread_t timer_thread_id;
 static pthread_mutex_t msg_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  msg_cv = PTHREAD_COND_INITIALIZER;
 static char status_msg[STATUS_MSG_LEN + 1] = {'\0'};
@@ -186,6 +187,18 @@ cancel_status_thread (void* ignore)
     (void)pthread_cancel (status_thread_id);
 }
 
+static
+void ticker_thread (void * param)
+{
+    (void)(param);
+    int num_seconds = 0;
+    for (;;)
+    {
+        display_time_on_tux(num_seconds);
+        num_seconds++;
+        usleep(1000000);
+    }
+}
 
 /*
  * game_loop
@@ -217,6 +230,8 @@ game_loop ()
 	tick_time.tv_sec++;
 	tick_time.tv_usec -= 1000000;
     }
+
+    pthread_create(&timer_thread_id, NULL, (void*)ticker_thread, (int*)start_time.tv_sec);
 
     /* The player has just entered the first room. */
     enter_room = 1;
