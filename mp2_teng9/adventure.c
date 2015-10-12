@@ -821,26 +821,29 @@ main ()
             if (0 != init_input ()) {
                 PANIC ("cannot initialize input");
             }
-            if (0 != pthread_create(&timer_thread_id, NULL, (void*)ticker_thread, NULL)) {
-                PANIC ("failed to create ticker thread");
-            }
-            push_cleanup (cancel_ticker_thread, NULL); {
 
-                push_cleanup ((cleanup_fn_t)shutdown_input, NULL); {
+            push_cleanup ((cleanup_fn_t)shutdown_input, NULL); {
+
+                if (0 != pthread_create(&timer_thread_id, NULL, (void*)ticker_thread, NULL)) {
+                    PANIC ("failed to create ticker thread");
+                }
+
+                push_cleanup (cancel_ticker_thread, NULL); {
 
                     game = game_loop ();
 
                 } pop_cleanup (1);
 
             } pop_cleanup (1);
+
         } pop_cleanup (1);
 
     } pop_cleanup (1);
 
     /* Print a message about the outcome. */
     switch (game) {
-	case GAME_WON: printf ("You win the game!  CONGRATULATIONS!\n"); break;
-	case GAME_QUIT: printf ("Quitter!\n"); break;
+        case GAME_WON: printf ("You win the game!  CONGRATULATIONS!\n"); break;
+        case GAME_QUIT: printf ("Quitter!\n"); break;
     }
 
     /* Return success. */

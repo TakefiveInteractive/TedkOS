@@ -68,17 +68,15 @@
 /* stores original terminal settings */
 static struct termios tio_orig;
 
-#define PACKET_UP 16
-#define PACKET_RIGHT 128
-#define PACKET_DOWN 32
-#define PACKET_LEFT 64
-#define PACKET_MOVE_LEFT 2
-#define PACKET_ENTER 4
-#define PACKET_MOVE_RIGHT 8
-#define PACKET_QUIT 1
+#define PACKET_UP (1 << 4)
+#define PACKET_RIGHT (1 << 7)
+#define PACKET_DOWN (1 << 5)
+#define PACKET_LEFT (1 << 6)
+#define PACKET_MOVE_LEFT (1 << 1)
+#define PACKET_ENTER (1 << 2)
+#define PACKET_MOVE_RIGHT (1 << 3)
+#define PACKET_QUIT (1 << 0)
 
-
-int button_did_pressed = 0;
 int fd;
 
 void get_tux_command(cmd_t *pushed);
@@ -105,6 +103,7 @@ init_input ()
     fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
     int temp = N_MOUSE;
     ioctl(fd, TIOCSETD, &temp);
+    ioctl(fd, TUX_INIT, &temp);
 
     /*
      * Set non-blocking mode so that stdin can be read without blocking
@@ -119,8 +118,8 @@ init_input ()
      * Save current terminal attributes for stdin.
      */
     if (tcgetattr (fileno (stdin), &tio_orig) != 0) {
-    perror ("tcgetattr to read stdin terminal settings");
-    return -1;
+        perror ("tcgetattr to read stdin terminal settings");
+        return -1;
     }
 
     /*
@@ -133,8 +132,8 @@ init_input ()
     tio_new.c_cc[VMIN] = 1;
     tio_new.c_cc[VTIME] = 0;
     if (tcsetattr (fileno (stdin), TCSANOW, &tio_new) != 0) {
-    perror ("tcsetattr to set stdin terminal settings");
-    return -1;
+        perror ("tcsetattr to set stdin terminal settings");
+        return -1;
     }
 
     /* Return success. */
@@ -172,8 +171,8 @@ typed_a_char (char c)
         typing[len - 1] = '\0';
     }
     } else if (MAX_TYPED_LEN > len) {
-    typing[len] = c;
-    typing[len + 1] = '\0';
+        typing[len] = c;
+        typing[len + 1] = '\0';
     }
 }
 
@@ -290,7 +289,8 @@ get_command ()
 #endif /* USE_TUX_CONTROLLER */
     }
 
-    get_tux_command(&pushed);
+    cmd_t tux_pushed = CMD_NONE;
+    get_tux_command(&tux_pushed);
 
     /*
      * Once a direction is pushed, that command remains active
@@ -299,56 +299,79 @@ get_command ()
     if (pushed == CMD_NONE) {
         command = CMD_NONE;
     }
+
+    // Controller overrides the keyboard
+    if (tux_pushed != CMD_NONE) pushed = tux_pushed;
+
     return pushed;
 }
 
 void
 get_tux_command(cmd_t *pushed)
 {
-    int arg = 0xFFFFFF00;
-    ioctl(fd, TUX_BUTTONS, &arg);
+    int btns = 0;
+    ioctl(fd, TUX_BUTTONS, &btns);
+    static int last_btns = 0;
+    // Kill those bits already present last time
+    int new_btns = btns & ~last_btns;
 
-    switch (arg)
+    static cmd_t tux_pushed = CMD_NONE;
+
+    last_btns = btns;
+
+    if (btns == 0)
     {
-        case PACKET_UP:
-            *pushed = CMD_UP;
-            break;
-
-        case PACKET_DOWN:
-            *pushed = CMD_DOWN;
-            break;
-
-        case PACKET_LEFT:
-            *pushed = CMD_LEFT;
-            break;
-
-        case PACKET_RIGHT:
-            *pushed = CMD_RIGHT;
-            break;
+        tux_pushed = CMD_NONE;
+        *pushed = CMD_NONE;
+        return;
     }
 
-    if(arg == button_did_pressed) return;
-
-    switch(arg)
+    switch (new_btns)
     {
-        case PACKET_ENTER:
-            *pushed = CMD_ENTER;
-            break;
+    case PACKET_UP:
+        tux_pushed = CMD_UP;
+        break;
 
-        case PACKET_QUIT:
-            *pushed = CMD_QUIT;
-            break;
+    case PACKET_DOWN:
+        tux_pushed = CMD_DOWN;
+        break;
 
-        case PACKET_MOVE_LEFT:
-            *pushed = CMD_MOVE_LEFT;
-            break;
+    case PACKET_LEFT:
+        tux_pushed = CMD_LEFT;
+        break;
 
-        case PACKET_MOVE_RIGHT:
-            *pushed = CMD_MOVE_RIGHT;
-            break;
+    case PACKET_RIGHT:
+        tux_pushed = CMD_RIGHT;
+        break;
+
+    case PACKET_ENTER:
+        tux_pushed = CMD_ENTER;
+        break;
+
+    case PACKET_QUIT:
+        tux_pushed = CMD_QUIT;
+        break;
+
+    case PACKET_MOVE_LEFT:
+        tux_pushed = CMD_MOVE_LEFT;
+        break;
+
+    case PACKET_MOVE_RIGHT:
+        tux_pushed = CMD_MOVE_RIGHT;
+        break;
     }
 
-    button_did_pressed = arg;
+    // Debouncing
+    if (new_btns == 0 && (tux_pushed == CMD_ENTER ||
+            tux_pushed == CMD_QUIT ||
+            tux_pushed == CMD_MOVE_LEFT ||
+            tux_pushed == CMD_MOVE_RIGHT))
+    {
+         tux_pushed = CMD_NONE;
+    }
+
+    *pushed = tux_pushed;
+
 }
 
 
@@ -379,14 +402,14 @@ shutdown_input ()
 void
 display_time_on_tux (int num_seconds)
 {
-#if (USE_TUX_CONTROLLER != 0)
-#endif
     int min = num_seconds / 60;
     int sec = num_seconds % 60;
     unsigned long led_time = 0xF4FF0000;
+    // Kill first digit
     if (min < 10) led_time &= 0xFFF7FFFF;
-    led_time |= ((min & 0x00FF) << 8);
-    led_time |= (((sec / 10) * 16 + (sec % 10)) & 0x00FF);
+    led_time |= (min & 0x00FF) << 8;
+    // Skip 6 every 10
+    led_time |= ((sec / 10) * 16 + (sec % 10)) & 0x00FF;
     ioctl(fd, TUX_SET_LED, led_time);
 }
 
