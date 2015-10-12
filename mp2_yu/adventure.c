@@ -166,7 +166,6 @@ static game_info_t game_info; /* game information */
  * condition variable msg_cv (while holding the msg_lock).
  */
 static pthread_t status_thread_id;
-static pthread_t timer_thread_id;
 static pthread_mutex_t msg_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  msg_cv = PTHREAD_COND_INITIALIZER;
 static char status_msg[STATUS_MSG_LEN + 1] = {'\0'};
@@ -203,7 +202,7 @@ game_loop ()
      * Variables used to carry information between event loop ticks; see
      * initialization below for explanations of purpose.
      */
-    struct timeval start_time, tick_time;
+    struct timeval start_time, tick_time, current_time;
 
     struct timeval cur_time; /* current time (during tick)      */
     cmd_t cmd;               /* command issued by input control */
@@ -218,7 +217,6 @@ game_loop ()
 	tick_time.tv_sec++;
 	tick_time.tv_usec -= 1000000;
     }
-    pthread_create(&timer_thread_id, NULL, (void*)display_time_on_tux, (int*)start_time.tv_sec);
     /* The player has just entered the first room. */
     enter_room = 1;
 
@@ -294,7 +292,11 @@ game_loop ()
 	 * than tick counts for timing, although the real time is rounded
 	 * off to the nearest tick by definition.
 	 */
-	/* (none right now...) */
+
+    /* used gettimeofday for precision */
+    (void)gettimeofday (&current_time, NULL);
+    /* update current time on tux */
+    display_time_on_tux(current_time.tv_sec - start_time.tv_sec);
 
 	/*
 	 * Handle synchronous events--in this case, only player commands.

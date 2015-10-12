@@ -57,7 +57,7 @@
 #define IMAGE_Y_DIM     200   /* pixels                                     */
 #define IMAGE_X_WIDTH   (IMAGE_X_DIM / 4)          /* addresses (bytes)     */
 #define SCROLL_X_DIM	IMAGE_X_DIM                /* full image width      */
-#define SCROLL_Y_DIM    IMAGE_Y_DIM                /* full image width      */
+#define SCROLL_Y_DIM    (IMAGE_Y_DIM - 18)         /* full image width      */
 #define SCROLL_X_WIDTH  (IMAGE_X_DIM / 4)          /* addresses (bytes)     */
 
 // status bar offset: 200 * 18
@@ -140,5 +140,7 @@ extern int draw_vert_line (int x);
 
 /* draw a status bar in the screen*/
 extern void show_status_bar (unsigned char * buf);
+
+void set_palette(void *color);
 
 #endif /* MODEX_H */

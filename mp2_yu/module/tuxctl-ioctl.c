@@ -34,11 +34,14 @@
 
 spinlock_t lock = SPIN_LOCK_UNLOCKED;
 
-volatile unsigned char command;
-volatile int waiting;
+volatile int waiting = 0;
 volatile unsigned int led_saved_arg;
-volatile unsigned char button_b;
-volatile unsigned char button_c;
+volatile unsigned char button_2;
+volatile unsigned char button_3;
+
+static const char MTCP_LED_USR_CMD = MTCP_LED_USR;
+static const char MTCP_BIOC_ON_CMD = MTCP_BIOC_ON;
+static const char MTCP_RESET_DEV_CMD = MTCP_RESET_DEV;
 
 static unsigned char led_font[16] = {
      0xE7, 0x06, 0xCB, 0x8F,
@@ -48,7 +51,7 @@ static unsigned char led_font[16] = {
 };
 
 int tuxctl_set_led(struct tty_struct* tty, unsigned long arg);
-int tuxctl_set_button(unsigned long* arg);
+int tuxctl_set_button(unsigned long arg);
 
 /************************ Protocol Implementation *************************/
 
@@ -57,35 +60,38 @@ int tuxctl_set_button(unsigned long* arg);
  * tuxctl-ld.c. It calls this function, so all warnings there apply
  * here as well.
  */
-void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
+void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* meizi)
 {
     unsigned a, b, c;
     unsigned long flags;
 
     spin_lock_irqsave(&lock, flags);
 
-    a = packet[0]; /* Avoid printk() sign extending the 8-bit */
-    b = packet[1]; /* values when printing them. */
-    c = packet[2];
+    a = meizi[0]; /* Avoid printk() sign extending the 8-bit */
+    b = meizi[1]; /* values when printing them. */
+    c = meizi[2];
 
     //printk("packet : %x %x %x\n", a, b, c);
 
     switch (a) {
         case MTCP_ACK:
+            /* once receive ack, don't need to wait */
             waiting = 0;
             break;
 
         case MTCP_RESET:
             waiting = 0;
-            command = MTCP_BIOC_ON;
-            tuxctl_ldisc_put(tty, (char*)&command, 1);
+            /* enable Button interrupt-on-change. MTCP_ACK is returned.*/
+            tuxctl_ldisc_put(tty, &MTCP_BIOC_ON_CMD, 1);
+            /* load saved led data to led */
             tuxctl_set_led(tty, led_saved_arg);
             waiting = 1;
             break;
 
         case MTCP_BIOC_EVENT:
-            button_b = b;
-            button_c = c;
+            /* save packet 2th and 3th byte */
+            button_2 = b;
+            button_3 = c;
             break;
 
         default:
@@ -112,32 +118,48 @@ int
 tuxctl_ioctl (struct tty_struct* tty, struct file* file,
           unsigned cmd, unsigned long arg)
 {
-    int ret;
-    int ptr;
-
-    if (waiting) return -EINVAL;
+    /* local variables */
+    int ret, ptr;
+    unsigned long flags;
 
     switch (cmd) {
     case TUX_INIT:
-        command = MTCP_BIOC_ON;
-        tuxctl_ldisc_put(tty, (char*)&command, 1);
-        command = MTCP_LED_USR;
-        tuxctl_ldisc_put(tty, (char*)&command, 1);
+        spin_lock_irqsave(&lock, flags);
+        /* initialize all volatile variable */
+        button_2 = 0x0F;
+        button_3 = 0x0F;
+        /* disable all display on the led */
+        led_saved_arg = 0x00000000;
+
+        /* reset device command */
+        tuxctl_ldisc_put(tty, &MTCP_RESET_DEV_CMD, 1);
+        //tuxctl_ldisc_put(tty, &MTCP_LED_USR_CMD, 1);
+        /* enable user space input to led */
+        tuxctl_ldisc_put(tty, &MTCP_LED_USR_CMD, 1);
+        spin_unlock_irqrestore(&lock, flags);
         return 0;
 
     case TUX_BUTTONS:
+        spin_lock_irqsave(&lock, flags);
         if (!arg) return -EINVAL;
 
+        /* ****   **** */
+        /* but_c but_b */
         ptr = 0x0;
-        ptr |= (button_b & 0x0F);
-        ptr |= (button_c & 0x0F) << 4;
+        ptr |= (button_2 & 0x0F);
+        ptr |= (button_3 & 0x0F) << 4;
 
+        /* copy to user space */
         ret = copy_to_user((int*)arg, &ptr, sizeof(int));
-        //ret = tuxctl_set_button(&arg);
+        spin_unlock_irqrestore(&lock, flags);
+        /* handle return value */
         if (ret > 0) return -EINVAL;
-        else return 0;        
+        else return 0;
 
     case TUX_SET_LED:
+        /* return -1 when still waiting for ack */
+        if (waiting) return -EINVAL;
+        /* set led according to the argument input from user level */
         return tuxctl_set_led(tty, arg);
 
     case TUX_LED_ACK:
@@ -148,9 +170,10 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
     }
 }
 
-int tuxctl_set_button(unsigned long* arg) {
-    unsigned char low = button_b & 0x0F;
-    unsigned char high = button_c & 0x0F;
+/* function that not been used, just ignore*/
+int tuxctl_set_button(unsigned long arg) {
+    unsigned char low = button_2 & 0x0F;
+    unsigned char high = button_3 & 0x0F;
     unsigned char mixed = 0x0;
     unsigned char direction;
     int i;
@@ -164,37 +187,53 @@ int tuxctl_set_button(unsigned long* arg) {
 
     mixed = (high << 4) | low;
     lll = (unsigned long)mixed;
-    return copy_to_user(arg, &lll, sizeof(long));
+    return copy_to_user(&arg, &lll, sizeof(long));
 }
 
+/* tuxctl_set_led()
+ * DESCRIPTION: set LED on the tux
+ * INPUT: tty - tty tux control
+ *        arg - ioctl argument
+ * OUTPUT: int, 0 for success, -EINVAL for error
+ * SIDE EFFECTS: set user input argument data into tux led
+ */
 int tuxctl_set_led(struct tty_struct* tty, unsigned long arg) {
     int i;
+    /* led dot and digit mask */
     int led_dot = 0x01000000;
     int led_on = 0x00010000;
+    /* local variable buffer */
     unsigned char led_text;
     unsigned char time_buf[4];
     unsigned char led_buf[LED_BUF_SIZE];
 
+    /* led buffer busic setting */
     led_buf[0] = MTCP_LED_SET;
     led_buf[1] = 0x0F;
     time_buf[0] = (arg & 0x000F);
     time_buf[1] = (arg & 0x00F0) >> 4;
     time_buf[2] = (arg & 0x0F00) >> (4 * 2);
     time_buf[3] = (arg & 0x0F000) >> (4 * 3);
-    
+
     waiting = 1;
+    /* set 4 led screen */
     for (i = 0; i < LED_SCREEN_NUM; i++) {
         if (arg & led_on) {
+            /* load led font data */
             led_text = led_font[time_buf[i]];
             if (arg & led_dot)
                 led_text |= 0x10;
         } else led_text = 0x0;
         led_buf[i + 2] = led_text;
 
+        /* shift the mask */
         led_on = led_on << 1;
         led_dot = led_dot << 1;
     }
+
+    /* prevent reset to reset the led screen */
     led_saved_arg = arg;
+    /* write the led buffer to device */
     tuxctl_ldisc_put(tty, (char*)led_buf, LED_BUF_SIZE);
     return 0;
 }

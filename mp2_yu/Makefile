@@ -28,7 +28,7 @@ clean::
 	rm -f *.o *~ a.out
 
 test:
-	gcc -o test input.c
+	gcc ${CFLAGS} -o test input.c
 
 clear: clean
 	rm -f adventure tr mp2photo mp2object

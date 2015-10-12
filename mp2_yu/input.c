@@ -8,18 +8,18 @@
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice and the following
  * two paragraphs appear in all copies of this software.
- * 
- * IN NO EVENT SHALL THE AUTHOR OR THE UNIVERSITY OF ILLINOIS BE LIABLE TO 
- * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL 
- * DAMAGES ARISING OUT  OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, 
- * EVEN IF THE AUTHOR AND/OR THE UNIVERSITY OF ILLINOIS HAS BEEN ADVISED 
+ *
+ * IN NO EVENT SHALL THE AUTHOR OR THE UNIVERSITY OF ILLINOIS BE LIABLE TO
+ * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+ * DAMAGES ARISING OUT  OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION,
+ * EVEN IF THE AUTHOR AND/OR THE UNIVERSITY OF ILLINOIS HAS BEEN ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * THE AUTHOR AND THE UNIVERSITY OF ILLINOIS SPECIFICALLY DISCLAIM ANY 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE 
+ *
+ * THE AUTHOR AND THE UNIVERSITY OF ILLINOIS SPECIFICALLY DISCLAIM ANY
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
  * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND NEITHER THE AUTHOR NOR
- * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE, 
+ * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE,
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
  * Author:	    Steve Lumetta
@@ -68,21 +68,18 @@
 /* stores original terminal settings */
 static struct termios tio_orig;
 
-#define PACKET_UP 239
-#define PACKET_RIGHT 127
-#define PACKET_DOWN 191
-#define PACKET_LEFT 223
-#define PACKET_MOVE_LEFT 253
-#define PACKET_ENTER 251
-#define PACKET_MOVE_RIGHT 247
-#define PACKET_QUIT 254
+#define PACKET_UP 0xEF
+#define PACKET_RIGHT 0x7F
+#define PACKET_DOWN 0xBF
+#define PACKET_LEFT 0xDF
+#define PACKET_MOVE_LEFT 0xFD
+#define PACKET_ENTER 0xFB
+#define PACKET_MOVE_RIGHT 0xF7
 
-int button_did_pressed;
+int last_arg;
 int fd;
 
-void get_tux_command(cmd_t *pushed);
-
-/* 
+/*
  * init_input
  *   DESCRIPTION: Initializes the input controller.  As both keyboard and
  *                Tux controller control modes use the keyboard for the quit
@@ -90,7 +87,7 @@ void get_tux_command(cmd_t *pushed);
  *                rather than the usual terminal mode.
  *   INPUTS: none
  *   OUTPUTS: none
- *   RETURN VALUE: 0 on success, -1 on failure 
+ *   RETURN VALUE: 0 on success, -1 on failure
  *   SIDE EFFECTS: changes terminal settings on stdin; prints an error
  *                 message on failure
  */
@@ -99,9 +96,12 @@ init_input ()
 {
     struct termios tio_new;
 
+    /* connect tux */
     fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
     int temp = N_MOUSE;
-	ioctl(fd, TIOCSETD, &temp);
+    ioctl(fd, TIOCSETD, &temp);
+    /* init the tux */
+    ioctl(fd, TUX_INIT, &temp);
 
     /*
      * Set non-blocking mode so that stdin can be read without blocking
@@ -174,7 +174,7 @@ typed_a_char (char c)
     }
 }
 
-/* 
+/*
  * get_command
  *   DESCRIPTION: Reads a command from the input controller.  As some
  *                controllers provide only absolute input (e.g., go
@@ -185,7 +185,7 @@ typed_a_char (char c)
  *   RETURN VALUE: command issued by the input controller
  *   SIDE EFFECTS: drains any keyboard input
  */
-cmd_t 
+cmd_t
 get_command ()
 {
 #if (USE_TUX_CONTROLLER == 0) /* use keyboard control with arrow keys */
@@ -193,7 +193,9 @@ get_command ()
 #endif
     static cmd_t command = CMD_NONE;
     cmd_t pushed = CMD_NONE;
+    int cmd_not_modified;
     int ch;
+    int arg = 0xFFFFFF00;
 
     /* Read all characters from stdin. */
     while ((ch = getc (stdin)) != EOF) {
@@ -201,7 +203,7 @@ get_command ()
 	/* Backquote is used to quit the game. */
 	if (ch == '`')
 	    return CMD_QUIT;
-	
+
 #if (USE_TUX_CONTROLLER == 0) /* use keyboard control with arrow keys */
 	/*
 	 * Arrow keys deliver the byte sequence 27, 91, and 'A' to 'D';
@@ -257,8 +259,8 @@ get_command ()
 		    state = 0;
 		    if (valid_typing (ch)) {
 			/*
-			 * Note that we may be discarding an ESC (27) and 
-			 * a bracket (91), but we don't use either as 
+			 * Note that we may be discarding an ESC (27) and
+			 * a bracket (91), but we don't use either as
 			 * typed input anyway.
 			 */
 			typed_a_char (ch);
@@ -287,8 +289,57 @@ get_command ()
 	}
 #endif /* USE_TUX_CONTROLLER */
     }
-    
-    get_tux_command(&pushed);
+
+    /* get button packet byte */
+    ioctl(fd, TUX_BUTTONS, &arg);
+
+    /* check if previous command is same as current one */
+    if (last_arg == arg) {
+        cmd_not_modified = 1;
+    } else cmd_not_modified = 0;
+
+    /* check which button are pressed */
+    switch (arg)
+    {
+        /* pressed UP button */
+        case PACKET_UP:
+            pushed = CMD_UP;
+            break;
+
+        /* pressed DONW button */
+        case PACKET_DOWN:
+            pushed = CMD_DOWN;
+            break;
+
+        /* pressed LEFT button */
+        case PACKET_LEFT:
+            pushed = CMD_LEFT;
+            break;
+
+        /* pressed RIGHT button */
+        case PACKET_RIGHT:
+            pushed = CMD_RIGHT;
+            break;
+
+        /* pressed B button */
+        case PACKET_ENTER:
+            pushed = cmd_not_modified ? CMD_NONE : CMD_ENTER;
+            break;
+
+        /* pressed C button */
+        case PACKET_MOVE_LEFT:
+            pushed = cmd_not_modified ? CMD_NONE : CMD_MOVE_LEFT;
+            break;
+
+        /* pressed A button */
+        case PACKET_MOVE_RIGHT:
+            pushed = cmd_not_modified ? CMD_NONE : CMD_MOVE_RIGHT;
+            break;
+    }
+
+    /* record current command to check next command is same or not */
+    last_arg = arg;
+
     /*
      * Once a direction is pushed, that command remains active
      * until a turn is taken.
@@ -299,64 +350,13 @@ get_command ()
     return pushed;
 }
 
-
-void
-get_tux_command(cmd_t *pushed) {
-	int arg = 0xFFFFFF00;
-	ioctl(fd, TUX_BUTTONS, &arg);
-
-	//printf("%d\n", arg);
-
-	switch (arg)
-	{
-	    case PACKET_UP: 
-	    	*pushed = CMD_UP;							
-	    	break;
-
-	    case PACKET_DOWN: 
-	    	*pushed = CMD_DOWN;
-	    	break; 
-
-	    case PACKET_LEFT: 
-	    	*pushed = CMD_LEFT;
-	    	break; 
-
-	    case PACKET_RIGHT: 
-	    	*pushed = CMD_RIGHT;
-	    	break; 				
-	}
-
-	if(arg == button_did_pressed) return;
-
-	switch(arg)
-	{
-    	case PACKET_ENTER:
-    		 *pushed = CMD_ENTER;
-    		break;		
-
-		case PACKET_QUIT:
-			*pushed = CMD_QUIT;
-			break;		
-
-		case PACKET_MOVE_LEFT:
-		 	*pushed = CMD_MOVE_LEFT;				
-			break;		
-
-    	case PACKET_MOVE_RIGHT:
-    		*pushed = CMD_MOVE_RIGHT;	
-    		break;		
-	}
-
-	button_did_pressed = arg;
-}
-
-/* 
+/*
  * shutdown_input
  *   DESCRIPTION: Cleans up state associated with input control.  Restores
  *                original terminal settings.
  *   INPUTS: none
  *   OUTPUTS: none
- *   RETURN VALUE: none 
+ *   RETURN VALUE: none
  *   SIDE EFFECTS: restores original terminal settings
  */
 void
@@ -367,42 +367,35 @@ shutdown_input ()
 }
 
 
-/* 
+/*
  * display_time_on_tux
  *   DESCRIPTION: Show number of elapsed seconds as minutes:seconds
  *                on the Tux controller's 7-segment displays.
  *   INPUTS: num_seconds -- total seconds elapsed so far
  *   OUTPUTS: none
- *   RETURN VALUE: none 
+ *   RETURN VALUE: none
  *   SIDE EFFECTS: changes state of controller's display
  */
-void*
-display_time_on_tux (int* num_seconds)
+void
+display_time_on_tux (int num_seconds)
 {
 #if (USE_TUX_CONTROLLER != 0)
 #endif
+    /* get current second and minute */
+    int sec = num_seconds % 60;
+    int min = num_seconds / 60;
+    unsigned long led_time = 0xF4FF0000;
 
-	int min = 0;
-	int sec = 0;
+    if (sec > 59) sec = 0;
+    if (min > 99) min = 0;
 
-	while(1) {
-		if (sec > 59) {
-			sec = 0;
-			min++;
-		} 
-		if (min > 99) {
-			min = 0;
-			sec = 0;
-		}
-		unsigned long led_time = 0xF4FF0000;
-		if (min < 10) led_time &= 0xFFF7FFFF;
-		led_time |= ((min & 0x00FF) << 8);
-		led_time |= (((sec / 10) * 16 + (sec % 10)) & 0x00FF);
-		ioctl(fd, TUX_SET_LED, led_time);
-		sec++;
-		usleep(1000000);
-	}
-	return NULL;
+    /* disable the first position in led */
+    if (min < 10) led_time &= 0xFFF7FFFF;
+    /* hex to decimal and set to led buffer */
+    led_time |= ((min / 10 * 16 + min % 10) & 0xFF) << 8;
+    led_time |= (sec / 10 * 16 + sec % 10) & 0xFF;
+    /* write to device */
+    ioctl(fd, TUX_SET_LED, led_time);
 }
 
 
@@ -410,30 +403,27 @@ display_time_on_tux (int* num_seconds)
 int
 main ()
 {
-	int sec = 0;
-	ioctl (fd, TUX_INIT);
-
     cmd_t last_cmd = CMD_NONE;
     cmd_t cmd;
     static const char* const cmd_name[NUM_COMMANDS] = {
-        "none", "right", "left", "up", "down", 
-	"move left", "enter", "move right", "typed command", "quit"
+        "none", "right", "left", "up", "down",
+        "move left", "enter", "move right", "typed command", "quit"
     };
 
     /* Grant ourselves permission to use ports 0-1023 */
     if (ioperm (0, 1024, 1) == -1) {
-	perror ("ioperm");
-	return 3;
+        perror ("ioperm");
+        return 3;
     }
 
     init_input ();
     while (1) {
-        while ((cmd = get_command ()) == last_cmd);
-	last_cmd = cmd;
-	printf ("command issued: %s\n", cmd_name[cmd]);
-	if (cmd == CMD_QUIT)
-	    break;
-	display_time_on_tux (&sec);
+        while ((cmd = get_command ()) == last_cmd) {}
+        last_cmd = cmd;
+        printf ("command issued: %s\n", cmd_name[cmd]);
+        if (cmd == CMD_QUIT)
+            break;
+        display_time_on_tux (83);
     }
     shutdown_input ();
     return 0;

@@ -8,18 +8,18 @@
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice and the following
  * two paragraphs appear in all copies of this software.
- * 
- * IN NO EVENT SHALL THE AUTHOR OR THE UNIVERSITY OF ILLINOIS BE LIABLE TO 
- * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL 
- * DAMAGES ARISING OUT  OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, 
- * EVEN IF THE AUTHOR AND/OR THE UNIVERSITY OF ILLINOIS HAS BEEN ADVISED 
+ *
+ * IN NO EVENT SHALL THE AUTHOR OR THE UNIVERSITY OF ILLINOIS BE LIABLE TO
+ * ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+ * DAMAGES ARISING OUT  OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION,
+ * EVEN IF THE AUTHOR AND/OR THE UNIVERSITY OF ILLINOIS HAS BEEN ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * THE AUTHOR AND THE UNIVERSITY OF ILLINOIS SPECIFICALLY DISCLAIM ANY 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE 
+ *
+ * THE AUTHOR AND THE UNIVERSITY OF ILLINOIS SPECIFICALLY DISCLAIM ANY
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
  * PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND NEITHER THE AUTHOR NOR
- * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE, 
+ * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE,
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
  * Author:	    Steve Lumetta
@@ -32,7 +32,7 @@
  *	SL	2	Thu Sep 15 00:31:40 2011
  *		Cleaned up code for distribution.
  */
- 
+
 
 #include <string.h>
 #include <strings.h>
@@ -117,7 +117,7 @@ enum {
     R_WILL_SIDE,	/* side view of Willard and tower    */
     R_REM_PLANE,	/* a sensor-laden plane              */
     R_COCKPIT,		/* cockpit of remote sensing plane   */
-    R_OVER_WILL,	/* flying above Willard Airport      */ 
+    R_OVER_WILL,	/* flying above Willard Airport      */
     R_AIR_RIO,		/* view of Rio de Janeiro from air   */
     R_REM_ICE,		/* the ice fields near rem. sen. lab */
     R_REM_LAB,		/* part of a remote sensing lab      */
@@ -174,8 +174,8 @@ enum {
 /* types local to this file (declared in types.h) */
 
 /*
- * The structure representing a room in the world.  The backpack/inventory 
- * is also a 'room' (#0, R_INVENTORY). 
+ * The structure representing a room in the world.  The backpack/inventory
+ * is also a 'room' (#0, R_INVENTORY).
  */
 struct room_t {
     const char* name;		/* name of room                   */
@@ -200,7 +200,7 @@ struct object_t {
 };
 
 /*
- * This local structure is used to specify room connectivity and data 
+ * This local structure is used to specify room connectivity and data
  * in a reasonably manageable way.  The array entries in the database
  * specify the room id, name, filename, and connections to other
  * rooms by symbolic name.  Since there are many rooms, trying to
@@ -223,150 +223,150 @@ struct room_data_t {
 /* the room connectivity data */
 static const room_data_t room_data[N_ROOMS] = {
     /* Area 0: The Backpack */
-    {R_INVENTORY, "Inventory", "images/backpack.photo", 
+    {R_INVENTORY, "Inventory", "images/backpack.photo",
                        R_NONE,      R_NONE,      R_NONE},
 
     /* Area 1: Everitt and Green Street */
-    {R_IN_391LAB, "391 Lab", "images/391lab.photo", 
+    {R_IN_391LAB, "391 Lab", "images/391lab.photo",
                        R_NONE, R_BY_391LAB,      R_NONE},
-    {R_BY_391LAB, "Outside of 391", "images/outside391.photo", 
+    {R_BY_391LAB, "Outside of 391", "images/outside391.photo",
                      R_BY_ZAS, R_IN_391LAB,   R_BY_IEEE},
-    {  R_IN_IEEE, "IEEE Office", "images/ieee.photo", 
+    {  R_IN_IEEE, "IEEE Office", "images/ieee.photo",
                        R_NONE,   R_BY_IEEE,      R_NONE},
-    {  R_BY_IEEE, "Outside IEEE", "images/byieee.photo", 
+    {  R_BY_IEEE, "Outside IEEE", "images/byieee.photo",
                   R_BY_391LAB,   R_IN_IEEE, R_BY_395LAB},
-    {R_IN_395LAB, "395 Lab", "images/395lab.photo", 
+    {R_IN_395LAB, "395 Lab", "images/395lab.photo",
                        R_NONE, R_BY_395LAB,      R_NONE},
-    {R_BY_395LAB, "Outside of 395", "images/outside395.photo", 
+    {R_BY_395LAB, "Outside of 395", "images/outside395.photo",
                     R_BY_IEEE,      R_NONE, R_EVT_STAIR},
-    {R_EVT_STAIR, "Everitt Stairs", "images/evtstair.photo", 
+    {R_EVT_STAIR, "Everitt Stairs", "images/evtstair.photo",
                   R_BY_395LAB, R_EAST_EVRT, R_BY_CLEANR},
-    {R_IN_CLEANR, "In Cleanroom", "images/cleanr.photo", 
+    {R_IN_CLEANR, "In Cleanroom", "images/cleanr.photo",
                        R_NONE, R_BY_CLEANR,      R_NONE},
-    {R_BY_CLEANR, "By the Cleanroom", "images/outclean.photo", 
+    {R_BY_CLEANR, "By the Cleanroom", "images/outclean.photo",
                   R_EVT_STAIR,      R_NONE, R_EVRT_VEND},
-    {R_EVRT_VEND, "Vending Machine", "images/vend.photo", 
+    {R_EVRT_VEND, "Vending Machine", "images/vend.photo",
                   R_BY_CLEANR, R_EVRT_BSMT,      R_NONE},
-    {R_ALMAMATER, "Alma Mater", "images/almamater.photo", 
+    {R_ALMAMATER, "Alma Mater", "images/almamater.photo",
                   R_EAST_EVRT, R_EAST_EVRT, R_BY_COCOMR},
-    {R_IN_COCOMR, "Cocomero", "images/incoco.photo", 
+    {R_IN_COCOMR, "Cocomero", "images/incoco.photo",
                        R_NONE, R_BY_COCOMR,      R_NONE},
-    {R_BY_COCOMR, "Near Cocomero", "images/bycoco.photo", 
+    {R_BY_COCOMR, "Near Cocomero", "images/bycoco.photo",
                   R_ALMAMATER, R_IN_COCOMR,    R_BY_ZAS},
-    {R_BY_ZAS, "The Ruins", "images/ruins.photo", 
+    {R_BY_ZAS, "The Ruins", "images/ruins.photo",
                   R_BY_COCOMR,      R_NONE,      R_NONE},
-    {R_EAST_EVRT, "East of Everitt", "images/eeast.photo", 
+    {R_EAST_EVRT, "East of Everitt", "images/eeast.photo",
                   R_ALMAMATER, R_EVT_STAIR, R_EVRT_BSMT},
-    {R_EVRT_BSMT, "Basement Entry", "images/basement.photo", 
+    {R_EVRT_BSMT, "Basement Entry", "images/basement.photo",
                   R_EAST_EVRT, R_EVRT_VEND, R_CIRCLE_SW},
 
     /* Area 2: Bardeen Quad and Environs */
-    {R_WEST_BONE, "Boneyard Creek", "images/bonew.photo", 
+    {R_WEST_BONE, "Boneyard Creek", "images/bonew.photo",
                   R_CIRCLE_SW,      R_NONE,  R_CIRCLE_N},
-    { R_CIRCLE_N, "Boneyard Bridge", "images/circlen1.photo", 
+    { R_CIRCLE_N, "Boneyard Bridge", "images/circlen1.photo",
                   R_WEST_BONE, R_TALBOT_NW, R_EAST_BONE},
-    {R_CIRCLE_SW, "Boneyard Bridge", "images/circlesw.photo", 
+    {R_CIRCLE_SW, "Boneyard Bridge", "images/circlesw.photo",
                   R_EAST_BONE, R_EVRT_BSMT,  R_CIRCLE_N},
-    {R_EAST_BONE, "Boneyard Creek", "images/bonee.photo", 
+    {R_EAST_BONE, "Boneyard Creek", "images/bonee.photo",
                    R_CIRCLE_N,      R_NONE, R_CIRCLE_SW},
-    {  R_BARDEEN, "Bardeen Quad", "images/bardeen.photo", 
+    {  R_BARDEEN, "Bardeen Quad", "images/bardeen.photo",
                    R_LIB_BACK, R_EAST_BONE, R_TALBOT_SW},
-    { R_LIB_BACK, "Grainger Library", "images/graingerback.photo", 
+    { R_LIB_BACK, "Grainger Library", "images/graingerback.photo",
                         R_DCL,   R_RESERVE,   R_BARDEEN},
-    {  R_RESERVE, "Grainger Reserves", "images/reserve.photo", 
+    {  R_RESERVE, "Grainger Reserves", "images/reserve.photo",
                        R_NONE,  R_LIB_BACK, R_LIB_FRONT},
-    {R_TALBOT_NW, "Talbot Lab", "images/talbotnw.photo", 
+    {R_TALBOT_NW, "Talbot Lab", "images/talbotnw.photo",
                   R_CIRCLE_SW,    R_TALBOT, R_TALBOT_SW},
-    {R_TALBOT_SW, "Talbot Lab", "images/talbotsw.photo", 
+    {R_TALBOT_SW, "Talbot Lab", "images/talbotsw.photo",
                   R_TALBOT_NW,    R_TALBOT, R_SPRINGFLD},
-    {   R_TALBOT, "Talbot Lab", "images/talbot.photo", 
+    {   R_TALBOT, "Talbot Lab", "images/talbot.photo",
                        R_NONE, R_TALBOT_NW,      R_NONE},
-    {R_SPRINGFLD, "Springfield Avenue", "images/springfield.photo", 
+    {R_SPRINGFLD, "Springfield Avenue", "images/springfield.photo",
                   R_TALBOT_SW,   R_CARIBOU,    R_KENNEY},
-    {  R_CARIBOU, "Caribou", "images/caribou.photo", 
+    {  R_CARIBOU, "Caribou", "images/caribou.photo",
                        R_NONE, R_SPRINGFLD,      R_NONE},
-    {   R_KENNEY, "Kenney Gym", "images/kenney.photo", 
+    {   R_KENNEY, "Kenney Gym", "images/kenney.photo",
                   R_SPRINGFLD,      R_NONE,       R_DCL},
-    {      R_DCL, "DCL", "images/dcl.photo", 
+    {      R_DCL, "DCL", "images/dcl.photo",
                      R_KENNEY,  R_KENNEY_E, R_LIB_FRONT},
-    {R_LIB_FRONT, "Grainger Library", "images/graingerfront.photo", 
+    {R_LIB_FRONT, "Grainger Library", "images/graingerfront.photo",
                         R_DCL,   R_RESERVE, R_TALBOT_SW},
 
     /* Area 3: CSL and Environs */
-    { R_KENNEY_E, "East of Kenney", "images/kenneye.photo", 
+    { R_KENNEY_E, "East of Kenney", "images/kenneye.photo",
                         R_DCL,       R_DCL,   R_NEWMARK},
-    {  R_NEWMARK, "Newmark Lab", "images/newmark.photo", 
+    {  R_NEWMARK, "Newmark Lab", "images/newmark.photo",
                     R_MNTL_NW,      R_NONE,  R_KENNEY_E},
-    {  R_MNTL_NW, "MNTL", "images/mntlnw.photo", 
+    {  R_MNTL_NW, "MNTL", "images/mntlnw.photo",
                     R_NEWMARK, R_MNTLLOBBY,  R_CSL_VIEW},
-    {  R_MNTL_SW, "MNTL", "images/mntlsw.photo", 
+    {  R_MNTL_SW, "MNTL", "images/mntlsw.photo",
                     R_MNTL_NW, R_MNTLLOBBY,   R_BECKMAN},
-    {R_MNTLLOBBY, "Lobby of MNTL", "images/mntllobby.photo", 
+    {R_MNTLLOBBY, "Lobby of MNTL", "images/mntllobby.photo",
                   R_MNTL_LAB1,   R_MNTL_SW, R_MNTL_LAB2},
-    {R_MNTL_LAB1, "Kevin's Lab in MNTL", "images/mntllab1.photo", 
+    {R_MNTL_LAB1, "Kevin's Lab in MNTL", "images/mntllab1.photo",
                        R_NONE,      R_NONE, R_MNTLLOBBY},
-    {R_MNTL_LAB2, "MNTL Laser Lab", "images/mntllab2.photo", 
+    {R_MNTL_LAB2, "MNTL Laser Lab", "images/mntllab2.photo",
                   R_MNTLLOBBY, R_MNTL_LAB3,      R_NONE},
-    {R_MNTL_LAB3, "MNTL Laser Lab", "images/mntllab3.photo", 
+    {R_MNTL_LAB3, "MNTL Laser Lab", "images/mntllab3.photo",
                        R_NONE, R_MNTL_LAB2,      R_NONE},
-    { R_CSL_VIEW, "CSL", "images/csl.photo", 
+    { R_CSL_VIEW, "CSL", "images/csl.photo",
                    R_BECK_LOT,  R_CSL_DOOR,   R_MNTL_NW},
-    { R_CSL_DOOR, "CSL Main Entrance", "images/csldoor.photo", 
+    { R_CSL_DOOR, "CSL Main Entrance", "images/csldoor.photo",
                    R_BECK_LOT,      R_NONE,   R_MNTL_NW},
-    {R_CSL_LOBBY, "CSL Lobby", "images/csllobby.photo", 
+    {R_CSL_LOBBY, "CSL Lobby", "images/csllobby.photo",
                   R_CSL_UPPER,  R_CSL_DOOR,      R_NONE},
-    {R_CSL_UPPER, "Upper Floor of CSL", "images/cslupper.photo", 
+    {R_CSL_UPPER, "Upper Floor of CSL", "images/cslupper.photo",
                        R_NONE, R_CSLLOUNGE, R_CSL_LOBBY},
-    {R_CSLLOUNGE, "CSL Lounge", "images/csllounge.photo", 
+    {R_CSLLOUNGE, "CSL Lounge", "images/csllounge.photo",
                        R_NONE, R_CSL_UPPER,      R_NONE},
-    { R_BECK_LOT, "Beckman Circle Lot", "images/becklot.photo", 
+    { R_BECK_LOT, "Beckman Circle Lot", "images/becklot.photo",
                     R_BECKMAN,    R_GARAGE,  R_CSL_VIEW},
-    {  R_BECKMAN, "Beckman Institute", "images/beckman.photo", 
+    {  R_BECKMAN, "Beckman Institute", "images/beckman.photo",
                     R_MNTL_SW, R_BECK_DOOR,  R_BECK_LOT},
-    {R_BECK_DOOR, "Beckman Institute", "images/beckdoor.photo", 
+    {R_BECK_DOOR, "Beckman Institute", "images/beckdoor.photo",
                     R_MNTL_SW,      R_NONE,  R_BECK_LOT},
-    {R_BECKLOBBY, "Beckman Lobby", "images/becklobby.photo", 
+    {R_BECKLOBBY, "Beckman Lobby", "images/becklobby.photo",
                        R_NONE,  R_BECK_MRI, R_BECK_DOOR},
-    { R_BECK_MRI, "An MRI Lab", "images/beckmri.photo", 
+    { R_BECK_MRI, "An MRI Lab", "images/beckmri.photo",
                        R_NONE, R_BECKLOBBY,      R_NONE},
 
     /* Area 4: The Rest of the World, Featuring the Remote Sensing Lab */
-    {   R_GARAGE, "Campus Parking", "images/garage.photo", 
+    {   R_GARAGE, "Campus Parking", "images/garage.photo",
                    R_BECK_LOT,  R_CAR_SITE,      R_NONE},
-    { R_CAR_SITE, "Use Someone's Car?", "images/carclosed.photo", 
+    { R_CAR_SITE, "Use Someone's Car?", "images/carclosed.photo",
                        R_NONE,    R_GARAGE,      R_NONE},
-    { R_ALLERTON, "Allerton Mansion", "images/allerton.photo", 
+    { R_ALLERTON, "Allerton Mansion", "images/allerton.photo",
                     R_FU_DOGS,      R_NONE, R_SUNSINGER},
-    {  R_FU_DOGS, "Fu Dog Statues", "images/fudogs.photo", 
+    {  R_FU_DOGS, "Fu Dog Statues", "images/fudogs.photo",
                        R_NONE,    R_STATUE,  R_ALLERTON},
-    {   R_STATUE, "A Tall Statue", "images/statue.photo", 
+    {   R_STATUE, "A Tall Statue", "images/statue.photo",
                        R_NONE,   R_FU_DOGS,      R_NONE},
-    {R_SUNSINGER, "The Sun Singer", "images/sunsinger.photo", 
+    {R_SUNSINGER, "The Sun Singer", "images/sunsinger.photo",
                    R_ALLERTON,      R_NONE,      R_NONE},
-    {  R_WILLARD, "Willard Airport", "images/willard.photo", 
+    {  R_WILLARD, "Willard Airport", "images/willard.photo",
                        R_NONE, R_WILL_SIDE,      R_NONE},
-    {R_WILL_SIDE, "Willard Tower", "images/willardside.photo", 
+    {R_WILL_SIDE, "Willard Tower", "images/willardside.photo",
                   R_REM_PLANE,      R_NONE,   R_WILLARD},
-    {R_REM_PLANE, "Sensor-Laden Plane", "images/rsenseplane.photo", 
+    {R_REM_PLANE, "Sensor-Laden Plane", "images/rsenseplane.photo",
                     R_COCKPIT,      R_NONE, R_WILL_SIDE},
-    {  R_COCKPIT, "Plane Cockpit", "images/cockpit.photo", 
+    {  R_COCKPIT, "Plane Cockpit", "images/cockpit.photo",
                        R_NONE,      R_NONE, R_REM_PLANE},
-    {R_OVER_WILL, "Flying over Willard", "images/overwillard.photo", 
+    {R_OVER_WILL, "Flying over Willard", "images/overwillard.photo",
                        R_NONE,   R_COCKPIT,   R_AIR_RIO},
-    {  R_AIR_RIO, "Rio de Janeiro", "images/riofromair.photo", 
+    {  R_AIR_RIO, "Rio de Janeiro", "images/riofromair.photo",
                   R_OVER_WILL,      R_NONE,   R_REM_ICE},
-    {  R_REM_ICE, "Ice Fields", "images/rsenseice.photo", 
+    {  R_REM_ICE, "Ice Fields", "images/rsenseice.photo",
                     R_AIR_RIO,   R_REM_LAB,      R_NONE},
-    {  R_REM_LAB, "Remote Sensing Lab", "images/rsenselab.photo", 
+    {  R_REM_LAB, "Remote Sensing Lab", "images/rsenselab.photo",
                        R_NONE,   R_REM_ICE,      R_NONE}
 };
 
 /*
- * This local structure is used to specify object information in a 
- * reasonably manageable way.  The array entries in the database specify 
- * the object id, name, filename, starting room (if any), and starting 
- * location * within that room (if not random).  We use this approach for 
- * the same * reason as with the rooms: to avoid the need to match the 
+ * This local structure is used to specify object information in a
+ * reasonably manageable way.  The array entries in the database specify
+ * the object id, name, filename, starting room (if any), and starting
+ * location * within that room (if not random).  We use this approach for
+ * the same * reason as with the rooms: to avoid the need to match the
  * order between the enumeration of symbolic names and the array entries.
  */
 typedef struct obj_data_t obj_data_t;
@@ -435,9 +435,9 @@ static void remove_object (object_t* o);
 
 
 /* file-scope variables */
-/* 
- * Flags are coded as bit vectors using an array of 32-bit words.  It's 
- * overkill for this game, but it's nice not to worry about the number of 
+/*
+ * Flags are coded as bit vectors using an array of 32-bit words.  It's
+ * overkill for this game, but it's nice not to worry about the number of
  * flags...
  */
 static room_t   room[N_ROOMS];			     /* rooms                */
@@ -446,7 +446,7 @@ static uint32_t player_flags[(NUM_FLAGS + 31) / 32]; /* accomplishment flags */
 static photo_t* swap_photo[N_SWAPS];                 /* swapping photos      */
 
 
-/* 
+/*
  * do_photo_swap
  *   DESCRIPTION: Swap a room photo with another stored image.
  *   INPUTS: r -- the room into which the photo is swapped
@@ -467,7 +467,7 @@ do_photo_swap (room_t* r, int32_t which)
 }
 
 
-/* 
+/*
  * find_in_room
  *   DESCRIPTION: Find an object by name in a room.  The name must match
  *                exactly, although the match is not sensitive to case.
@@ -477,7 +477,7 @@ do_photo_swap (room_t* r, int32_t which)
  *   RETURN VALUE: a pointer to a matching object, or NULL if none is found
  *   SIDE EFFECTS: none
  */
-static object_t* 
+static object_t*
 find_in_room (const room_t* r, const char* arg)
 {
     object_t* obj;	/* index over room contents */
@@ -496,7 +496,7 @@ find_in_room (const room_t* r, const char* arg)
 }
 
 
-/* 
+/*
  * insert_object_at
  *   DESCRIPTION: Place an object at a specific (x,y) location in a room.
  *                The location refers to the placement of the object in
@@ -509,7 +509,7 @@ find_in_room (const room_t* r, const char* arg)
  *   RETURN VALUE: none
  *   SIDE EFFECTS: takes the object out of its current location
  */
-static void 
+static void
 insert_object_at (object_t* o, room_t* r, int32_t x, int32_t y)
 {
     /* Remove object from its current room, if any. */
@@ -526,18 +526,18 @@ insert_object_at (object_t* o, room_t* r, int32_t x, int32_t y)
 }
 
 
-/* 
+/*
  * insert_object
  *   DESCRIPTION: Insert object at a random position within a room.
  *   INPUTS: o -- the object being placed
  *           r -- the room
  *   OUTPUTS: none
  *   RETURN VALUE: none
- *   SIDE EFFECTS: takes the object out of its current location; sets 
- *                 the position of the object within the new room 
+ *   SIDE EFFECTS: takes the object out of its current location; sets
+ *                 the position of the object within the new room
  *                 randomly
  */
-static void 
+static void
 insert_object (object_t* o, room_t* r)
 {
     int32_t space;	/* room photo height in pixels            */
@@ -568,9 +568,9 @@ insert_object (object_t* o, room_t* r)
 }
 
 
-/* 
+/*
  * move_object_to_inventory
- *   DESCRIPTION: Move an object into the player's inventory.  Try to 
+ *   DESCRIPTION: Move an object into the player's inventory.  Try to
  *                place objects on a 3x3 grid for clarity, but place
  *                randomly if necessary.
  *   INPUTS: obj -- the object
@@ -585,13 +585,13 @@ move_object_to_inventory (object_t* obj)
     int32_t   x;	/* loop index for 3x3 grid x positions            */
     int32_t   y;	/* loop index for 3x3 grid y positions            */
 
-    /* 
-     * This approach is asymptotically slow (N^2), but there shouldn't be 
+    /*
+     * This approach is asymptotically slow (N^2), but there shouldn't be
      * much in inventory, so it doesn't matter.
      */
     for (y = 10; 160 >= y; y += 50) {
         for (x = 10; 210 >= x; x += 100) {
-	    for (conf = room[R_INVENTORY].contents; NULL != conf; 
+	    for (conf = room[R_INVENTORY].contents; NULL != conf;
 	    	 conf = conf->next) {
 	        if (x == conf->x && y == conf->y) {
 		    break;
@@ -609,7 +609,7 @@ move_object_to_inventory (object_t* obj)
 }
 
 
-/* 
+/*
  * obj_special_get
  *   DESCRIPTION: Handle special effects "get" commands, in which a player
  *                gets an object that is not represented as an object_t in
@@ -650,7 +650,7 @@ obj_special_get (room_t* r, const char* arg)
 }
 
 
-/* 
+/*
  * player_flag_is_set
  *   DESCRIPTION: Checks whether the player has accomplished a specified task.
  *   INPUTS: fnum -- the accomplishment identifier (a FLAG_*)
@@ -665,9 +665,9 @@ player_flag_is_set (int32_t fnum)
 }
 
 
-/* 
+/*
  * player_set_flag
- *   DESCRIPTION: Sets the flag indicating that the player has accomplished 
+ *   DESCRIPTION: Sets the flag indicating that the player has accomplished
  *                a specified task.
  *   INPUTS: fnum -- the accomplishment identifier (a FLAG_*)
  *   OUTPUTS: none
@@ -681,7 +681,7 @@ player_set_flag (int32_t fnum)
 }
 
 
-/* 
+/*
  * remove_object
  *   DESCRIPTION: Take an object out of its current location, leaving it
  *                in limbo (NULL location).
@@ -713,7 +713,7 @@ remove_object (object_t* o)
 }
 
 
-/* 
+/*
  * obj_get_x
  *   DESCRIPTION: Get x position of object within containing room.
  *   INPUTS: obj -- pointer to the object
@@ -728,7 +728,7 @@ obj_get_x (const object_t* obj)
 }
 
 
-/* 
+/*
  * obj_get_y
  *   DESCRIPTION: Get y position of object within containing room.
  *   INPUTS: obj -- pointer to the object
@@ -743,7 +743,7 @@ obj_get_y (const object_t* obj)
 }
 
 
-/* 
+/*
  * obj_image
  *   DESCRIPTION: Get image pointer for object.
  *   INPUTS: obj -- pointer to the object
@@ -758,10 +758,10 @@ obj_image (const object_t* obj)
 }
 
 
-/* 
+/*
  * obj_next
  *   DESCRIPTION: Get pointer to next object in object's room.  Use with
- *                room_contents_iterate to iterate over all objects in 
+ *                room_contents_iterate to iterate over all objects in
  *                a room.
  *   INPUTS: obj -- pointer to the object
  *   OUTPUTS: none
@@ -775,7 +775,7 @@ obj_next (const object_t* obj)
 }
 
 
-/* 
+/*
  * room_contents_iterate
  *   DESCRIPTION: Get pointer to the first object in a room.  Use with
  *                obj_next to iterate over all objects in a room.
@@ -791,7 +791,7 @@ room_contents_iterate (const room_t* r)
 }
 
 
-/* 
+/*
  * room_name
  *   DESCRIPTION: Get name for a room.
  *   INPUTS: r -- pointer to the room
@@ -799,14 +799,14 @@ room_contents_iterate (const room_t* r)
  *   RETURN VALUE: the name of room r (a string)
  *   SIDE EFFECTS: none
  */
-const char* 
+const char*
 room_name (const room_t* r)
 {
     return r->name;
 }
 
 
-/* 
+/*
  * room_photo
  *   DESCRIPTION: Get room photo for a room.
  *   INPUTS: r -- pointer to the room
@@ -821,7 +821,7 @@ room_photo (const room_t* r)
 }
 
 
-/* 
+/*
  * room_photo_height
  *   DESCRIPTION: Get height of room photo in pixels for a room.
  *   INPUTS: r -- pointer to the room
@@ -829,14 +829,14 @@ room_photo (const room_t* r)
  *   RETURN VALUE: height of room r's photo in pixels
  *   SIDE EFFECTS: none
  */
-uint32_t 
+uint32_t
 room_photo_height (const room_t* r)
 {
     return photo_height (r->view);
 }
 
 
-/* 
+/*
  * room_photo_width
  *   DESCRIPTION: Get width of room photo in pixels for a room.
  *   INPUTS: r -- pointer to the room
@@ -844,17 +844,17 @@ room_photo_height (const room_t* r)
  *   RETURN VALUE: width of room r's photo in pixels
  *   SIDE EFFECTS: none
  */
-uint32_t 
+uint32_t
 room_photo_width (const room_t* r)
 {
     return photo_width (r->view);
 }
 
 
-/* 
+/*
  * build_world
- *   DESCRIPTION: Builds and connects the rooms, creates objects, and 
- *                reads in all image data (could be done lazily with 
+ *   DESCRIPTION: Builds and connects the rooms, creates objects, and
+ *                reads in all image data (could be done lazily with
  *                caching instead).
  *   INPUTS: none
  *   OUTPUTS: none
@@ -875,7 +875,7 @@ build_world ()
 
     /* Loop over room data. */
     for (idx = 0; N_ROOMS > idx; idx++) {
-	
+
 	/* Set the room id. */
 	which = room_data[idx].id;
 
@@ -893,16 +893,16 @@ build_world ()
         room[which].name = room_data[idx].name;
 	room[which].view = read_photo (room_data[idx].filename);
 	if (NULL == room[which].view) {
-	    fprintf (stderr, "Can't read room photo %s.\n", 
+	    fprintf (stderr, "Can't read room photo %s.\n",
 	    	     room_data[idx].filename);
 	    return 0;
 	}
 	room[which].contents = NULL;
-	room[which].left  = (R_NONE == room_data[idx].left ? NULL : 
+	room[which].left  = (R_NONE == room_data[idx].left ? NULL :
 			     &room[room_data[idx].left]);
-	room[which].enter = (R_NONE == room_data[idx].enter ? NULL : 
+	room[which].enter = (R_NONE == room_data[idx].enter ? NULL :
 			     &room[room_data[idx].enter]);
-	room[which].right = (R_NONE == room_data[idx].right ? NULL : 
+	room[which].right = (R_NONE == room_data[idx].right ? NULL :
 			     &room[room_data[idx].right]);
     }
 
@@ -929,7 +929,7 @@ build_world ()
         object[which].name = obj_data[idx].name;
 	object[which].img = read_obj_image (obj_data[idx].filename);
 	if (NULL == object[which].img) {
-	    fprintf (stderr, "Can't read object photo %s.\n", 
+	    fprintf (stderr, "Can't read object photo %s.\n",
 	    	     obj_data[idx].filename);
 	    return 0;
 	}
@@ -971,7 +971,7 @@ build_world ()
 	/* Read in the swap photo. */
 	swap_photo[which] = read_photo (swap_data[idx].filename);
 	if (NULL == swap_photo[which]) {
-	    fprintf (stderr, "Can't read room photo %s.\n", 
+	    fprintf (stderr, "Can't read room photo %s.\n",
 	    	     swap_data[idx].filename);
 	    return 0;
 	}
@@ -982,9 +982,9 @@ build_world ()
 }
 
 
-/* 
+/*
  * start_in_room
- *   DESCRIPTION: Get a pointer to the room in which the player begins 
+ *   DESCRIPTION: Get a pointer to the room in which the player begins
  *                the game.
  *   INPUTS: none
  *   OUTPUTS: none
@@ -998,7 +998,7 @@ start_in_room ()
 }
 
 
-/* 
+/*
  * player_has_board
  *   DESCRIPTION: Check whether the player has the board in inventory.
  *   INPUTS: none
@@ -1013,7 +1013,7 @@ player_has_board ()
 }
 
 
-/* 
+/*
  * player_has_jetpack
  *   DESCRIPTION: Check whether the player has the jetpack in inventory.
  *   INPUTS: none
@@ -1028,7 +1028,7 @@ player_has_jetpack ()
 }
 
 
-/* 
+/*
  * try_to_move_left
  *   DESCRIPTION: Try to move to the room to the 'left'.
  *   INPUTS: *rptr -- player's current room
@@ -1066,7 +1066,7 @@ try_to_move_left (room_t** rptr)
 }
 
 
-/* 
+/*
  * try_to_enter
  *   DESCRIPTION: Try to 'enter' a room from the current room.
  *   INPUTS: *rptr -- player's current room
@@ -1093,10 +1093,10 @@ try_to_enter (room_t** rptr)
 	return TC_CHANGE_ROOM;
     }
 
-    /* 
-     * Check special conditions for motion, allow motion if the 
-     * conditions are met, and give hints when the conditions are 
-     * not met. 
+    /*
+     * Check special conditions for motion, allow motion if the
+     * conditions are met, and give hints when the conditions are
+     * not met.
      */
     if (&room[R_BY_CLEANR] == r) {
 	if (player_flag_is_set (FLAG_WEARING_SUIT)) {
@@ -1163,7 +1163,7 @@ try_to_enter (room_t** rptr)
 }
 
 
-/* 
+/*
  * try_to_move_right
  *   DESCRIPTION: Try to move to the room to the 'right'.
  *   INPUTS: *rptr -- player's current room
@@ -1201,7 +1201,7 @@ try_to_move_right (room_t** rptr)
 }
 
 
-/* 
+/*
  * typed_cmd_buy
  *   DESCRIPTION: Execute the typed command "buy," which allows the player
  *                to simulate purchase of objects (sometimes obtaining an
@@ -1225,12 +1225,12 @@ typed_cmd_buy (room_t** rptr, const char* arg)
         if (&room[R_EVRT_VEND] != r) {
 	    show_status ("Great idea!  But ... where?");
 	    return TC_DISCARD_TEXT;
-	} 
+	}
 	if (object[O_MTN_DEW].loc == &room[R_INVENTORY] ||
 	    object[O_MTN_DEW].loc == r) {
 	    show_status ("Slow down!  One at a time...");
 	    return TC_DISCARD_TEXT;
-	} 
+	}
 	if (NULL != object[O_MTN_DEW].loc) {
 	    show_status ("Last one get stolen?  Ok...here we go...");
 	} else {
@@ -1259,7 +1259,7 @@ typed_cmd_buy (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_charge
  *   DESCRIPTION: Execute the typed command "charge".
  *   INPUTS: *rptr -- player's current room
@@ -1303,7 +1303,7 @@ typed_cmd_charge (room_t** rptr, const char* arg)
     return TC_REDRAW_ROOM;
 }
 
-/* 
+/*
  * typed_cmd_do
  *   DESCRIPTION: Execute the typed command "do," which allows the player
  *                to do certain things...like their 391 MP2!
@@ -1349,7 +1349,7 @@ typed_cmd_do (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_drink
  *   DESCRIPTION: Execute the typed command "drink," which allows the player
  *                to drink objects.
@@ -1384,7 +1384,7 @@ typed_cmd_drink (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_drop
  *   DESCRIPTION: Execute the typed command "drop," which allows the player
  *                to drop objects from their inventory into the room in
@@ -1413,8 +1413,8 @@ typed_cmd_drop (room_t** rptr, const char* arg)
 	show_status ("You have no such thing.");
         return TC_ALLOW_EDIT;
     }
-    
-    /* 
+
+    /*
      * Issue a warning to player if they seem to be trying to make use
      * of certain objects (as a hint).
      */
@@ -1423,8 +1423,8 @@ typed_cmd_drop (room_t** rptr, const char* arg)
         show_status ("You may want to install it instead.");
     }
 
-    /* 
-     * If player is looking at inventory, object goes into the room in 
+    /*
+     * If player is looking at inventory, object goes into the room in
      * which they're standing.
      */
     dest = (&room[R_INVENTORY] == r ? room[R_INVENTORY].enter : r);
@@ -1433,7 +1433,7 @@ typed_cmd_drop (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_fix
  *   DESCRIPTION: Execute the typed command "fix," which allows the player
  *                to fix objects.
@@ -1483,7 +1483,7 @@ typed_cmd_fix (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_flash
  *   DESCRIPTION: Execute the typed command "flash," which allows the player
  *                to flash objects with code and so forth.
@@ -1529,7 +1529,7 @@ typed_cmd_flash (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_get
  *   DESCRIPTION: Execute the typed command "get," which allows the player
  *                to move objects in a room into their inventory.
@@ -1549,8 +1549,8 @@ typed_cmd_get (room_t** rptr, const char* arg)
     /* Set current room. */
     r = *rptr;
 
-    /* 
-     * If player is looking at inventory, source room for object search 
+    /*
+     * If player is looking at inventory, source room for object search
      * is the room in which they're standing.
      */
     src = (&room[R_INVENTORY] == r ? room[R_INVENTORY].enter : r);
@@ -1558,7 +1558,7 @@ typed_cmd_get (room_t** rptr, const char* arg)
     /* Try a special effect search followed by a normal search. */
     if (NULL == (obj = obj_special_get (src, arg))) {
 	obj = find_in_room (src, arg);
-    } 
+    }
     if (NULL == obj) {
 	show_status ("You see no such thing here.");
         return TC_ALLOW_EDIT;
@@ -1576,7 +1576,7 @@ typed_cmd_get (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_go
  *   DESCRIPTION: Execute the typed command "go," which allows the player
  *                to go from one place to another using room features.
@@ -1670,7 +1670,7 @@ typed_cmd_go (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_install
  *   DESCRIPTION: Execute the typed command "install," which allows the player
  *                to install objects.
@@ -1737,18 +1737,18 @@ typed_cmd_install (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_inventory
  *   DESCRIPTION: Execute the typed command "inventory," which moves the
  *                player to their inventory (room #0, or R_INVENTORY) in
- *                order to inspect their carried objects.  The current 
+ *                order to inspect their carried objects.  The current
  *                room is saved in the inventory room's 'enter' direction.
  *
  *                Typing 'inventory' from the inventory view returns the
  *                player to the room in which they're standing.
  *
  *   INPUTS: *rptr -- player's current room
- *           arg -- takes no argument, so this parameter should be an 
+ *           arg -- takes no argument, so this parameter should be an
  *                  empty string (we don't check)
  *   OUTPUTS: *rptr -- new room for player
  *   RETURN VALUE: indicates types of action taken (see header file)
@@ -1774,13 +1774,13 @@ typed_cmd_inventory (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_sigh
  *   DESCRIPTION: Execute the typed command "sigh," which allows the player
  *                to show their respects for many a vanished site.  Ouch,
  *                sorry WS.
  *   INPUTS: *rptr -- player's current room
- *           arg -- takes no argument, so this parameter should be an 
+ *           arg -- takes no argument, so this parameter should be an
  *                  empty string (we don't check)
  *   OUTPUTS: *rptr -- possibly new room for player
  *   RETURN VALUE: indicates types of action taken (see header file)
@@ -1803,7 +1803,7 @@ typed_cmd_sigh (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_use
  *   DESCRIPTION: Execute the typed command "use," which allows the player
  *                to use objects in a room or in their inventory.
@@ -1879,7 +1879,7 @@ typed_cmd_use (room_t** rptr, const char* arg)
 }
 
 
-/* 
+/*
  * typed_cmd_wear
  *   DESCRIPTION: Execute the typed command "wear," which allows the player
  *                to wear objects.
@@ -1913,3 +1913,6 @@ typed_cmd_wear (room_t** rptr, const char* arg)
     return TC_REDRAW_ROOM;
 }
 
+photo_t* get_room_view(const room_t* room) {
+    return room->view;
+}
