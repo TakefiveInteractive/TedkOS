@@ -120,7 +120,7 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
         button_b = 0xff;
         button_c = 0xff;
         // Clear LED
-        prev_led_state = 0x00000000;
+        prev_led_state = 0;
 
         if (transmitting) return -EINVAL;
 
