@@ -1,7 +1,8 @@
 case "$(uname -s)" in
 
    Darwin)
-     echo 'i686-elf-gcc'
+     # Cross compiler for 391
+     echo '/Volumes/ece391cc/cross/bin/i686-elf-gcc'
      ;;
 
    Linux)
