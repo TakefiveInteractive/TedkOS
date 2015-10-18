@@ -132,10 +132,9 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
         led_saved_arg = 0x00000000;
 
         /* reset device command */
-        tuxctl_ldisc_put(tty, &MTCP_RESET_DEV_CMD, 1);
-        //tuxctl_ldisc_put(tty, &MTCP_LED_USR_CMD, 1);
         /* enable user space input to led */
         tuxctl_ldisc_put(tty, &MTCP_LED_USR_CMD, 1);
+        tuxctl_ldisc_put(tty, &MTCP_RESET_DEV_CMD, 1);
         spin_unlock_irqrestore(&lock, flags);
         return 0;
 

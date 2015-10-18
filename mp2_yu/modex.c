@@ -823,6 +823,14 @@ set_graphics_registers (unsigned short table[NUM_GRAPHICS_REGS])
     REP_OUTSW (0x03CE, table, NUM_GRAPHICS_REGS);
 }
 
+/*
+ * set_palette
+ *   DESCRIPTION: set palette offset to VGA
+ *   INPUTS: color - palette color
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 void
 set_palette(void* color) {
      OUTB(0x03C8, 64);

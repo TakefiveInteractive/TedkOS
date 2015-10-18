@@ -1913,6 +1913,14 @@ typed_cmd_wear (room_t** rptr, const char* arg)
     return TC_REDRAW_ROOM;
 }
 
+/*
+ * get_room_view
+ *  DESCRIPTION: getter for room_t
+ *  INPUT: room - room_t room info's
+ *  OUTPUTS: return room's view
+ *  RETURN VALUE: photo_t
+ *  SIDE EFFECTS: none
+ */
 photo_t* get_room_view(const room_t* room) {
     return room->view;
 }
