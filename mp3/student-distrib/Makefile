@@ -9,7 +9,7 @@ OUTDIR = output/
 CFLAGS 	+= -Wall -fno-builtin -fno-stack-protector -nostdlib
 ASFLAGS +=
 LDFLAGS += -nostdlib -static
-CC=gcc
+CC=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS +=-nostdinc -g -I.

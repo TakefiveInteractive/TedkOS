@@ -4,6 +4,12 @@
   <a href="mp3_fa15.pdf">MP3_Guides</a>
 </object>
 
+OS X users, run
+```
+sudo sed -e 's/OPTIONS="auto_xattr,defer_permissions"/OPTIONS="auto_xattr,defer_permissions,rw+"/' -i.orig /System/Library/Filesystems/fuse-ext2.fs/fuse-ext2.util
+```
+ONCE before you start working on this.
+
 ## ECE391 MP3 - Package contents
 
 ### createfs

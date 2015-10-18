@@ -28,6 +28,9 @@ int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
 int32_t bad_userspace_addr(const void* addr, int32_t len);
 int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 
+/* Increments video memory. To be used to test rtc */
+void test_interrupts(void);
+
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */
@@ -35,12 +38,12 @@ static inline uint32_t inb(port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n \
-			inb   (%w1), %b0" 
+			inb   (%w1), %b0"
 			: "=a"(val)
 			: "d"(port)
 			: "memory" );
 	return val;
-} 
+}
 
 /* Reads two bytes from two consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them zero-extended
