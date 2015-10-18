@@ -14,17 +14,17 @@ CC=gcc
 CPPFLAGS +=-nostdinc -g -I.
 
 # This generates the list of source files
-SRC =  $(wildcard *.S) $(wildcard *.c)
+SRC =  $(wildcard ../**/*.S) $(wildcard ../**/*.c) $(wildcard ../*.S) $(wildcard ../*.c)
 
 # This generates the list of .o files. The order matters, boot.o must be first
 OBJS  = boot.o
 OBJS += $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))
-OBJS += $(patsubst %.c,%.o,$(filter %.c,$(SRC))) 
+OBJS += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
 
 
 bootimg: Makefile $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o bootimg
-	sudo ./buildimg/debug.sh
+	sudo ./debug.sh
 
 dep: Makefile.dep
 
