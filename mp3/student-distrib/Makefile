@@ -8,7 +8,7 @@
 CFLAGS 	+= -Wall -fno-builtin -fno-stack-protector -nostdlib
 ASFLAGS +=
 LDFLAGS += -nostdlib -static
-CC=gcc
+CC=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS +=-nostdinc -g -I.
@@ -19,7 +19,7 @@ SRC =  $(wildcard *.S) $(wildcard *.c)
 # This generates the list of .o files. The order matters, boot.o must be first
 OBJS  = boot.o
 OBJS += $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))
-OBJS += $(patsubst %.c,%.o,$(filter %.c,$(SRC))) 
+OBJS += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
 
 
 bootimg: Makefile $(OBJS)
