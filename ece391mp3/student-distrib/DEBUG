@@ -1,0 +1,7 @@
+DEBUGGING MP3 
+===============
+
+The only steps that need to be taken on the virtual machine for debugging
+using qemu is to perform a "sudo make debug" (after "make dep").  This will build the disk image needed for QEMU and gdb.  
+
+Refer to the handout for instructions on starting QEMU and gdb.
