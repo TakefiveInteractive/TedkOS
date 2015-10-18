@@ -5,7 +5,7 @@
 #ifndef _LIB_H
 #define _LIB_H
 
-#include "types.h"
+#include <inc/types.h>
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

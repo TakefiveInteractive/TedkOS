@@ -2,11 +2,11 @@
  * vim:ts=4 noexpandtab
  */
 
-#include "multiboot.h"
-#include "x86_desc.h"
-#include "lib.h"
-#include "i8259.h"
-#include "debug.h"
+#include <inc/multiboot.h>
+#include <inc/x86/desc.h>
+#include <inc/lib.h>
+#include <inc/i8259.h>
+#include <inc/debug.h>
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */

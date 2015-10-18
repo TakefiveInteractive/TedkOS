@@ -11,7 +11,7 @@ LDFLAGS += -nostdlib -static
 CC=gcc
 
 #If you have any .h files in another directory, add -I<dir> to this line
-CPPFLAGS +=-nostdinc -g
+CPPFLAGS +=-nostdinc -g -I.
 
 # This generates the list of source files
 SRC =  $(wildcard *.S) $(wildcard *.c)
@@ -24,7 +24,7 @@ OBJS += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
 
 bootimg: Makefile $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o bootimg
-	sudo ./debug.sh
+	sudo ./buildimg/debug.sh
 
 dep: Makefile.dep
 
