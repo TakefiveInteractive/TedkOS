@@ -544,6 +544,7 @@ read_photo (const char* fname)
         indices[x] = x;
     }
 
+    // Compare function for use in qsort
     int octree_compare(const void *a, const void *b)
     {
         uint16_t *id_a = (uint16_t *) a;
@@ -555,6 +556,7 @@ read_photo (const char* fname)
     }
     qsort(indices, 64 * 64, sizeof(uint16_t), octree_compare);
 
+    // Get average pixel value for that node and store it in palette
     void getAvg(tree_node_t *node, uint8_t pal[3])
     {
         float num = node->num;
@@ -595,6 +597,7 @@ read_photo (const char* fname)
                 octree2[o2_idx].cum_blu -= blu;
                 octree2[o2_idx].num--;
 
+                // 128 = 64 (system palette) + 64 (second level palette)
                 uint8_t idx = octree4[o4_idx].palette_idx + 128;
                 p->img[p->hdr.width * y + x] = idx;
             }
@@ -616,6 +619,7 @@ read_photo (const char* fname)
             if (octree4[o4_idx].is_popular == false)
             {
                 getAvg(&octree2[o2_idx], p->palette[o2_idx]);
+                // 64 = system palette
                 p->img[p->hdr.width * y + x] = o2_idx + 64;
             }
         }

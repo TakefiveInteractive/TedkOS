@@ -1,4 +1,4 @@
-/*									tab:8
+/*                                  tab:8
  *
  * input.c - source file for input control to maze game
  *
@@ -22,26 +22,26 @@
  * THE UNIVERSITY OF ILLINOIS HAS ANY OBLIGATION TO PROVIDE MAINTENANCE,
  * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS."
  *
- * Author:	    Steve Lumetta
- * Version:	    7
+ * Author:      Steve Lumetta
+ * Version:     7
  * Creation Date:   Thu Sep  9 22:25:48 2004
- * Filename:	    input.c
+ * Filename:        input.c
  * History:
- *	SL	1	Thu Sep  9 22:25:48 2004
- *		First written.
- *	SL	2	Sat Sep 12 14:34:19 2009
- *		Integrated original release back into main code base.
- *	SL	3	Sun Sep 13 03:51:23 2009
- *		Replaced parallel port with Tux controller code for demo.
- *	SL	4	Sun Sep 13 12:49:02 2009
- *		Changed init_input order slightly to avoid leaving keyboard
+ *  SL  1   Thu Sep  9 22:25:48 2004
+ *      First written.
+ *  SL  2   Sat Sep 12 14:34:19 2009
+ *      Integrated original release back into main code base.
+ *  SL  3   Sun Sep 13 03:51:23 2009
+ *      Replaced parallel port with Tux controller code for demo.
+ *  SL  4   Sun Sep 13 12:49:02 2009
+ *      Changed init_input order slightly to avoid leaving keyboard
  *              in odd state on failure.
- *	SL	5	Sun Sep 13 16:30:32 2009
- *		Added a reasonably robust direct Tux control for demo mode.
- *	SL	6	Wed Sep 14 02:06:41 2011
- *		Updated input control and test driver for adventure game.
- *	SL	7	Wed Sep 14 17:07:38 2011
- *		Added keyboard input support when using Tux kernel mode.
+ *  SL  5   Sun Sep 13 16:30:32 2009
+ *      Added a reasonably robust direct Tux control for demo mode.
+ *  SL  6   Wed Sep 14 02:06:41 2011
+ *      Updated input control and test driver for adventure game.
+ *  SL  7   Wed Sep 14 17:07:38 2011
+ *      Added keyboard input support when using Tux kernel mode.
  */
 
 #include <ctype.h>
@@ -68,17 +68,15 @@
 /* stores original terminal settings */
 static struct termios tio_orig;
 
-#define PACKET_UP 239
-#define PACKET_RIGHT 127
-#define PACKET_DOWN 191
-#define PACKET_LEFT 223
-#define PACKET_MOVE_LEFT 253
-#define PACKET_ENTER 251
-#define PACKET_MOVE_RIGHT 247
-#define PACKET_QUIT 254
+#define PACKET_UP (1 << 4)
+#define PACKET_RIGHT (1 << 7)
+#define PACKET_DOWN (1 << 5)
+#define PACKET_LEFT (1 << 6)
+#define PACKET_MOVE_LEFT (1 << 1)
+#define PACKET_ENTER (1 << 2)
+#define PACKET_MOVE_RIGHT (1 << 3)
+#define PACKET_QUIT (1 << 0)
 
-
-int button_did_pressed;
 int fd;
 
 void get_tux_command(cmd_t *pushed);
@@ -105,6 +103,7 @@ init_input ()
     fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
     int temp = N_MOUSE;
     ioctl(fd, TIOCSETD, &temp);
+    ioctl(fd, TUX_INIT, &temp);
 
     /*
      * Set non-blocking mode so that stdin can be read without blocking
@@ -112,15 +111,15 @@ init_input ()
      */
     if (fcntl (fileno (stdin), F_SETFL, O_NONBLOCK) != 0) {
         perror ("fcntl to make stdin non-blocking");
-	return -1;
+    return -1;
     }
 
     /*
      * Save current terminal attributes for stdin.
      */
     if (tcgetattr (fileno (stdin), &tio_orig) != 0) {
-	perror ("tcgetattr to read stdin terminal settings");
-	return -1;
+        perror ("tcgetattr to read stdin terminal settings");
+        return -1;
     }
 
     /*
@@ -133,8 +132,8 @@ init_input ()
     tio_new.c_cc[VMIN] = 1;
     tio_new.c_cc[VTIME] = 0;
     if (tcsetattr (fileno (stdin), TCSANOW, &tio_new) != 0) {
-	perror ("tcsetattr to set stdin terminal settings");
-	return -1;
+        perror ("tcsetattr to set stdin terminal settings");
+        return -1;
     }
 
     /* Return success. */
@@ -169,11 +168,11 @@ typed_a_char (char c)
 
     if (8 == c || 127 == c) {
         if (0 < len) {
-	    typing[len - 1] = '\0';
-	}
+        typing[len - 1] = '\0';
+    }
     } else if (MAX_TYPED_LEN > len) {
-	typing[len] = c;
-	typing[len + 1] = '\0';
+        typing[len] = c;
+        typing[len + 1] = '\0';
     }
 }
 
@@ -201,97 +200,97 @@ get_command ()
     /* Read all characters from stdin. */
     while ((ch = getc (stdin)) != EOF) {
 
-	/* Backquote is used to quit the game. */
-	if (ch == '`')
-	    return CMD_QUIT;
+        /* Backquote is used to quit the game. */
+        if (ch == '`') return CMD_QUIT;
 
 #if (USE_TUX_CONTROLLER == 0) /* use keyboard control with arrow keys */
-	/*
-	 * Arrow keys deliver the byte sequence 27, 91, and 'A' to 'D';
-	 * we use a small finite state machine to identify them.
-	 *
-	 * Insert, home, and page up keys deliver 27, 91, '2'/'1'/'5' and
-	 * then a tilde.  We recognize the digits and don't check for the
-	 * tilde.
-	 */
-	switch (state) {
-	    case 0:
-	        if (27 == ch) {
-		    state = 1;
-		} else if (valid_typing (ch)) {
-		    typed_a_char (ch);
-		} else if (10 == ch || 13 == ch) {
-		    pushed = CMD_TYPED;
-		}
-		break;
-	    case 1:
-		if (91 == ch) {
-		    state = 2;
-		} else {
-		    state = 0;
-		    if (valid_typing (ch)) {
-			/*
-			 * Note that we may be discarding an ESC (27), but
-			 * we don't use that as typed input anyway.
-			 */
-			typed_a_char (ch);
-		    } else if (10 == ch || 13 == ch) {
-			pushed = CMD_TYPED;
-		    }
-		}
-		break;
-	    case 2:
-	        if (ch >= 'A' && ch <= 'D') {
-		    switch (ch) {
-			case 'A': pushed = CMD_UP; break;
-			case 'B': pushed = CMD_DOWN; break;
-			case 'C': pushed = CMD_RIGHT; break;
-			case 'D': pushed = CMD_LEFT; break;
-		    }
-		    state = 0;
-		} else if (ch == '1' || ch == '2' || ch == '5') {
-		    switch (ch) {
-			case '2': pushed = CMD_MOVE_LEFT; break;
-			case '1': pushed = CMD_ENTER; break;
-			case '5': pushed = CMD_MOVE_RIGHT; break;
-		    }
-		    state = 3; /* Consume a '~'. */
-		} else {
-		    state = 0;
-		    if (valid_typing (ch)) {
-			/*
-			 * Note that we may be discarding an ESC (27) and
-			 * a bracket (91), but we don't use either as
-			 * typed input anyway.
-			 */
-			typed_a_char (ch);
-		    } else if (10 == ch || 13 == ch) {
-			pushed = CMD_TYPED;
-		    }
-		}
-		break;
-	    case 3:
-		state = 0;
-	        if ('~' == ch) {
-		    /* Consume it silently. */
-		} else if (valid_typing (ch)) {
-		    typed_a_char (ch);
-		} else if (10 == ch || 13 == ch) {
-		    pushed = CMD_TYPED;
-		}
-		break;
-	}
+        /*
+         * Arrow keys deliver the byte sequence 27, 91, and 'A' to 'D';
+         * we use a small finite state machine to identify them.
+         *
+         * Insert, home, and page up keys deliver 27, 91, '2'/'1'/'5' and
+         * then a tilde.  We recognize the digits and don't check for the
+         * tilde.
+         */
+        switch (state) {
+        case 0:
+            if (27 == ch) {
+                state = 1;
+            } else if (valid_typing (ch)) {
+                typed_a_char (ch);
+            } else if (10 == ch || 13 == ch) {
+                pushed = CMD_TYPED;
+            }
+            break;
+        case 1:
+            if (91 == ch) {
+                state = 2;
+            } else {
+                state = 0;
+                if (valid_typing (ch)) {
+                    /*
+                     * Note that we may be discarding an ESC (27), but
+                     * we don't use that as typed input anyway.
+                     */
+                    typed_a_char (ch);
+                } else if (10 == ch || 13 == ch) {
+                    pushed = CMD_TYPED;
+                }
+            }
+            break;
+        case 2:
+            if (ch >= 'A' && ch <= 'D') {
+                switch (ch) {
+                    case 'A': pushed = CMD_UP; break;
+                    case 'B': pushed = CMD_DOWN; break;
+                    case 'C': pushed = CMD_RIGHT; break;
+                    case 'D': pushed = CMD_LEFT; break;
+                }
+                state = 0;
+            } else if (ch == '1' || ch == '2' || ch == '5') {
+                switch (ch) {
+                    case '2': pushed = CMD_MOVE_LEFT; break;
+                    case '1': pushed = CMD_ENTER; break;
+                    case '5': pushed = CMD_MOVE_RIGHT; break;
+                }
+                state = 3; /* Consume a '~'. */
+            } else {
+                state = 0;
+                if (valid_typing (ch)) {
+                    /*
+                     * Note that we may be discarding an ESC (27) and
+                     * a bracket (91), but we don't use either as
+                     * typed input anyway.
+                     */
+                    typed_a_char (ch);
+                } else if (10 == ch || 13 == ch) {
+                    pushed = CMD_TYPED;
+                }
+            }
+            break;
+        case 3:
+            state = 0;
+            if ('~' == ch) {
+                /* Consume it silently. */
+            } else if (valid_typing (ch)) {
+                typed_a_char (ch);
+            } else if (10 == ch || 13 == ch) {
+                pushed = CMD_TYPED;
+            }
+            break;
+        }
 #else /* USE_TUX_CONTROLLER */
-	/* Tux controller mode; still need to support typed commands. */
-	if (valid_typing (ch)) {
-	    typed_a_char (ch);
-	} else if (10 == ch || 13 == ch) {
-	    pushed = CMD_TYPED;
-	}
+        /* Tux controller mode; still need to support typed commands. */
+        if (valid_typing (ch)) {
+            typed_a_char (ch);
+        } else if (10 == ch || 13 == ch) {
+            pushed = CMD_TYPED;
+        }
 #endif /* USE_TUX_CONTROLLER */
     }
 
-    get_tux_command(&pushed);
+    cmd_t tux_pushed = CMD_NONE;
+    get_tux_command(&tux_pushed);
 
     /*
      * Once a direction is pushed, that command remains active
@@ -300,55 +299,79 @@ get_command ()
     if (pushed == CMD_NONE) {
         command = CMD_NONE;
     }
+
+    // Controller overrides the keyboard
+    if (tux_pushed != CMD_NONE) pushed = tux_pushed;
+
     return pushed;
 }
 
 void
-get_tux_command(cmd_t *pushed) {
-    int arg = 0xFFFFFF00;
-    ioctl(fd, TUX_BUTTONS, &arg);
+get_tux_command(cmd_t *pushed)
+{
+    int btns = 0;
+    ioctl(fd, TUX_BUTTONS, &btns);
+    static int last_btns = 0;
+    // Kill those bits already present last time
+    int new_btns = btns & ~last_btns;
 
-    switch (arg)
+    static cmd_t tux_pushed = CMD_NONE;
+
+    last_btns = btns;
+
+    if (btns == 0)
     {
-        case PACKET_UP:
-            *pushed = CMD_UP;
-            break;
-
-        case PACKET_DOWN:
-            *pushed = CMD_DOWN;
-            break;
-
-        case PACKET_LEFT:
-            *pushed = CMD_LEFT;
-            break;
-
-        case PACKET_RIGHT:
-            *pushed = CMD_RIGHT;
-            break;
+        tux_pushed = CMD_NONE;
+        *pushed = CMD_NONE;
+        return;
     }
 
-    if(arg == button_did_pressed) return;
-
-    switch(arg)
+    switch (new_btns)
     {
-        case PACKET_ENTER:
-            *pushed = CMD_ENTER;
-            break;
+    case PACKET_UP:
+        tux_pushed = CMD_UP;
+        break;
 
-        case PACKET_QUIT:
-            *pushed = CMD_QUIT;
-            break;
+    case PACKET_DOWN:
+        tux_pushed = CMD_DOWN;
+        break;
 
-        case PACKET_MOVE_LEFT:
-            *pushed = CMD_MOVE_LEFT;
-            break;
+    case PACKET_LEFT:
+        tux_pushed = CMD_LEFT;
+        break;
 
-        case PACKET_MOVE_RIGHT:
-            *pushed = CMD_MOVE_RIGHT;
-            break;
+    case PACKET_RIGHT:
+        tux_pushed = CMD_RIGHT;
+        break;
+
+    case PACKET_ENTER:
+        tux_pushed = CMD_ENTER;
+        break;
+
+    case PACKET_QUIT:
+        tux_pushed = CMD_QUIT;
+        break;
+
+    case PACKET_MOVE_LEFT:
+        tux_pushed = CMD_MOVE_LEFT;
+        break;
+
+    case PACKET_MOVE_RIGHT:
+        tux_pushed = CMD_MOVE_RIGHT;
+        break;
     }
 
-    button_did_pressed = arg;
+    // Debouncing
+    if (new_btns == 0 && (tux_pushed == CMD_ENTER ||
+            tux_pushed == CMD_QUIT ||
+            tux_pushed == CMD_MOVE_LEFT ||
+            tux_pushed == CMD_MOVE_RIGHT))
+    {
+         tux_pushed = CMD_NONE;
+    }
+
+    *pushed = tux_pushed;
+
 }
 
 
@@ -379,14 +402,14 @@ shutdown_input ()
 void
 display_time_on_tux (int num_seconds)
 {
-#if (USE_TUX_CONTROLLER != 0)
-#endif
     int min = num_seconds / 60;
     int sec = num_seconds % 60;
     unsigned long led_time = 0xF4FF0000;
+    // Kill first digit
     if (min < 10) led_time &= 0xFFF7FFFF;
-    led_time |= ((min & 0x00FF) << 8);
-    led_time |= (((sec / 10) * 16 + (sec % 10)) & 0x00FF);
+    led_time |= (min & 0x00FF) << 8;
+    // Skip 6 every 10
+    led_time |= ((sec / 10) * 16 + (sec % 10)) & 0x00FF;
     ioctl(fd, TUX_SET_LED, led_time);
 }
 
@@ -399,23 +422,22 @@ main ()
     cmd_t cmd;
     static const char* const cmd_name[NUM_COMMANDS] = {
         "none", "right", "left", "up", "down",
-	"move left", "enter", "move right", "typed command", "quit"
+        "move left", "enter", "move right", "typed command", "quit"
     };
 
     /* Grant ourselves permission to use ports 0-1023 */
     if (ioperm (0, 1024, 1) == -1) {
-	perror ("ioperm");
-	return 3;
+        perror ("ioperm");
+        return 3;
     }
 
     init_input ();
     while (1) {
         while ((cmd = get_command ()) == last_cmd);
-	last_cmd = cmd;
-	printf ("command issued: %s\n", cmd_name[cmd]);
-	if (cmd == CMD_QUIT)
-	    break;
-	display_time_on_tux (83);
+        last_cmd = cmd;
+        printf ("command issued: %s\n", cmd_name[cmd]);
+        if (cmd == CMD_QUIT) break;
+        display_time_on_tux (83);
     }
     shutdown_input ();
     return 0;

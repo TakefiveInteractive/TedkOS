@@ -56,7 +56,7 @@ extern int32_t build_world (void);
 /* Get pointer to starting room for player. */
 extern room_t* start_in_room (void);
 
-photo_t * getView(room_t *room);
+photo_t * getView(const room_t *room);
 
 /*
  * checks for accelerator object ownership; these make horizontal (board)

@@ -187,6 +187,7 @@ cancel_status_thread (void* ignore)
     (void)pthread_cancel (status_thread_id);
 }
 
+/* Thread that bumps the seconds elapsed every second */
 static
 void ticker_thread (void * param)
 {
@@ -199,6 +200,22 @@ void ticker_thread (void * param)
         usleep(1000000);
     }
 }
+
+/*
+ * cancel_ticker_thread
+ *   DESCRIPTION: Terminates the ticker helper thread.  Used as
+ *                a cleanup method to ensure proper shutdown.
+ *   INPUTS: none (ignored)
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
+static void
+cancel_ticker_thread (void* ignore)
+{
+    (void)pthread_cancel (timer_thread_id);
+}
+
 
 /*
  * game_loop
@@ -231,7 +248,6 @@ game_loop ()
 	tick_time.tv_usec -= 1000000;
     }
 
-    pthread_create(&timer_thread_id, NULL, (void*)ticker_thread, (int*)start_time.tv_sec);
 
     /* The player has just entered the first room. */
     enter_room = 1;
@@ -786,7 +802,7 @@ main ()
 
     /* Perform sanity checks. */
     if (0 != sanity_check ()) {
-	PANIC ("failed sanity checks");
+        PANIC ("failed sanity checks");
     }
 
     /* Create status message thread. */
@@ -795,30 +811,39 @@ main ()
     }
     push_cleanup (cancel_status_thread, NULL); {
 
-	/* Start mode X. */
-	if (0 != set_mode_X (fill_horiz_buffer, fill_vert_buffer)) {
-	    PANIC ("cannot initialize mode X");
-	}
-	push_cleanup ((cleanup_fn_t)clear_mode_X, NULL); {
+        /* Start mode X. */
+        if (0 != set_mode_X (fill_horiz_buffer, fill_vert_buffer)) {
+            PANIC ("cannot initialize mode X");
+        }
+        push_cleanup ((cleanup_fn_t)clear_mode_X, NULL); {
 
-	    /* Initialize the keyboard and/or Tux controller. */
-	    if (0 != init_input ()) {
-		PANIC ("cannot initialize input");
-	    }
-	    push_cleanup ((cleanup_fn_t)shutdown_input, NULL); {
+            /* Initialize the keyboard and/or Tux controller. */
+            if (0 != init_input ()) {
+                PANIC ("cannot initialize input");
+            }
 
-		game = game_loop ();
+            push_cleanup ((cleanup_fn_t)shutdown_input, NULL); {
 
-	    } pop_cleanup (1);
+                if (0 != pthread_create(&timer_thread_id, NULL, (void*)ticker_thread, NULL)) {
+                    PANIC ("failed to create ticker thread");
+                }
 
-	} pop_cleanup (1);
+                push_cleanup (cancel_ticker_thread, NULL); {
+
+                    game = game_loop ();
+
+                } pop_cleanup (1);
+
+            } pop_cleanup (1);
+
+        } pop_cleanup (1);
 
     } pop_cleanup (1);
 
     /* Print a message about the outcome. */
     switch (game) {
-	case GAME_WON: printf ("You win the game!  CONGRATULATIONS!\n"); break;
-	case GAME_QUIT: printf ("Quitter!\n"); break;
+        case GAME_WON: printf ("You win the game!  CONGRATULATIONS!\n"); break;
+        case GAME_QUIT: printf ("Quitter!\n"); break;
     }
 
     /* Return success. */

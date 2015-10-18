@@ -186,7 +186,7 @@ struct room_t {
     room_t*     right;  	/* room to the "right"            */
 };
 
-photo_t * getView(room_t *room)
+photo_t * getView(const room_t *room)
 {
     return room->view;
 }
