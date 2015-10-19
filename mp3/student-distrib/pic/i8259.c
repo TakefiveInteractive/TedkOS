@@ -21,7 +21,7 @@ void i8259_init(void)
     slave_mask = 0xFF;
 
     uint32_t flag;
-    spin_lock_lock_irqsave(&lock, flag);
+    spin_lock_irqsave(&lock, flag);
 
     outb(master_mask, MASTER_8259_PORT + 1);
     outb(slave_mask, SLAVE_8259_PORT + 1);
@@ -39,7 +39,7 @@ void i8259_init(void)
     outb(master_mask, MASTER_8259_PORT + 1);
     outb(slave_mask, SLAVE_8259_PORT + 1);
 
-    spin_lock_unlock_irqrestore(&lock, flag);
+    spin_unlock_irqrestore(&lock, flag);
 }
 
 /**
@@ -50,7 +50,7 @@ void enable_irq(uint32_t irq_num)
 {
     uint8_t irq;
     uint32_t flag;
-    spin_lock_lock_irqsave(&lock, flag);
+    spin_lock_irqsave(&lock, flag);
     /* check interrupt number valid bounds */
     if (irq_num < 0 || irq_num > 15) return;
     /* master bounds */
@@ -62,7 +62,7 @@ void enable_irq(uint32_t irq_num)
         irq = inb(SLAVE_8259_PORT + 1) & ~(1 << (irq_num - 8));
         outb(irq, SLAVE_8259_PORT + 1);
     }
-    spin_lock_unlock_irqrestore(&lock, flag);
+    spin_unlock_irqrestore(&lock, flag);
 }
 
 /**
@@ -73,7 +73,7 @@ void disable_irq(uint32_t irq_num)
 {
     uint8_t irq;
     uint32_t flag;
-    spin_lock_lock_irqsave(&lock, flag);
+    spin_lock_irqsave(&lock, flag);
     /* check interrupt number valid bounds */
     if (irq_num < 0 || irq_num > 15) return;
     /* master bounds */
@@ -85,7 +85,7 @@ void disable_irq(uint32_t irq_num)
         irq = inb(SLAVE_8259_PORT + 1) | (1 << (irq_num - 8));
         outb(irq, SLAVE_8259_PORT + 1);
     }
-    spin_lock_unlock_irqrestore(&lock, flag);
+    spin_unlock_irqrestore(&lock, flag);
 }
 
 /**
@@ -95,13 +95,13 @@ void disable_irq(uint32_t irq_num)
 void send_eoi(uint32_t irq_num)
 {
     uint32_t flag;
-    spin_lock_lock_irqsave(&lock, flag);
+    spin_lock_irqsave(&lock, flag);
     if (irq_num < 8) {
         outb(EOI | irq_num, MASTER_8259_PORT);
     } else {
         outb(EOI | SLAVE_PIN, MASTER_8259_PORT);
         outb(EOI | (irq_num - 8), SLAVE_8259_PORT);
     }
-    spin_lock_unlock_irqrestore(&lock, flag);
+    spin_unlock_irqrestore(&lock, flag);
 }
 
