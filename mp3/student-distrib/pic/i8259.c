@@ -108,6 +108,13 @@ void send_eoi(uint32_t irq_num)
 
 int irq_int_entry (int irq, pt_reg* saved_reg)
 {
+    irq_desc_t* desc = irq_desc + irq;
+    if (irq >= NR_IRQS) return -1;
+    if (desc->depth + 1 >= MAX_DEPTH) return -1;
+    desc->depth++;
+
+    // desc->handle_level_irq
+
     return 0;
 }
 
