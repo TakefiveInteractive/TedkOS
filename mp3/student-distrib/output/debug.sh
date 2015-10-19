@@ -42,6 +42,7 @@ cp -f /tmp/mp3/filesys_img /mnt/tmpmp3/
 $unmount_cmd
 $unload_cmd
 cp -f /tmp/mp3/mp3.img ./
+chmod 666 ./mp3.img
 rm -rf /tmp/mp3
 rmdir /mnt/tmpmp3
 

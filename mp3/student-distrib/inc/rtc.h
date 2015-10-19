@@ -3,6 +3,10 @@
 
 #include <inc/driver.h>
 
+#include "lib.h"
+#include "types.h"
+#include "i8259.h"
+
 extern DEFINE_DRIVER_INIT(rtc);
 extern DEFINE_DRIVER_REMOVE(rtc);
 
