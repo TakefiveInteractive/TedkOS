@@ -9,17 +9,21 @@ CFLAGS 	+= -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
 ASFLAGS +=
 LDFLAGS += -nostdlib -static
 CC=`./detect-gcc.sh`
+CXX=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS +=-g -I.
+CXXFLAGS +=-std=c++11 -ftemplate-depth=1024 -I.
 
 # This generates the list of source files
-SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard **/*.cpp) $(wildcard *.S) $(wildcard *.c) $(wildcard *.cpp)
+SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
+SRC_CPP =  $(wildcard **/*.cpp) $(wildcard *.cpp)
 
 # This generates the list of .o files. The order matters, boot.o must be first
 OBJS      = boot.o
 OBJS     += $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))
 OBJS     += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
+OBJS     += $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRC_CPP)))
 
 bootimg: Makefile $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o $(OUTDIR)/bootimg
@@ -28,7 +32,8 @@ bootimg: Makefile $(OBJS)
 dep: Makefile.dep
 
 Makefile.dep: $(SRC)
-	$(CC) -MM $(CPPFLAGS) $(SRC) > $@
+	$(CC) -MM $(CFLAGS) $(SRC) > $@
+	$(CC) -MM $(CPPFLAGS) $(SRC_CPP) >> $@
 
 .PHONY: clean, tidy
 clean:

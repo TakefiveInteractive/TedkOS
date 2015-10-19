@@ -1,15 +1,8 @@
-#include "err_handler.h"
+#include <stddef.h>
+#include <inc/x86/err_handler.h>
 
-void exception_handler(void)
+void exception_handler(size_t vec)
 {
 
 }
-
-__asm__("_raw_exception_handler:    \n\
-        pushad          \n\
-        cld             \n\
-        call exception_handler      \n\
-        popad           \n\
-        iret            \n\
-");
 
