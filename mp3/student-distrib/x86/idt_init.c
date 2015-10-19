@@ -3,7 +3,7 @@
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 
-//const uint32_t idtRawHandlers[256] = {
+//const uint32_t idtRawHandlers[NUM_VEC] = {
     //ARR_REPEAT_32(raw_exception_handler),
     //ARR_REPEAT_16(raw_pic_irq_handler),
     //ARR_REPEAT_80(raw_nothing_handler),
@@ -49,4 +49,8 @@ void interrupt_handler_with_number (size_t index)
 
 void init_idt(void)
 {
+	for(int i=0; i<NUM_VEC; i++)
+	{
+		idt[i]
+	}
 }
