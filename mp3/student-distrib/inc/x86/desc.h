@@ -8,6 +8,10 @@
 
 #include <inc/types.h>
 
+// !!! This header is also included in ASM !!!
+// !!!  Be careful to add C types and function
+//  declarations in #ifndef ASM part
+
 /*
  * Warning!!!!
  *	Remeber: index of the selector = selector's value >> 3 !!!
