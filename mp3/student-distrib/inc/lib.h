@@ -34,7 +34,7 @@ void test_interrupts(void);
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */
-static inline uint32_t inb(port)
+static inline uint32_t inb(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n \
@@ -48,7 +48,7 @@ static inline uint32_t inb(port)
 /* Reads two bytes from two consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them zero-extended
  * */
-static inline uint32_t inw(port)
+static inline uint32_t inw(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n   \
@@ -61,7 +61,7 @@ static inline uint32_t inw(port)
 
 /* Reads four bytes from four consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them */
-static inline uint32_t inl(port)
+static inline uint32_t inl(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("inl   (%w1), %0"
