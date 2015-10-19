@@ -11,7 +11,7 @@ LDFLAGS += -nostdlib -static
 CC=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
-CPPFLAGS +=-g -fno-rtti -I.
+CPPFLAGS +=-g -I.
 
 # This generates the list of source files
 SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
@@ -31,7 +31,7 @@ Makefile.dep: $(SRC)
 	$(CC) -MM $(CPPFLAGS) $(SRC) > $@
 
 .PHONY: clean, tidy
-clean: 
+clean:
 	rm -f $(OBJS) Makefile.dep $(OUTDIR)/bootimg
 
 tidy: clean
