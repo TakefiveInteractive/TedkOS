@@ -4,6 +4,7 @@
 
 #include <inc/i8259.h>
 #include <inc/lib.h>
+#include <inc/spinlock.h>
 
 /* Interrupt masks to determine which interrupts
  * are enabled and disabled */
@@ -13,6 +14,7 @@ uint8_t slave_mask = 0xFF; /* IRQs 8-15 */
 /* Initialize the 8259 PIC */
 void i8259_init(void)
 {
+
 }
 
 /* Enable (unmask) the specified IRQ */
