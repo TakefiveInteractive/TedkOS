@@ -27,7 +27,7 @@
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI             0x60
-#define NR_IRQS         1
+#define NR_IRQS         16
 
 typedef int (*irq_good_handler_t)(int irq, pt_reg* saved_reg);
 
@@ -36,12 +36,13 @@ typedef struct irqaction_t {
     unsigned int policy_flags;
     unsigned int mask;
     unsigned int dev_id;     /* A interger to differentiate different devices */
-    struct irqaction_t *next;
+    struct irqaction_t *next; /* not used for now */
 } irqaction;
 
 typedef struct {
     unsigned int status;            /* IRQ status */
-    irqaction *action;              /* IRQ action list */
+    irqaction action[1024];         /* IRQ action list */
+    int isActionDeleted[1024];
     unsigned int depth;             /* nested irq disables */
     spinlock_t lock;
 } irq_desc_t;
@@ -66,7 +67,7 @@ void send_eoi(uint32_t irq_num);
  * Input:
  *     irq -- The currently called IRQ number, because this function is called
  *     by multiple IRQ nums, this variable used to differentiate between them.
- *     saved_reg -- You should not change it.
+ *     saved_reg -- You should not change it or read it.
  * Return value: used to indicate success or not.
  *    WARNING: return value is currently not used.
  */

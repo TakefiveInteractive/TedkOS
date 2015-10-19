@@ -105,3 +105,31 @@ void send_eoi(uint32_t irq_num)
     spin_unlock_irqrestore(&lock, flag);
 }
 
+
+int irq_int_entry (int irq, pt_reg* saved_reg)
+{
+    return 0;
+}
+
+int bind_irq(unsigned int irq, unsigned int device_id,
+        irq_good_handler_t handler, unsigned int policy_flags)
+{
+    irqaction action;
+    int retval;
+    if (irq >= NR_IRQS) return -1;
+    if (!handler) return -1;
+
+    action.handler = handler;
+    action.dev_id = device_id;
+    action.next = NULL;
+    action.policy_flags = policy_flags;
+
+    //TODO: retval = setup_irq
+
+    return retval;
+}
+
+void unbind_irq(unsigned int irq, unsigned int device_id)
+{
+
+}
