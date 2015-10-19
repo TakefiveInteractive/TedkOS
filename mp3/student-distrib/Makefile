@@ -31,9 +31,12 @@ dep: Makefile.dep
 Makefile.dep: $(SRC)
 	$(CC) -MM $(CPPFLAGS) $(SRC) > $@
 
-.PHONY: clean
+.PHONY: clean, tidy
 clean: 
-	rm -f $(OBJS) Makefile.dep output/bootimg
+	rm -f $(OBJS) Makefile.dep $(OUTDIR)/bootimg
+
+tidy: clean
+	rm -f $(OUTDIR)/mp3.img
 
 ifneq ($(MAKECMDGOALS),dep)
 ifneq ($(MAKECMDGOALS),clean)
