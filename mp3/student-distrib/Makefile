@@ -1,8 +1,9 @@
 
 # Makefile for OS project
-# To build, first `make dep`, them `make`. Everything should be automatic.
+# To build, first `make dep`, then `make`. Everything should be automatic.
 # Will compile all *.c and *.S files in the current directory.
 
+OUTDIR = output/
 
 # Flags to use when compiling, preprocessing, assembling, and linking
 CFLAGS 	+= -Wall -fno-builtin -fno-stack-protector -nostdlib
@@ -14,26 +15,28 @@ CC=`./detect-gcc.sh`
 CPPFLAGS +=-nostdinc -g -I.
 
 # This generates the list of source files
-SRC =  $(wildcard *.S) $(wildcard *.c)
+SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
 
 # This generates the list of .o files. The order matters, boot.o must be first
-OBJS  = boot.o
-OBJS += $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))
-OBJS += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
-
+OBJS      = boot.o
+OBJS     += $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))
+OBJS     += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
 
 bootimg: Makefile $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o bootimg
-	sudo ./buildimg/debug.sh
+	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o $(OUTDIR)/bootimg
+	(cd $(OUTDIR); sudo ./debug.sh)
 
 dep: Makefile.dep
 
 Makefile.dep: $(SRC)
 	$(CC) -MM $(CPPFLAGS) $(SRC) > $@
 
-.PHONY: clean
+.PHONY: clean, tidy
 clean: 
-	rm -f *.o Makefile.dep bootimg
+	rm -f $(OBJS) Makefile.dep $(OUTDIR)/bootimg
+
+tidy: clean
+	rm -f $(OUTDIR)/mp3.img
 
 ifneq ($(MAKECMDGOALS),dep)
 ifneq ($(MAKECMDGOALS),clean)
