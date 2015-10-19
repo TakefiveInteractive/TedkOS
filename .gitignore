@@ -1,5 +1,8 @@
 .DS_Store
 mp3.img
+Makefile.dep
+bootimg
+gcc.dmg
 
 adventure
 
