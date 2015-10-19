@@ -1,8 +1,9 @@
 #include <inc/keyboard.h>
 //#include "keyboard.h"
 
-#define KB_PORT 0x21
-#define KB_IRQ 1
+#define KD_PORT 0x60
+#define KB_INT_NUM 0x21
+#define KB_IRQ_NUM 1
 #define KB_ID 1
 #define KD_POLICY 0
 
@@ -55,14 +56,14 @@ unsigned char KBascii[128] =
 
 DEFINE_DRIVER_INIT(kb) {
 	//enable_irq(KB_IRQ);
-	bind_irq(KB_IRQ,KB_ID,kb_handler,KD_POLICY);
+	bind_irq(KB_IRQ_NUM,KB_ID,kb_handler,KD_POLICY);
 	//bind handler to pic
 	return;
 }
 
 DEFINE_DRIVER_REMOVE(kb) {
 	//rm handler from pic
-	unbind_irq(KB_IRQ,KB_ID);
+	unbind_irq(KB_IRQ_NUM,KB_ID);
 	//disable_irq(KB_IRQ);
     return;
 }
@@ -70,12 +71,31 @@ DEFINE_DRIVER_REMOVE(kb) {
 /* keyboard_handler
  * description:
  *		initialize the keyboard
- * input,output,return:
+ * input:
+ *		int irq, pt_reg* saved_reg(not used)
+ * output,return:
  *		none
  * side effect:
  *		initialize the keyboard
  */
 void kb_handler(int irq, pt_reg* saved_reg){
-	
-	return;
+	cli();
+
+	uint8_t keyboard_scancode;
+
+ 	keyboard_scancode = inb(KB_PORT);//read the input
+ 	if (!(keyboard_scancode & 0x80)) {
+ 		uint8_t key = KBascii[keyboard_scancode];
+ 		printf("%c", key);
+ 	}
+
+ 	send_eoi(KB_IRQ_NUM);//send_eoi in i8259.h
+
+	sti();
+	asm("leave;					\
+		iret;"
+		);
+
+
+
 }
