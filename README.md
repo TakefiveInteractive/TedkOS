@@ -10,6 +10,12 @@ sudo sed -e 's/OPTIONS="auto_xattr,defer_permissions"/OPTIONS="auto_xattr,defer_
 ```
 ONCE before you start working on this.
 
+VM commands
+```
+alias ece391.test.mp3='qemu-system-i386 -drive file=~/ece391_common/mp3/student-distrib/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -S -name test-mp3'
+alias ece391.test.mp3.nodebug='qemu-system-i386 -drive file=~/ece391_common/mp3/student-distrib/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -name test-mp3-nodebug'
+```
+
 ## ECE391 MP3 - Package contents
 
 ### createfs
