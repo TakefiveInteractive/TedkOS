@@ -14,7 +14,7 @@ CC=`./detect-gcc.sh`
 CPPFLAGS +=-g -I.
 
 # This generates the list of source files
-SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
+SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard **/*.cpp) $(wildcard *.S) $(wildcard *.c) $(wildcard *.cpp)
 
 # This generates the list of .o files. The order matters, boot.o must be first
 OBJS      = boot.o
