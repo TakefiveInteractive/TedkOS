@@ -1,4 +1,4 @@
-#include "rtc.h"
+#include <inc/rtc.h>
 
 extern void rtc_init() {
 
