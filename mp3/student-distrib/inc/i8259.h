@@ -28,8 +28,12 @@
  * to declare the interrupt finished */
 #define EOI             0x60
 #define NR_IRQS         16
+#define MAX_DEPTH       8
 
-typedef int (*irq_good_handler_t)(int irq, pt_reg* saved_reg);
+// Return value is preserved.
+// Currently all functions return 0.
+// Later it might be used to indicate EVENT_NOT_HANDLED
+typedef int (*irq_good_handler_t)(int irq, unsigned int dev_id);
 
 typedef struct irqaction_t {
     irq_good_handler_t handler;
@@ -39,14 +43,54 @@ typedef struct irqaction_t {
     struct irqaction_t *next; /* not used for now */
 } irqaction;
 
+#define _PIC_ACTION_LIST_SIZE   256
+
 typedef struct {
     unsigned int status;            /* IRQ status */
-    irqaction action[1024];         /* IRQ action list */
-    int isActionDeleted[1024];
+    int actionsListHead;
+    irqaction action[_PIC_ACTION_LIST_SIZE];         /* IRQ action list */
+    int is_action_deleted[_PIC_ACTION_LIST_SIZE];
     unsigned int depth;             /* nested irq disables */
     spinlock_t lock;
 } irq_desc_t;
-extern irq_desc_t irq_desc [NR_IRQS];
+extern irq_desc_t irq_descs [NR_IRQS];
+
+/************ These functions can be tested *****************/
+
+/* List functions*/
+
+// Add a new action in the list, initilized with arguments passed in.
+// This function returns 0 upon success.
+// It might return nonzero due to capaticy issues.
+static int add_action(irq_desc_t* listProvider, irq_good_handler_t handler, unsigned int policy_flags, unsigned int mask, unsigned int dev_id)
+{
+    ;
+}
+
+// Returns the first action in list.
+//  If there is NO ACTION in list, return NULL
+static irqaction* firstAction(irq_desc_t* listProvider)
+{
+    ;
+}
+
+// Find action according to device id and handler
+// Both should match.
+// Return the INDEX in the array, or -1 if not found
+// IF hander_to_find == NULL, then match only using deviceId_to_find
+// IF device_id < 0, match only using handler.
+// IF both NULL and dev < 0, then match everything.
+static int find_action(irq_desc_t* listProvider, int deviceId_to_find, irq_good_handler_t handler_to_find)
+{
+}
+
+// Pass the index to remove as itemIdx
+static void remove_action(irq_desc_t* listProvider, int itemIdx)
+{
+    ;
+}
+
+/************* Other functions *****************/
 
 /* Externally-visible functions */
 
@@ -71,7 +115,7 @@ void send_eoi(uint32_t irq_num);
  * Return value: used to indicate success or not.
  *    WARNING: return value is currently not used.
  */
-int irq_int_entry (int irq, pt_reg* saved_reg);
+int irq_int_entry (int irq, unsigned int dev_id);
 
  /*
   * bind_irq(unsigned int irq, irq_good_handler_t driver_level_handler, unsigned int policy_flags)
