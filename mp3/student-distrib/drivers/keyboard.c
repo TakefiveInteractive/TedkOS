@@ -3,7 +3,8 @@
 
 #define KB_PORT 0x21
 #define KB_IRQ 1
-
+#define KB_ID 1
+#define KD_POLICY 0
 
 unsigned char KBascii[128] =
 {
@@ -53,14 +54,16 @@ unsigned char KBascii[128] =
 
 
 DEFINE_DRIVER_INIT(kb) {
-	enable_irq(1);
+	//enable_irq(KB_IRQ);
+	bind_irq(KB_IRQ,KB_ID,kb_handler,KD_POLICY);
 	//bind handler to pic
 	return;
 }
 
 DEFINE_DRIVER_REMOVE(kb) {
 	//rm handler from pic
-	disable_irq(1);
+	unbind_irq(KB_IRQ,KB_ID);
+	//disable_irq(KB_IRQ);
     return;
 }
 
@@ -72,7 +75,7 @@ DEFINE_DRIVER_REMOVE(kb) {
  * side effect:
  *		initialize the keyboard
  */
-void kb_handler(void){
-
-
+void kb_handler(int irq, pt_reg* saved_reg){
+	
+	return;
 }
