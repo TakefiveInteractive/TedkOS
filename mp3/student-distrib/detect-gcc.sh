@@ -3,7 +3,7 @@ case "$(uname -s)" in
     Darwin)
         # Cross compiler for 391
         if [[ ! -a gcc.dmg ]]; then
-            wget https://github.com/TakefiveInteractive/ece391ForMac/releases/download/0.1/gcc.dmg &> 0
+            wget https://github.com/TakefiveInteractive/ece391ForMac/releases/download/0.1/gcc.dmg &> /dev/null
         fi
         if [[ ! -a /Volumes/ece391cc/cross/bin/i686-elf-gcc ]]; then
             disk=$(hdiutil attach -noverify gcc.dmg -nomount | awk '{print $1}' | head -n 1)
