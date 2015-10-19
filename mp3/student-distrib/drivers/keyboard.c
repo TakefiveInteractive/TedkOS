@@ -1,5 +1,5 @@
-//#include <inc/keyboard.h>
-#include "keyboard.h"
+#include <inc/keyboard.h>
+//#include "keyboard.h"
 
 #define KB_PORT 0x21
 #define KB_IRQ 1
@@ -65,9 +65,12 @@ DEFINE_DRIVER_REMOVE(kb) {
 }
 
 /* keyboard_handler
- * description: initialize the keyboard
- * input,output,return: none
- * side effect: initialize the keyboard
+ * description:
+ *		initialize the keyboard
+ * input,output,return:
+ *		none
+ * side effect:
+ *		initialize the keyboard
  */
 void kb_handler(void){
 
