@@ -1,4 +1,3 @@
-
 # Makefile for OS project
 # To build, first `make dep`, then `make`. Everything should be automatic.
 # Will compile all *.c and *.S files in the current directory.
@@ -6,13 +5,13 @@
 OUTDIR = output/
 
 # Flags to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -Wall -fno-builtin -fno-stack-protector -nostdlib
+CFLAGS 	+= -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
 ASFLAGS +=
 LDFLAGS += -nostdlib -static
 CC=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
-CPPFLAGS +=-nostdinc -g -I.
+CPPFLAGS +=-g -fno-rtti -I.
 
 # This generates the list of source files
 SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
