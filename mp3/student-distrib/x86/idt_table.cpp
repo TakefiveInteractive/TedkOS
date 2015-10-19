@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <inc/x86/desc.h>
 #include <inc/x86/err_handler.h>
 
 typedef void (*vector_extracting_handler)(void);
@@ -35,7 +36,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
     }
 };
 
-const size_t count = 255;
+const size_t count = NUM_VEC;
 
-typedef generate_array<count, VectorExtractingMetaFunc>::result interrupt_table;
+typedef generate_array<count, VectorExtractingMetaFunc>::result raw_interrupt_handlers;
 
