@@ -7,6 +7,7 @@
 #define _I8259_H
 
 #include <inc/types.h>
+#include <inc/spinlock.h>
 
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT 0x20
@@ -26,6 +27,25 @@
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI             0x60
+#define NR_IRQS         1
+
+typedef int (*irq_good_handler_t)(int irq, pt_reg* saved_reg);
+
+typedef struct irqaction_t {
+    irq_good_handler_t handler;
+    unsigned int policy_flags;
+    unsigned int mask;
+    unsigned int dev_id;     /* A interger to differentiate different devices */
+    struct irqaction_t *next;
+} irqaction;
+
+typedef struct {
+    unsigned int status;            /* IRQ status */
+    irqaction *action;              /* IRQ action list */
+    unsigned int depth;             /* nested irq disables */
+    spinlock_t lock;
+} irq_desc_t;
+extern irq_desc_t irq_desc [NR_IRQS];
 
 /* Externally-visible functions */
 
@@ -37,5 +57,33 @@ void enable_irq(uint32_t irq_num);
 void disable_irq(uint32_t irq_num);
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num);
+
+/*
+ * int irq_int_entry (int irq, pt_reg* saved_reg)
+ * Description: irq_interrupt_entry
+ *     equivalent to do_IRQ in linux.
+ *     This function is called by IDT, for every IRQ from 0 to 15.
+ * Input:
+ *     irq -- The currently called IRQ number, because this function is called
+ *     by multiple IRQ nums, this variable used to differentiate between them.
+ *     saved_reg -- You should not change it.
+ * Return value: used to indicate success or not.
+ *    WARNING: return value is currently not used.
+ */
+int irq_int_entry (int irq, pt_reg* saved_reg);
+
+ /*
+  * bind_irq(unsigned int irq, irq_good_handler_t driver_level_handler, unsigned int policy_flags)
+  * Description:
+  *     This is equivalent to linux's request_irq() Add driver_level_handler
+  *     to the handler linked list, and set policy_flags (if necessary)
+  * Return val: SUCCESS = 0. Otherwise non zero.
+  * WARNING: THIS RET VAL MUST BE SET
+  */
+int bind_irq(unsigned int irq, unsigned int device_id,
+    irq_good_handler_t driver_level_handler, unsigned int policy_flags);
+
+// Similar to free_irq in linux. Unbinds handler of device_id from irq
+void unbind_irq(unsigned int irq, unsigned int device_id);
 
 #endif /* _I8259_H */
