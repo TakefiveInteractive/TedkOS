@@ -7,12 +7,13 @@
 CLEAR_PAE   =   0x00000020
 SET_PG      =   0x80000000
 
-.text
 .global enable_paging
+.global global_pagedir, page_table
 
+.text
 .align 4
 
-# enable_paging (ptr, flags)
+# enable_paging (dir_addr, pd_flags)
 #     Description:
 #        This function enables paging and sets CR3
 #        Thus it will flush TLB.
@@ -41,8 +42,17 @@ enable_paging:
     orl  $SET_PG, %eax
     movl %eax, %cr0
 
-    movl 4(%esp), %eax      # eax <- Pointer to Page Directory
-    orl  8(%esp), %eax      # eax <- ptr | flags
+    movl global_pagedir, %eax      # eax <- Pointer to Page Directory
     movl %eax, %cr3
 
     ret
+
+.data
+
+# These pointer can also point to tables in other places.
+# Those table may be later allocated by kernel.
+# At boot the paging tables is initialized,
+#   by analyzing MEMORY LAYOUT and ALLOCATING AT THAT TIME
+global_pagedir:
+    .long 0
+
