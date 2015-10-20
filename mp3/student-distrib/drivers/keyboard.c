@@ -1,7 +1,7 @@
 #include <inc/keyboard.h>
 //#include "keyboard.h"
 
-#define KD_PORT 0x60
+#define KB_PORT 0x60
 #define KB_INT_NUM 0x21
 #define KB_IRQ_NUM 1
 #define KB_ID 1
@@ -53,7 +53,7 @@ unsigned char KBascii[128] =
     0,	/* All other keys are undefined */
 };
 
-void kb_handler(int irq, pt_reg* saved_reg);
+void kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
 	//enable_irq(KB_IRQ);
@@ -79,7 +79,7 @@ DEFINE_DRIVER_REMOVE(kb) {
  * side effect:
  *		initialize the keyboard
  */
-void kb_handler(int irq, pt_reg* saved_reg){
+void kb_handler(int irq, unsigned int saved_reg){
 	cli();
 
 	uint8_t keyboard_scancode;
