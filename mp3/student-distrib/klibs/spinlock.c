@@ -1,4 +1,5 @@
-#include <inc/x86/spinlock.h>
+#include <stdint.h>
+#include <inc/spinlock.h>
 
 void spin_lock_init(spinlock_t* lock){
 

@@ -14,6 +14,12 @@ uint8_t slave_mask; /* IRQs 8-15 */
 #define SLAVE_PIN 0x02
 spinlock_t lock = SPINLOCK_UNLOCKED;
 
+/* Private functions */
+static int setup_irq(unsigned int irq, unsigned int device_id,
+        irq_good_handler_t handler, unsigned int policy_flags);
+static void handle_level_irq(unsigned int irq, irq_desc_t* desc);
+static int handle_irq_event(unsigned int irq, irqaction* action);
+
 /* Initialize the 8259 PIC */
 void i8259_init(void)
 {
@@ -105,3 +111,80 @@ void send_eoi(uint32_t irq_num)
     spin_unlock_irqrestore(&lock, flag);
 }
 
+
+int irq_int_entry (int irq, unsigned int dev_id)
+{
+    irq_desc_t* desc = irq_descs + irq;
+    if (irq >= NR_IRQS) return -1;
+    if (desc->depth + 1 >= MAX_DEPTH) return -1;
+    desc->depth++;
+
+    handle_level_irq(irq, desc);
+
+    return 1;
+}
+
+int bind_irq(unsigned int irq, unsigned int device_id,
+        irq_good_handler_t handler, unsigned int policy_flags)
+{
+    int retval;
+    if (irq >= NR_IRQS) return -1;
+    if (!handler) return -1;
+    retval = setup_irq
+
+    return retval;
+}
+
+void unbind_irq(unsigned int irq, unsigned int device_id)
+{
+    irq_desc_t* this_desc = irq_descs + irq;
+    spin_lock_irqsave(&this_desc->lock, flag);
+
+    while(1)
+    {
+        int idx;
+        idx = find_action(this_desc, device_id, NULL);
+        if (!idx)
+            break;
+        remove_action(this_desc, idx);
+    }
+    if(!find_action(this_desc, -1, NULL))
+        disable_irq(irq);
+    spin_unlock_irqrestore(&this_desc->lock, flag);
+}
+
+static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
+{
+    irqaction* action;
+    unsigned int flag;
+    spin_lock_irqsave(&desc->lock, flag);
+    send_eoi(irq);
+    action = desc->action;
+    spin_unlock_irqrestore(&desc->lock, flag);
+    return handle_irq_event(irq, action);
+}
+
+static int handle_irq_event(unsigned int irq, irqaction* action)
+{
+    int ret = 0;
+    for (; action; action = action->next)
+        ret = action->handler(irq, action->dev_id);
+    return ret;
+}
+
+static int setup_irq(unsigned int irq, unsigned int device_id,
+        irq_good_handler_t handler, unsigned int policy_flags)
+{
+    irq_desc_t* this_desc = irq_descs + irq;
+    int ret;
+    unsigned int flag;
+
+    spin_lock_irqsave(&this_desc->lock, flag);
+    if(!find_action(this_desc, device_id, handler))
+        enable_irq(irq);
+    //WANRNING!!!: ret should be general kernel error instead of linked list's private ret
+    ret = add_action(this_desc, handler, policy_flags, 0, device_id);
+    spin_unlock_irqrestore(&this_desc->lock, flag);
+
+    return ret;
+}
