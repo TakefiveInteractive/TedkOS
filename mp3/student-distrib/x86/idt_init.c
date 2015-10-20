@@ -11,12 +11,12 @@
     //raw_syscall_handler,
 //};
 
-void interrupt_handler_with_number (size_t index)
+void __attribute__((fastcall)) interrupt_handler_with_number (size_t index, uint32_t code)
 {
     if (index <= 0x1f)
     {
         // Exception
-        exception_handler(index);
+        exception_handler(index, code);
     }
     else if (index <= 0x20)
     {
