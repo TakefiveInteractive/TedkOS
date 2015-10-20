@@ -20,6 +20,9 @@ static int setup_irq(unsigned int irq, unsigned int device_id,
 static void handle_level_irq(unsigned int irq, irq_desc_t* desc);
 static int handle_irq_event(unsigned int irq, irqaction* action);
 
+// TODO: discuss this!
+irq_desc_t irq_descs [NR_IRQS];
+
 /* Initialize the 8259 PIC */
 void i8259_init(void)
 {
