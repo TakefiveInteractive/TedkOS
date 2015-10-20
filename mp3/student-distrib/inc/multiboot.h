@@ -13,7 +13,7 @@
 #ifndef ASM
 
 /* Types */
-#include <inc/types.h>
+#include <stddef.h>
 
 /* The Multiboot header. */
 typedef struct multiboot_header

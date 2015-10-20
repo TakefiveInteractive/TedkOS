@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <inc/x86/idt_init.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>

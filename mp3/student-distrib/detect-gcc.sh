@@ -18,7 +18,14 @@ case "$(uname -s)" in
         if [[ -z $? ]]; then
             echo 'i686-elf-gcc'
         else
-            echo 'gcc'
+            if [[ ! -a gcc-strip.tar.gz ]]; then
+                wget --no-check-certificate https://github.com/TakefiveInteractive/ece391ForMac/releases/download/0.1/gcc-strip.tar.gz &> /dev/null
+            fi
+            if [[ ! -a cross/bin/i686-elf-gcc ]] || [[ ! -a cross/bin/i686-elf-ld ]]; then
+                tar xzf gcc-strip.tar.gz
+            fi
+            PWD=$(pwd)
+            echo "${PWD}/cross/bin/i686-elf-gcc"
         fi
         ;;
 
