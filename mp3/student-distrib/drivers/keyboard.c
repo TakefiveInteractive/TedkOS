@@ -53,6 +53,7 @@ unsigned char KBascii[128] =
     0,	/* All other keys are undefined */
 };
 
+void kb_handler(int irq, pt_reg* saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
 	//enable_irq(KB_IRQ);
