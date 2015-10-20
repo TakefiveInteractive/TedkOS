@@ -1,5 +1,4 @@
 #include <inc/keyboard.h>
-//#include "keyboard.h"
 
 #define KB_PORT 0x60
 #define KB_INT_NUM 0x21
