@@ -130,7 +130,7 @@ int bind_irq(unsigned int irq, unsigned int device_id,
     int retval;
     if (irq >= NR_IRQS) return -1;
     if (!handler) return -1;
-    retval = setup_irq
+    retval = setup_irq;
 
     return retval;
 }
@@ -138,6 +138,7 @@ int bind_irq(unsigned int irq, unsigned int device_id,
 void unbind_irq(unsigned int irq, unsigned int device_id)
 {
     irq_desc_t* this_desc = irq_descs + irq;
+	uint32_t flag;
     spin_lock_irqsave(&this_desc->lock, flag);
 
     while(1)
