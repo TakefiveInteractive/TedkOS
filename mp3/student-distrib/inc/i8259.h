@@ -6,8 +6,9 @@
 #ifndef _I8259_H
 #define _I8259_H
 
-#include <inc/types.h>
 #include <inc/spinlock.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT 0x20

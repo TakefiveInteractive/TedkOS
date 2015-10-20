@@ -1,7 +1,7 @@
 #ifndef _SPINLOCK_H_
 #define _SPINLOCK_H_
 
-#include "types.h"
+#include <stddef.h>
 
 #define SPINLOCK_LOCKED 1
 #define SPINLOCK_UNLOCKED 0

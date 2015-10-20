@@ -48,10 +48,10 @@ clear(void)
  *       the "#" modifier to alter output.
  * */
 int32_t
-printf(int8_t *format, ...)
+printf(char *format, ...)
 {
 	/* Pointer to the format string */
-	int8_t* buf = format;
+	char* buf = format;
 
 	/* Stack pointer for the other parameters */
 	int32_t* esp = (void *)&format;
@@ -84,7 +84,7 @@ format_char_switch:
 						/* Print a number in hexadecimal form */
 						case 'x':
 							{
-								int8_t conv_buf[64];
+								char conv_buf[64];
 								if(alternate == 0) {
 									itoa(*((uint32_t *)esp), conv_buf, 16);
 									puts(conv_buf);
@@ -106,7 +106,7 @@ format_char_switch:
 						/* Print a number in unsigned int form */
 						case 'u':
 							{
-								int8_t conv_buf[36];
+								char conv_buf[36];
 								itoa(*((uint32_t *)esp), conv_buf, 10);
 								puts(conv_buf);
 								esp++;
@@ -116,7 +116,7 @@ format_char_switch:
 						/* Print a number in signed int form */
 						case 'd':
 							{
-								int8_t conv_buf[36];
+								char conv_buf[36];
 								int32_t value = *((int32_t *)esp);
 								if(value < 0) {
 									conv_buf[0] = '-';
@@ -137,7 +137,7 @@ format_char_switch:
 
 						/* Print a NULL-terminated string */
 						case 's':
-							puts( *((int8_t **)esp) );
+							puts( *((char **)esp) );
 							esp++;
 							break;
 
@@ -162,11 +162,11 @@ format_char_switch:
 * int32_t puts(int8_t* s);
 *   Inputs: int_8* s = pointer to a string of characters
 *   Return Value: Number of bytes written
-*	Function: Output a string to the console 
+*	Function: Output a string to the console
 */
 
 int32_t
-puts(int8_t* s)
+puts(char* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
@@ -181,7 +181,7 @@ puts(int8_t* s)
 * void putc(uint8_t c);
 *   Inputs: uint_8* c = character to print
 *   Return Value: void
-*	Function: Output a character to the console 
+*	Function: Output a character to the console
 */
 
 void
@@ -208,12 +208,12 @@ putc(uint8_t c)
 *	Function: Convert a number to its ASCII representation, with base "radix"
 */
 
-int8_t*
-itoa(uint32_t value, int8_t* buf, int32_t radix)
+char*
+itoa(uint32_t value, char* buf, int32_t radix)
 {
-	static int8_t lookup[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static char lookup[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	int8_t *newbuf = buf;
+	char *newbuf = buf;
 	int32_t i;
 	uint32_t newval = value;
 
@@ -250,10 +250,10 @@ itoa(uint32_t value, int8_t* buf, int32_t radix)
 *	Function: reverses a string s
 */
 
-int8_t*
-strrev(int8_t* s)
+char*
+strrev(char* s)
 {
-	register int8_t tmp;
+	register char tmp;
 	register int32_t beg=0;
 	register int32_t end=strlen(s) - 1;
 
@@ -276,7 +276,7 @@ strrev(int8_t* s)
 */
 
 uint32_t
-strlen(const int8_t* s)
+strlen(const char* s)
 {
 	register uint32_t len = 0;
 	while(s[len] != '\0')
@@ -475,17 +475,17 @@ memmove(void* dest, const void* src, uint32_t n)
 *   Inputs: const int8_t* s1 = first string to compare
 *			const int8_t* s2 = second string to compare
 *			uint32_t n = number of bytes to compare
-*	Return Value: A zero value indicates that the characters compared 
+*	Return Value: A zero value indicates that the characters compared
 *					in both strings form the same string.
-*				A value greater than zero indicates that the first 
-*					character that does not match has a greater value 
-*					in str1 than in str2; And a value less than zero 
+*				A value greater than zero indicates that the first
+*					character that does not match has a greater value
+*					in str1 than in str2; And a value less than zero
 *					indicates the opposite.
 *	Function: compares string 1 and string 2 for equality
 */
 
 int32_t
-strncmp(const int8_t* s1, const int8_t* s2, uint32_t n)
+strncmp(const char* s1, const char* s2, uint32_t n)
 {
 	int32_t i;
 	for(i=0; i<n; i++) {
@@ -512,8 +512,8 @@ strncmp(const int8_t* s1, const int8_t* s2, uint32_t n)
 *	Function: copy the source string into the destination string
 */
 
-int8_t*
-strcpy(int8_t* dest, const int8_t* src)
+char*
+strcpy(char* dest, const char* src)
 {
 	int32_t i=0;
 	while(src[i] != '\0') {
@@ -534,8 +534,8 @@ strcpy(int8_t* dest, const int8_t* src)
 *	Function: copy n bytes of the source string into the destination string
 */
 
-int8_t*
-strncpy(int8_t* dest, const int8_t* src, uint32_t n)
+char*
+strncpy(char* dest, const char* src, uint32_t n)
 {
 	int32_t i=0;
 	while(src[i] != '\0' && i < n) {

@@ -1,4 +1,4 @@
-/* /inc/x86/desc.h - Defines for various x86 descriptors, descriptor tables, 
+/* /inc/x86/desc.h - Defines for various x86 descriptors, descriptor tables,
  * and selectors
  * vim:ts=4 noexpandtab
  */
@@ -6,7 +6,6 @@
 #ifndef _X86_DESC_H
 #define _X86_DESC_H
 
-#include <inc/types.h>
 
 /*
  * Warning!!!!
