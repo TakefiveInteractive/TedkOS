@@ -1,5 +1,4 @@
-//#include <inc/x86/spinlock.h>
-#include "spinlock.h"
+#include <inc/x86/spinlock.h>
 
 void spin_lock_init(spinlock_t* lock){
 
@@ -28,5 +27,5 @@ int spin_is_locked(spinlock_t* lock){
 
 void spin_lock_unlock_wait(spinlock_t* lock){
 
-    
+
 }

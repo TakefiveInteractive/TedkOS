@@ -30,6 +30,8 @@
 #define EOI             0x60
 #define NR_IRQS         1
 
+// TODO: implement this!!
+typedef void pt_reg;
 typedef int (*irq_good_handler_t)(int irq, pt_reg* saved_reg);
 
 typedef struct irqaction_t {
