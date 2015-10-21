@@ -1,7 +1,7 @@
 #include <stddef.h>
+#include <inc/x86/desc_interrupts.h>
+#include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
-
-typedef void (*vector_extracting_handler)(void) __attribute__((fastcall));
 
 template<vector_extracting_handler... args> struct ArrayHolder {
     static const vector_extracting_handler data[sizeof...(args)];
@@ -52,5 +52,8 @@ template<size_t index> struct VectorExtractingMetaFunc {
     }
 };
 
-typedef generate_array<256, VectorExtractingMetaFunc>::result interrupt_table;
+const size_t count = NUM_VEC;
+
+typedef generate_array<count, VectorExtractingMetaFunc>::result raw_interrupt_handlers_t;
+__attribute__((used)) extern raw_interrupt_handlers_t raw_interrupt_handlers;
 

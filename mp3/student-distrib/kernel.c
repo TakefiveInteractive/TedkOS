@@ -5,8 +5,10 @@
 #include <stdint.h>
 
 #include <inc/multiboot.h>
+#include <inc/x86/desc_interrupts.h>
 #include <inc/x86/desc.h>
 #include <inc/lib.h>
+#include <inc/x86/idt_init.h>
 #include <inc/i8259.h>
 #include <inc/debug.h>
 
@@ -148,6 +150,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Init the PIC */
 	i8259_init();
+	init_idt();
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
@@ -156,8 +159,13 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	/*printf("Enabling Interrupts\n");
-	sti();*/
+	printf("Enabling Interrupts\n");
+	sti();
+
+	int i = 1;
+	i--;
+	i /= i;
+
 
 	/* Execute the first program (`shell') ... */
 
