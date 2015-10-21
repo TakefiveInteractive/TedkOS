@@ -4,7 +4,7 @@
 typedef void __attribute__((fastcall)) (*vector_extracting_handler)(void);
 
 #ifndef __cplusplus
-    extern vector_extracting_handler raw_interrupt_handlers[NUM_VEC];
+    extern vector_extracting_handler *raw_interrupt_handlers;
 #endif
 
 #ifdef __cplusplus
