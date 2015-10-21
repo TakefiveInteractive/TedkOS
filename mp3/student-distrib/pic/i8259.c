@@ -133,7 +133,7 @@ int bind_irq(unsigned int irq, unsigned int device_id,
     int retval;
     if (irq >= NR_IRQS) return -1;
     if (!handler) return -1;
-    retval = setup_irq;
+    retval = setup_irq(irq, device_id, handler, policy_flags);
 
     return retval;
 }
@@ -142,17 +142,18 @@ void unbind_irq(unsigned int irq, unsigned int device_id)
 {
     irq_desc_t* this_desc = irq_descs + irq;
 	uint32_t flag;
+	irqaction_list* list = &this_desc->actions;
     spin_lock_irqsave(&this_desc->lock, flag);
 
     while(1)
     {
         int idx;
-        idx = find_action(this_desc, device_id, NULL);
+        idx = find_action(list, device_id, NULL);
         if (!idx)
             break;
-        remove_action(this_desc, idx);
+        remove_action(list, idx);
     }
-    if(!find_action(this_desc, -1, NULL))
+    if(!find_action(list, -1, NULL))
         disable_irq(irq);
     spin_unlock_irqrestore(&this_desc->lock, flag);
 }
@@ -163,9 +164,9 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     unsigned int flag;
     spin_lock_irqsave(&desc->lock, flag);
     send_eoi(irq);
-    action = desc->action;
+    action = &desc->actions.data[desc->actions.firstDataIdx];
     spin_unlock_irqrestore(&desc->lock, flag);
-    return handle_irq_event(irq, action);
+    handle_irq_event(irq, action);
 }
 
 static int handle_irq_event(unsigned int irq, irqaction* action)
@@ -180,14 +181,15 @@ static int setup_irq(unsigned int irq, unsigned int device_id,
         irq_good_handler_t handler, unsigned int policy_flags)
 {
     irq_desc_t* this_desc = irq_descs + irq;
+	irqaction_list* list = &this_desc->actions;
     int ret;
     unsigned int flag;
 
     spin_lock_irqsave(&this_desc->lock, flag);
-    if(!find_action(this_desc, device_id, handler))
+    if(!find_action(list, device_id, handler))
         enable_irq(irq);
     //WANRNING!!!: ret should be general kernel error instead of linked list's private ret
-    ret = add_action(this_desc, handler, policy_flags, 0, device_id);
+    ret = add_action(list, handler, policy_flags, 0, device_id);
     spin_unlock_irqrestore(&this_desc->lock, flag);
 
     return ret;

@@ -60,6 +60,6 @@ void __attribute__((fastcall)) exception_handler(size_t vec, unsigned long int c
         printf("Error code is %x\n", code);
     }
     // TODO: we gotta return control to program in subsequent checkpoints
-    __asm__("hlt;");
+    __asm__(".1: hlt; jmp .1;");
 }
 

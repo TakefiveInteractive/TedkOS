@@ -5,7 +5,7 @@
 OUTDIR = output/
 
 # Flags to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
+CFLAGS 	+= -O0 -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
 ASFLAGS +=
 LDFLAGS += -nostdlib -static
 CC=`./detect-gcc.sh`
@@ -13,7 +13,7 @@ CXX=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS +=-g -I.
-CXXFLAGS +=-std=c++11 -ftemplate-depth=1024 -fno-rtti -I.
+CXXFLAGS += -O0 -std=c++11 -ftemplate-depth=1024 -fno-rtti -I.
 
 # This generates the list of source files
 SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
