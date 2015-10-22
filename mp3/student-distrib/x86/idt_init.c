@@ -12,7 +12,7 @@ void interrupt_handler_with_number (size_t index, uint32_t code)
     if(index>=NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
     {
         printf("UNSUPPORTED INTERRUPT!");
-    return;
+        return;
     }
     printf("INTERRUPT %x !", index);
     if (index <= 0x1f)
