@@ -51,14 +51,13 @@ static const struct x86_exception_metadata_t exception_metadata[0x21] = {
     { "Triple Fault", Abort }
 };
 
-const unsigned long int ErrorCodeInExceptionBitField = 0x40047D00;
 void exception_handler(size_t vec, unsigned long int code)
 {
     int have_error_code = ErrorCodeInExceptionBitField & (1 << vec);
-    printf("WTF Exception occured! %x => %s\n", vec, exception_metadata[vec].name);
+    printf("WTF Exception occured! 0x%x => %s\n", vec, exception_metadata[vec].name);
     if (have_error_code)
     {
-        printf("Error code is %x\n", code);
+        printf("Error code is 0x%x\n", code);
     }
     // TODO: we gotta return control to program in subsequent checkpoints
     __asm__(".1: hlt; jmp .1;");

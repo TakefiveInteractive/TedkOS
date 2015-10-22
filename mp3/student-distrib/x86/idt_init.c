@@ -9,7 +9,7 @@
 
 void interrupt_handler_with_number (size_t index, uint32_t code)
 {
-    if(index>=NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
+    if(index >= NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
     {
         printf("UNSUPPORTED INTERRUPT!");
         return;
@@ -36,6 +36,7 @@ void interrupt_handler_with_number (size_t index, uint32_t code)
 void init_idt(void)
 {
     int i = 0;
+    init_idt_table();
     for(; i <= 0x1f; i++)
     {
         // Exception
