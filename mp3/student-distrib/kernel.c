@@ -165,6 +165,10 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	asm volatile("int $0x80;");
+	asm volatile("int $0x79;");
+	asm volatile("int $0x22;");
+	asm volatile("int $0x79;");
+	asm volatile("int $0x80;");
 
 	/* Execute the first program (`shell') ... */
 
