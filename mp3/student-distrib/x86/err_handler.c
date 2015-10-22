@@ -51,7 +51,8 @@ static const struct x86_exception_metadata_t exception_metadata[0x21] = {
     { "Triple Fault", Abort }
 };
 
-void __attribute__((fastcall)) exception_handler(size_t vec, unsigned long int code)
+const unsigned long int ErrorCodeInExceptionBitField = 0x40047D00;
+void exception_handler(size_t vec, unsigned long int code)
 {
     int have_error_code = ErrorCodeInExceptionBitField & (1 << vec);
     printf("WTF Exception occured! %x => %s\n", vec, exception_metadata[vec].name);

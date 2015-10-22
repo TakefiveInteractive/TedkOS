@@ -1,12 +1,14 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/lib.h>
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_init.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 
-void __attribute__((fastcall)) interrupt_handler_with_number (size_t index, uint32_t code)
+void interrupt_handler_with_number (size_t index, uint32_t code)
 {
+    printf("INTERRUPT!");
     if (index <= 0x1f)
     {
         // Exception
@@ -97,4 +99,7 @@ void init_idt(void)
 		idt[i].present = 0;
 		SET_IDT_DESC_OFFSET(idt[i], raw_interrupt_handlers[i]);
 	}
+	asm volatile (
+		"lidt idtr_val"
+		: : : "cc");
 }

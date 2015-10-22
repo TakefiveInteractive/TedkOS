@@ -33,7 +33,6 @@ dep: Makefile.dep
 
 Makefile.dep: $(SRC)
 	$(CC) -MM $(CFLAGS) $(SRC) > $@
-	$(CC) -MM $(CPPFLAGS) $(SRC_CPP) >> $@
 
 .PHONY: clean, tidy
 clean:
