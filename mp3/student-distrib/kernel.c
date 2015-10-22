@@ -161,14 +161,14 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("Enabling Interrupts\n");
 	sti();
 
 	asm volatile("int $0x80;");
-	asm volatile("int $0x79;");
 	asm volatile("int $0x22;");
-	asm volatile("int $0x79;");
-	asm volatile("int $0x80;");
+	printf("Let's trigger exception\n");
+	int i = 1;
+	i--;
+	i /= i;
 
 	/* Execute the first program (`shell') ... */
 
