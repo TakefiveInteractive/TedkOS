@@ -117,6 +117,7 @@ void send_eoi(uint32_t irq_num)
 
 int irq_int_entry (int irq)
 {
+    printf("IRQ #%d !", irq);
     irq_desc_t* desc = irq_descs + irq;
     if (irq >= NR_IRQS) return -1;
     if (desc->depth + 1 >= MAX_DEPTH) return -1;
