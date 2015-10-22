@@ -64,11 +64,10 @@ void send_eoi(uint32_t irq_num);
  * Input:
  *     irq -- The currently called IRQ number, because this function is called
  *     by multiple IRQ nums, this variable used to differentiate between them.
- *     saved_reg -- You should not change it or read it.
  * Return value: used to indicate success or not.
  *    WARNING: return value is currently not used.
  */
-int irq_int_entry (int irq, unsigned int dev_id);
+int irq_int_entry (int irq);
 
  /*
   * bind_irq(unsigned int irq, irq_good_handler_t driver_level_handler, unsigned int policy_flags)

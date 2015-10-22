@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inc/lib.h>
+#include <inc/i8259.h>
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_init.h>
 #include <inc/x86/idt_table.h>
@@ -8,7 +9,12 @@
 
 void interrupt_handler_with_number (size_t index, uint32_t code)
 {
-    printf("INTERRUPT!");
+    if(index>=NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
+    {
+    	printf("UNSUPPORTED INTERRUPT!");
+	return;
+    }
+    printf("INTERRUPT %x !", index);
     if (index <= 0x1f)
     {
         // Exception
@@ -17,30 +23,11 @@ void interrupt_handler_with_number (size_t index, uint32_t code)
     else if (index <= 0x20)
     {
         // PIC
-    }
-    else if (index <= 0x2f)
-    {
-        // Nothing
-    }
-    else if (index <= 0x7f)
-    {
-        // APIC
+	irq_int_entry(index - 0x20);
     }
     else if (index <= 0x80)
     {
         // Syscall
-    }
-    else if (index <= 0xee)
-    {
-        // More APIC
-    }
-    else if (index <= 0xef)
-    {
-         // local APIC timer
-    }
-    else
-    {
-        // SMP communication
     }
 }
 
@@ -78,7 +65,7 @@ void init_idt(void)
 		// Not defined <=> Trap and Not present and DPL = 0
 		INIT_TRAP_DESC(idt[i], KERNEL_CS_SEL);
 		idt[i].dpl = 0;
-		idt[i].present = 0;
+		idt[i].present = 1;
 		SET_IDT_DESC_OFFSET(idt[i], raw_interrupt_handlers[i]);
 	}
 	for(; i <= 0x80; i++)
@@ -96,7 +83,7 @@ void init_idt(void)
 		// Not defined <=> Trap and Not present and DPL = 0
 		INIT_TRAP_DESC(idt[i], KERNEL_CS_SEL);
 		idt[i].dpl = 0;
-		idt[i].present = 0;
+		idt[i].present = 1;
 		SET_IDT_DESC_OFFSET(idt[i], raw_interrupt_handlers[i]);
 	}
 	asm volatile (
