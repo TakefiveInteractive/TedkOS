@@ -49,23 +49,24 @@ template<size_t index> struct VectorExtractingMetaFunc {
 vector_extracting_handler raw_interrupt_handlers[NUM_VEC];
 
 template<int i>
-class LOOP {
+class Loop {
   public:
-    static inline void EXEC() {
+    static inline void exec() {
         raw_interrupt_handlers[i] = VectorExtractingMetaFunc<i>::value;
-        LOOP<i - 1>::EXEC();
+        Loop<i - 1>::exec();
     }
 };
 
 template<>
-class LOOP<0> {
+class Loop<0> {
   public:
-    static inline void EXEC() {
+    static inline void exec() {
         raw_interrupt_handlers[0] = VectorExtractingMetaFunc<0>::value;
     }
 };
 
 void init_idt_table()
 {
-    LOOP<NUM_VEC - 1>::EXEC();
+    Loop<NUM_VEC - 1>::exec();
 }
+
