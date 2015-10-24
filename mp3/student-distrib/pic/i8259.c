@@ -7,11 +7,6 @@
 #include <inc/spinlock.h>
 #include <inc/error.h>
 
-/* Interrupt masks to determine which interrupts
- * are enabled and disabled */
-uint8_t master_mask; /* IRQs 0-7 */
-uint8_t slave_mask; /* IRQs 8-15 */
-
 #define SLAVE_PIN 0x02
 
 /* Private functions */
@@ -30,11 +25,13 @@ irq_desc_t irq_descs [NR_IRQS];
 /*           (because this function is NOT protected by lock)                                */
 void i8259_init(void)
 {
-    master_mask = 0xFF;
-    slave_mask = 0xFF;
+    /* Interrupt masks to determine which interrupts
+     * are enabled and disabled */
+    uint8_t master_mask; /* IRQs 0-7 */
+    uint8_t slave_mask; /* IRQs 8-15 */
 
-    outb(master_mask, MASTER_8259_PORT + 1);
-    outb(slave_mask, SLAVE_8259_PORT + 1);
+    master_mask = inb(MASTER_8259_PORT + 1);
+    slave_mask = inb(SLAVE_8259_PORT + 1);
 
     outb(ICW1, MASTER_8259_PORT);
     outb(ICW2_MASTER, MASTER_8259_PORT + 1);
@@ -45,6 +42,8 @@ void i8259_init(void)
     outb(ICW2_SLAVE, SLAVE_8259_PORT + 1);
     outb(ICW3_SLAVE, SLAVE_8259_PORT + 1);
     outb(ICW4, SLAVE_8259_PORT + 1);
+
+    for(volatile int i = 0; i < 1000; i++);     // Wait for PIC to initialize
 
     outb(master_mask, MASTER_8259_PORT + 1);
     outb(slave_mask, SLAVE_8259_PORT + 1);
@@ -136,10 +135,10 @@ void send_eoi(uint32_t irq_num)
 static void send_eoi_nolock(uint32_t irq_num)
 {
     if (irq_num < 8) {
-        outb(PIC_EOI, MASTER_8259_PORT);
+        outb(PIC_SPEC_EOI | irq_num, MASTER_8259_PORT);
     } else {
-        outb(PIC_EOI, MASTER_8259_PORT);
-        outb(PIC_EOI, SLAVE_8259_PORT);
+        outb(PIC_SPEC_EOI | SLAVE_PIN, MASTER_8259_PORT);
+        outb(PIC_SPEC_EOI | (irq_num - 8), SLAVE_8259_PORT);
     }
 }
 
