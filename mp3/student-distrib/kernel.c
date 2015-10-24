@@ -1,10 +1,14 @@
 /* kernel.c - the C part of the kernel
- * vim:ts=4 noexpandtab
+ * vim:ts=4 expandtab
  */
+#include <stddef.h>
+#include <stdint.h>
 
 #include <inc/multiboot.h>
+#include <inc/x86/desc_interrupts.h>
 #include <inc/x86/desc.h>
 #include <inc/lib.h>
+#include <inc/x86/idt_init.h>
 #include <inc/i8259.h>
 #include <inc/debug.h>
 
@@ -147,6 +151,9 @@ entry (unsigned long magic, unsigned long addr)
 	/* Init the PIC */
 	i8259_init();
 
+	/* Init the interuupts */
+	init_idt();
+
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
@@ -154,8 +161,14 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	/*printf("Enabling Interrupts\n");
-	sti();*/
+	sti();
+
+	asm volatile("int $0x80;");
+	asm volatile("int $0x22;");
+	printf("Let's trigger exception\n");
+	int i = 1;
+	i--;
+	i /= i;
 
 	/* Execute the first program (`shell') ... */
 

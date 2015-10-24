@@ -1,18 +1,19 @@
 /* lib.h - Defines for useful library functions
- * vim:ts=4 noexpandtab
+ * vim:ts=4 expandtab
  */
 
 #ifndef _LIB_H
 #define _LIB_H
 
-#include <inc/types.h>
+#include <stddef.h>
+#include <stdint.h>
 
-int32_t printf(int8_t *format, ...);
+int32_t printf(char *format, ...);
 void putc(uint8_t c);
-int32_t puts(int8_t *s);
-int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
-int8_t *strrev(int8_t* s);
-uint32_t strlen(const int8_t* s);
+int32_t puts(char *s);
+char *itoa(uint32_t value, char* buf, int32_t radix);
+char *strrev(char * s);
+uint32_t strlen(const char* s);
 void clear(void);
 
 void* memset(void* s, int32_t c, uint32_t n);
@@ -20,13 +21,13 @@ void* memset_word(void* s, int32_t c, uint32_t n);
 void* memset_dword(void* s, int32_t c, uint32_t n);
 void* memcpy(void* dest, const void* src, uint32_t n);
 void* memmove(void* dest, const void* src, uint32_t n);
-int32_t strncmp(const int8_t* s1, const int8_t* s2, uint32_t n);
-int8_t* strcpy(int8_t* dest, const int8_t*src);
-int8_t* strncpy(int8_t* dest, const int8_t*src, uint32_t n);
+int32_t strncmp(const char* s1, const char* s2, uint32_t n);
+char* strcpy(char* dest, const char*src);
+char* strncpy(char* dest, const char*src, uint32_t n);
 
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);
-int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
+int32_t safe_strncpy(char* dest, const char* src, int32_t n);
 
 /* Increments video memory. To be used to test rtc */
 void test_interrupts(void);
@@ -34,7 +35,7 @@ void test_interrupts(void);
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */
-static inline uint32_t inb(port)
+static inline uint32_t inb(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n \
@@ -48,7 +49,7 @@ static inline uint32_t inb(port)
 /* Reads two bytes from two consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them zero-extended
  * */
-static inline uint32_t inw(port)
+static inline uint32_t inw(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n   \
@@ -61,7 +62,7 @@ static inline uint32_t inw(port)
 
 /* Reads four bytes from four consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them */
-static inline uint32_t inl(port)
+static inline uint32_t inl(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("inl   (%w1), %0"
@@ -70,6 +71,11 @@ static inline uint32_t inl(port)
 			: "memory" );
 	return val;
 }
+
+/* Add a 'No operation' instruction to wait for
+ * potential devices, interrupts, etc.          */
+#define nop()                           \
+    {asm volatile("nop;");}
 
 /* Writes a byte to a port */
 #define outb(data, port)                \

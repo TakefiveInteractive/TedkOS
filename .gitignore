@@ -5,6 +5,8 @@ mp3.img
 Makefile.dep
 bootimg
 gcc.dmg
+gcc-strip.tar.gz
+mp3/student-distrib/cross
 
 adventure
 

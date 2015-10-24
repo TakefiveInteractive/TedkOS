@@ -1,5 +1,5 @@
 # boot.S - start point for the kernel after GRUB gives us control
-# vim:ts=4 noexpandtab
+# vim:ts=4 expandtab
 
 #define ASM     1
 
