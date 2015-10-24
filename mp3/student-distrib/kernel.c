@@ -172,11 +172,13 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	asm volatile("int $0x80;");
+    /*
 	asm volatile("int $0x22;");
 	printf("Let's trigger exception\n");
 	i = 1;
 	i--;
 	i /= i;
+    */
 
 	/* Execute the first program (`shell') ... */
 
