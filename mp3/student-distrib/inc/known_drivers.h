@@ -1,6 +1,7 @@
 
 #include <inc/driver.h>
 #include <inc/rtc.h>
+#include <inc/keyboard.h>
 
 /* Include the header of your driver here. */
 
