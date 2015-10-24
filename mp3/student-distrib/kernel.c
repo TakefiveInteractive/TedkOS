@@ -1,5 +1,5 @@
 /* kernel.c - the C part of the kernel
- * vim:ts=4 noexpandtab
+ * vim:ts=4 expandtab
  */
 #include <stddef.h>
 #include <stdint.h>

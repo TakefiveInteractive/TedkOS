@@ -11,7 +11,7 @@ typedef struct irqaction_t {
     unsigned int policy_flags;
     unsigned int mask;
     unsigned int dev_id;     /* A interger to differentiate different devices */
-    struct irqaction_t *next; /* not used for now */
+    struct irqaction_t *next, *prev; /* not used for now */
 } irqaction;
 typedef irqaction irqaction_t;
 

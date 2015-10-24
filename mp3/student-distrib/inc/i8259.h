@@ -1,6 +1,6 @@
 /* i8259.h - Defines used in interactions with the 8259 interrupt
  * controller
- * vim:ts=4 noexpandtab
+ * vim:ts=4 expandtab
  */
 
 #ifndef _I8259_H
@@ -36,10 +36,12 @@
 #include <pic/list.h>
 
 typedef struct {
-    unsigned int status;            /* IRQ status */
+    unsigned int status;            /* IRQ status, currently NOT used */
     unsigned int depth;             /* nested irq disables */
-	irqaction_list actions;
-    spinlock_t lock;
+    irqaction_list actions;
+    // If both of the locks must be locked, FIRST lock_IRQSAVE 'lock' BEFORE locking 'actionsLock'!
+    spinlock_t lock;                /* lock for the eoi signal, and anything other than actions list */
+    spinlock_t actionsLock;         /* lock for the actions list */
 } irq_desc_t;
 extern irq_desc_t irq_descs [NR_IRQS];
 

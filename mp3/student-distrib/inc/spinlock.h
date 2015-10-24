@@ -13,4 +13,9 @@ extern uint32_t spin_trylock(spinlock_t* lock);
 extern uint32_t spin_is_locked(spinlock_t* lock);
 extern void spin_unlock_wait(spinlock_t* lock);
 
+// Two more functions to implement:
+//    Used in PIC
+extern void spin_lock(spinlock_t* lock);
+extern void spin_unlock(spinlock_t* lock);
+
 #endif // _SPINLOCK_H_
