@@ -136,12 +136,21 @@ static void send_eoi_nolock(uint32_t irq_num)
 }
 
 // We use INTERRUPT Gate so interrupt Must have been disabled.
+// REMEMBER to sti() on ALL exiting conditions (whether successful or not)
 int irq_int_entry (int irq)
 {
     printf("IRQ #%d !", irq);
 
-    if (irq >= NR_IRQS) return -1;
-    if (irq < 0) return -1;
+    if (irq >= NR_IRQS)
+    {
+        sti();
+        return -1;
+    }
+    if (irq < 0)
+    {
+        sti();
+        return -1;
+    }
 
     irq_desc_t* desc = irq_descs + irq;
     handle_level_irq(irq, desc);
@@ -193,6 +202,7 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     if (desc->depth + 1 >= MAX_DEPTH)
     {
         spin_unlock(&desc->lock);
+        sti();
         return;
     }
     desc->depth++;
