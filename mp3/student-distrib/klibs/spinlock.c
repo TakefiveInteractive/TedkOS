@@ -9,12 +9,30 @@ void spin_lock_init(spinlock_t* lock)
 
 void spin_lock(spinlock_t* lock)
 {
-    *lock = SPINLOCK_LOCKED;
+     do {
+     	asm volatile("xchg %0, %1 \n"
+
+     			: /* output  */
+     			: "r"(lock), "i"(SPINLOCK_LOCKED) /* input %0 , %1(macro)*/
+     			: "cc"
+     			);
+     } while(0)
+
+    //*lock = SPINLOCK_LOCKED;
 }
 
 void spin_unlock(spinlock_t* lock)
 {
-    *lock = SPINLOCK_UNLOCKED;
+    do {
+        asm volatile("xchg %0, %1 \n"
+
+     			: /* output  */
+     			: "r"(lock), "i"(SPINLOCK_UNLOCKED) /* input %0 , %1(macro)*/
+     			: "cc"
+     			);
+    } while(0)
+
+    //*lock = SPINLOCK_UNLOCKED;
 }
 
 void spin_lock_irqsave(spinlock_t* lock, uint32_t flag)
