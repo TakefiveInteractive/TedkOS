@@ -19,7 +19,7 @@ int add_action(irqaction_list* list, irq_good_handler_t handler, unsigned int po
     irqaction* added;
     if(list->size == _PIC_ACTION_LIST_SIZE)
         return -1;
-    added = list->data[list->size];
+    added = list->data + list->size;
     added->handler = handler;
     added->policy_flags = policy_flags;
     added->mask = mask;
@@ -35,7 +35,7 @@ int add_action(irqaction_list* list, irq_good_handler_t handler, unsigned int po
     else    // The list was originally empty
     {
         added->prev = NULL;
-        head = tail = added;
+        list->head = list->tail = added;
     }
     list->size++;
     return 0;
