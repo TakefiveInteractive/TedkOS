@@ -14,7 +14,7 @@ void spin_lock(spinlock_t* lock)
      	asm volatile("movl %1, %0;"//the curr lock status
                     "movl %2, %%eax;"//move macro into eax
                     "xchgl %1, %%eax;"
- 
+
      			: "=r"(check)/* output  */
      			: "r"(lock), "i"(SPINLOCK_LOCKED) /* input %1 , %2(SPINLOCK_LOCKED)*/
      			: "cc","%eax"/* clobbered register */
