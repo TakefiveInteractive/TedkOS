@@ -16,3 +16,5 @@ driver_t known_drivers[] = {
 	ADD_DRIVER(kb,"Keyboard")
 	/*, ADD_DRIVER(keyboard)*/
 };
+
+const int num_known_drivers = sizeof(known_drivers) / sizeof(driver_t);
