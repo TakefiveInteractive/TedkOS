@@ -185,6 +185,7 @@ void unbind_irq(unsigned int irq, unsigned int device_id)
 static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
 {
     irqaction* action;
+    unsigned int flag;
 
     // Interrupt is still disabled before this line
     spin_lock(&desc->lock);
@@ -204,10 +205,10 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     sti();
     nop();
 
-    spin_lock_irqsave(&desc->actionsLock);
+    spin_lock_irqsave(&desc->actionsLock, flag);
     for (action = first_action(&desc->actions); action; action = action->next)
         action->handler(irq, action->dev_id);
-    spin_unlock_irqrestore(&desc->actionsLock);
+    spin_unlock_irqrestore(&desc->actionsLock, flag);
 }
 
 static int setup_irq(unsigned int irq, unsigned int device_id,
