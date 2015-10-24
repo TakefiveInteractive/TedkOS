@@ -49,7 +49,7 @@ irqaction* first_action(irqaction_list* list)
 irqaction* find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find)
 {
     int i;
-    const len = list->size;
+    const int len = list->size;
     for(i = 0; i < len; i++)
         if((deviceId_to_find < 0 || list->data[i].dev_id == deviceId_to_find)
          &&(handler_to_find == NULL || list->data[i].handler == handler_to_find))
