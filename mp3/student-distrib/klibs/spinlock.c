@@ -7,6 +7,14 @@ void spin_lock_init(spinlock_t* lock)
 
 }
 
+void spin_lock(spinlock_t* lock)
+{
+}
+
+void spin_unlock(spinlock_t* lock)
+{
+}
+
 void spin_lock_irqsave(spinlock_t* lock, uint32_t flags)
 {
 
