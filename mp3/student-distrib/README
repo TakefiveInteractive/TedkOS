@@ -1,1 +1,1 @@
-Please goto ./output before running make
+Please run ```make``` at this directory and look for ```mp3.img``` in ./output/ directory
