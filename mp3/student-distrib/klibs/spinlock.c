@@ -9,12 +9,12 @@ void spin_lock_init(spinlock_t* lock)
 void spin_lock(spinlock_t* lock)
 {
     asm volatile(
-        "movl $SPINLOCK_LOCKED, %%eax       ;"
+        "movl %1, %%eax                     ;"
         "1: lock xchgl (%0), %%eax          ;"
-        "cmpl %%eax, $SPINLOCK_LOCKED       ;"
+        "cmpl %1, %%eax                     ;"
         "je 1b                              ;"
         :
-        : "r"(lock)
+        : "r"(lock), "i"(SPINLOCK_LOCKED)   /* input */
         : "cc", "eax", "memory");
 }
 
@@ -29,14 +29,14 @@ uint32_t spin_trylock(spinlock_t* lock)
     register uint32_t temp = SPINLOCK_LOCKED;
     asm volatile(
         "lock xchgl (%1), %0                ;"
-        "cmpl %0, $SPINLOCK_LOCKED          ;"
+        "cmpl %2, %0                        ;"
         "je 1f                              ;"
         "movl $1, %0                        ;"
         "jmp 2f                             ;"
         "1: movl $0, %0                     ;"
         "2:                                 ;"
         : "+r"(temp)
-        : "r"(lock)
+        : "r"(lock), "i"(SPINLOCK_LOCKED)
         : "cc", "eax", "memory");
     return temp;
 }
