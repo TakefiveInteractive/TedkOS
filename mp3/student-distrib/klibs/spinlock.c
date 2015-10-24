@@ -11,8 +11,9 @@ void spin_lock(spinlock_t* lock)
 {
      int check = 0;
      do {
-     	asm volatile("movl %1, %0\n"
-                    "xchgl %1, %2 \n"
+     	asm volatile("movl %1, %0;"//the curr lock status
+                    "movl %2, %%eax;"//move macro into eax
+                    "xchgl %1, %%eax;"
 
      			: "=r"(check)/* output  */
      			: "r"(lock), "i"(SPINLOCK_LOCKED) /* input %1 , %2(SPINLOCK_LOCKED)*/
@@ -25,7 +26,8 @@ void spin_unlock(spinlock_t* lock)
 {
     //int check = 0;
     do {
-        asm volatile("xchgl %0, %1 \n"
+        asm volatile("movl %1,%%eax;"//move macro into eax
+                    "xchgl %0, %%eax;"
 
      			: //"=r"(check)/* output  */
      			: "r"(lock), "i"(SPINLOCK_UNLOCKED) /* input %0 , %1(macro)*/
