@@ -1,56 +1,72 @@
 #include <stddef.h>
+#include <inc/x86/desc_interrupts.h>
+#include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 
-typedef void (*vector_extracting_handler)(void) __attribute__((fastcall));
-
-template<vector_extracting_handler... args> struct ArrayHolder {
-    static const vector_extracting_handler data[sizeof...(args)];
-};
-
-template<vector_extracting_handler... args>
-const vector_extracting_handler ArrayHolder<args...>::data[sizeof...(args)] = { args... };
-
-template<size_t N, template<size_t> class F, vector_extracting_handler... args>
-struct generate_array_impl {
-    typedef typename generate_array_impl<N-1, F, F<N>::value, args...>::result result;
-};
-
-template<template<size_t> class F, vector_extracting_handler... args>
-struct generate_array_impl<0, F, args...> {
-    typedef ArrayHolder<F<0>::value, args...> result;
-};
-
-template<size_t N, template<size_t> class F>
-struct generate_array {
-    typedef typename generate_array_impl<N-1, F>::result result;
-};
-
-extern "C" void interrupt_handler_with_number (size_t index, unsigned long int code) __attribute__((fastcall));
+extern "C" void interrupt_handler_with_number (size_t index, unsigned long int code);
 
 /* Single bit field indicating if an error has an error code to be popped */
 const unsigned long int ErrorCodeInExceptionBitField = 0x40047D00;
 
 template<size_t index> struct VectorExtractingMetaFunc {
-    static void __attribute__((optimize("O0"))) __attribute__((fastcall)) value(void) {   // Make sure the compiler doesn't try to be too clever
+    static void __attribute__((optimize("O0"))) value(void) {   // Make sure the compiler doesn't try to be too clever
         __asm__ __volatile__ (
-            "cmpl $32, %1   \n"
+            "pushl %%eax;   \n"
+            "movl %0, %%esp;        \n"
+            "cmpl $32, %%esp;       \n"
             "jae 1f;        \n"
-            "btl %1, %0;    \n"
+            "movl %1, %%eax;\n"
+            "btl %%esp, %%eax;      \n"
             "jz 1f;         \n"
+            "leave;         \n"
+            "movl -8(%%esp), %%eax;     \n"
+            "pushl %%eax;   \n"
+            "movl 4(%%esp), %%eax;      \n"
+            "movl %%eax, -32+4(%%esp);  \n"
+            "popl %%eax;    \n"
+            "addl $4, %%esp;\n"
             "pushal;        \n"
-            "popl %edx;     \n"
+            "subl $4, %%esp;\n"
+            "pushl %0;  \n"
+            "jmp 2f;        \n"
 "1:;\n"
+            "leave;         \n"
+            "movl -8(%%esp), %%eax;     \n"
             "pushal;        \n"
+            "pushl $0;      \n"
+            "pushl %0;  \n"
+"2:;\n"
             "cld;           \n"
-            "movl %1, %ecx; \n"
             "call interrupt_handler_with_number; \n"
+            "addl $8, %%esp;\n"
             "popal; iret;   \n"
             :
-            :"r"(ErrorCodeInExceptionBitField),"r"(index)
-            :
-        );
+            : "i" (index), "i" (ErrorCodeInExceptionBitField)
+            : "cc");
     }
 };
 
-typedef generate_array<256, VectorExtractingMetaFunc>::result interrupt_table;
+vector_extracting_handler raw_interrupt_handlers[NUM_VEC];
+
+template<int i>
+class Loop {
+  public:
+    static inline void exec() {
+        raw_interrupt_handlers[i] = VectorExtractingMetaFunc<i>::value;
+        Loop<i - 1>::exec();
+    }
+};
+
+template<>
+class Loop<0> {
+  public:
+    static inline void exec() {
+        raw_interrupt_handlers[0] = VectorExtractingMetaFunc<0>::value;
+    }
+};
+
+void init_idt_table()
+{
+    Loop<NUM_VEC - 1>::exec();
+}
 

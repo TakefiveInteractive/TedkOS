@@ -1,5 +1,5 @@
 /* lib.h - Defines for useful library functions
- * vim:ts=4 noexpandtab
+ * vim:ts=4 expandtab
  */
 
 #ifndef _LIB_H
@@ -71,6 +71,11 @@ static inline uint32_t inl(uint16_t port)
 			: "memory" );
 	return val;
 }
+
+/* Add a 'No operation' instruction to wait for
+ * potential devices, interrupts, etc.          */
+#define nop()                           \
+    {asm volatile("nop;");}
 
 /* Writes a byte to a port */
 #define outb(data, port)                \

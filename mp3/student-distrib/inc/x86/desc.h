@@ -1,6 +1,6 @@
 /* /inc/x86/desc.h - Defines for various x86 descriptors, descriptor tables,
  * and selectors
- * vim:ts=4 noexpandtab
+ * vim:ts=4 expandtab
  */
 
 #ifndef _X86_DESC_H
@@ -21,9 +21,6 @@
 
 /* Size of the task state segment (TSS) */
 #define TSS_SIZE 104
-
-/* Number of vectors in the interrupt descriptor table (IDT) */
-#define NUM_VEC 256
 
 #ifndef ASM
 
@@ -161,17 +158,18 @@ do { \
 } while(0)
 
 /* An interrupt descriptor entry (goes into the IDT) */
+// This is ONLY TRAP Gate and INTERRUPT Gate
 typedef union idt_desc_t {
-	uint32_t val;
+	uint32_t val;                    // ACTUALLY this UNION is 64-bits long !
 	struct {
 		uint16_t offset_15_00;
 		uint16_t seg_selector;
-		uint8_t reserved4;
-		uint32_t reserved3 : 1;
-		uint32_t reserved2 : 1;
-		uint32_t reserved1 : 1;
-		uint32_t size : 1;
-		uint32_t reserved0 : 1;
+		uint8_t reserved4;           // This value MUST be initialized to 0
+		uint32_t reserved3 : 1;      // Interrupt Gate=0. Trap Gate=1
+		uint32_t reserved2 : 1;      // MUST be initialized to 1
+		uint32_t reserved1 : 1;      // MUST be initialized to 1
+		uint32_t size : 1;           // Corresponds to "D" on IA-32 manual.
+		uint32_t reserved0 : 1;      // MUST be initialized to 0
 		uint32_t dpl : 2;
 		uint32_t present : 1;
 		uint16_t offset_31_16;
@@ -184,11 +182,50 @@ extern idt_desc_t idt[NUM_VEC];
 /* This variabl was named idt_desc_ptr and renamed to avoid confusion */
 extern idtr_val_t idtr_val;
 
+/*
+ * IMPORTANT!!!! Difference between INTERRUPT Gate and TRAP Gate:
+ *    Interrupt Gate will DISABLE interrupt before executing handler.
+ *    Trap Gate will not DISABLE interrupt.
+ *    (In other words, Interrupt Gate changes IF flags, but Trap Gate does not)
+ */
+
+// Initialize a TRAP gate as IDT descriptor
+// PARAMS: desc -- stores the IDT desc here. TYPE: idt_desc_t
+//         base -- the selector for base segment containing the code
+//           |_,-- TYPE (of base): uint16_t, selector.
+// WARNING: Default SIZE of gate to be 32-bit (not 16-bit)
+// WARNING: This will NOT set DPL,Present, OR Offset
+#define INIT_TRAP_DESC(desc, base)  {      \
+    (desc).seg_selector = (base);          \
+    (desc).size         = 1;               \
+    (desc).reserved4    = 0;               \
+    (desc).reserved3    = 1;               \
+    (desc).reserved2    = 1;               \
+    (desc).reserved1    = 1;               \
+    (desc).reserved0    = 0;               \
+}
+
+// Initialize a INTERRUPT gate as IDT descriptor
+// PARAMS: desc -- stores the IDT desc here. TYPE: idt_desc_t
+//         base -- the selector for base segment containing the code
+//           |_,-- TYPE (of base): uint16_t, selector.
+// WARNING: Default SIZE of gate to be 32-bit (not 16-bit)
+// WARNING: This will NOT set DPL,Present, OR Offset
+#define INIT_INT_DESC(desc, base)  {       \
+    (desc).seg_selector = (base);          \
+    (desc).size         = 1;               \
+    (desc).reserved4    = 0;               \
+    (desc).reserved3    = 0;               \
+    (desc).reserved2    = 1;               \
+    (desc).reserved1    = 1;               \
+    (desc).reserved0    = 0;               \
+}
+
 /* Sets runtime parameters for an IDT entry */
-#define SET_IDT_ENTRY(str, handler) \
+#define SET_IDT_DESC_OFFSET(desc, handler) \
 do { \
-	str.offset_31_16 = ((uint32_t)(handler) & 0xFFFF0000) >> 16; \
-		str.offset_15_00 = ((uint32_t)(handler) & 0xFFFF); \
+	(desc).offset_31_16 = ((uint32_t)(handler) & 0xFFFF0000) >> 16; \
+		(desc).offset_15_00 = ((uint32_t)(handler) & 0xFFFF); \
 } while(0)
 
 /* Load task register.  This macro takes a 16-bit index into the GDT,
