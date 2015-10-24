@@ -5,11 +5,7 @@
 #include <inc/i8259.h>
 #include <inc/lib.h>
 #include <inc/spinlock.h>
-
-/* Interrupt masks to determine which interrupts
- * are enabled and disabled */
-uint8_t master_mask; /* IRQs 0-7 */
-uint8_t slave_mask; /* IRQs 8-15 */
+#include <inc/error.h>
 
 #define SLAVE_PIN 0x02
 
@@ -18,6 +14,8 @@ static int setup_irq(unsigned int irq, unsigned int device_id,
         irq_good_handler_t handler, unsigned int policy_flags);
 static void handle_level_irq(unsigned int irq, irq_desc_t* desc);
 static void send_eoi_nolock(uint32_t irq_num);
+static void disable_irq_nolock(uint32_t irq_num);
+static void enable_irq_nolock(uint32_t irq_num);
 
 // TODO: discuss this!
 irq_desc_t irq_descs [NR_IRQS];
@@ -27,11 +25,13 @@ irq_desc_t irq_descs [NR_IRQS];
 /*           (because this function is NOT protected by lock)                                */
 void i8259_init(void)
 {
-    master_mask = 0xFF;
-    slave_mask = 0xFF;
+    /* Interrupt masks to determine which interrupts
+     * are enabled and disabled */
+    uint8_t master_mask; /* IRQs 0-7 */
+    uint8_t slave_mask; /* IRQs 8-15 */
 
-    outb(master_mask, MASTER_8259_PORT + 1);
-    outb(slave_mask, SLAVE_8259_PORT + 1);
+    master_mask = inb(MASTER_8259_PORT + 1);
+    slave_mask = inb(SLAVE_8259_PORT + 1);
 
     outb(ICW1, MASTER_8259_PORT);
     outb(ICW2_MASTER, MASTER_8259_PORT + 1);
@@ -42,6 +42,8 @@ void i8259_init(void)
     outb(ICW2_SLAVE, SLAVE_8259_PORT + 1);
     outb(ICW3_SLAVE, SLAVE_8259_PORT + 1);
     outb(ICW4, SLAVE_8259_PORT + 1);
+
+    for(volatile int i = 0; i < 1000; i++);     // Wait for PIC to initialize
 
     outb(master_mask, MASTER_8259_PORT + 1);
     outb(slave_mask, SLAVE_8259_PORT + 1);
@@ -62,9 +64,15 @@ void i8259_init(void)
  */
 void enable_irq(uint32_t irq_num)
 {
-    uint8_t irq;
     uint32_t flag;
     spin_lock_irqsave(&irq_descs[irq_num].lock, flag);
+    enable_irq_nolock(irq_num);
+    spin_unlock_irqrestore(&irq_descs[irq_num].lock, flag);
+}
+
+static void enable_irq_nolock(uint32_t irq_num)
+{
+    uint8_t irq;
     /* check interrupt number valid bounds */
     if (irq_num < 0 || irq_num > 15) return;
     /* master bounds */
@@ -76,7 +84,6 @@ void enable_irq(uint32_t irq_num)
         irq = inb(SLAVE_8259_PORT + 1) & ~(1 << (irq_num - 8));
         outb(irq, SLAVE_8259_PORT + 1);
     }
-    spin_unlock_irqrestore(&irq_descs[irq_num].lock, flag);
 }
 
 /**
@@ -85,9 +92,15 @@ void enable_irq(uint32_t irq_num)
  */
 void disable_irq(uint32_t irq_num)
 {
-    uint8_t irq;
     uint32_t flag;
     spin_lock_irqsave(&irq_descs[irq_num].lock, flag);
+    disable_irq_nolock(irq_num);
+    spin_unlock_irqrestore(&irq_descs[irq_num].lock, flag);
+}
+
+static void disable_irq_nolock(uint32_t irq_num)
+{
+    uint8_t irq;
     /* check interrupt number valid bounds */
     if (irq_num < 0 || irq_num > 15) return;
     /* master bounds */
@@ -99,7 +112,6 @@ void disable_irq(uint32_t irq_num)
         irq = inb(SLAVE_8259_PORT + 1) | (1 << (irq_num - 8));
         outb(irq, SLAVE_8259_PORT + 1);
     }
-    spin_unlock_irqrestore(&irq_descs[irq_num].lock, flag);
 }
 
 /**
@@ -110,12 +122,7 @@ void send_eoi(uint32_t irq_num)
 {
     uint32_t flag;
     spin_lock_irqsave(&irq_descs[irq_num].lock, flag);
-    if (irq_num < 8) {
-        outb(EOI | irq_num, MASTER_8259_PORT);
-    } else {
-        outb(EOI | SLAVE_PIN, MASTER_8259_PORT);
-        outb(EOI | (irq_num - 8), SLAVE_8259_PORT);
-    }
+    send_eoi_nolock(irq_num);
     spin_unlock_irqrestore(&irq_descs[irq_num].lock, flag);
 }
 
@@ -128,20 +135,27 @@ void send_eoi(uint32_t irq_num)
 static void send_eoi_nolock(uint32_t irq_num)
 {
     if (irq_num < 8) {
-        outb(EOI | irq_num, MASTER_8259_PORT);
+        outb(PIC_SPEC_EOI | irq_num, MASTER_8259_PORT);
     } else {
-        outb(EOI | SLAVE_PIN, MASTER_8259_PORT);
-        outb(EOI | (irq_num - 8), SLAVE_8259_PORT);
+        outb(PIC_SPEC_EOI | SLAVE_PIN, MASTER_8259_PORT);
+        outb(PIC_SPEC_EOI | (irq_num - 8), SLAVE_8259_PORT);
     }
 }
 
 // We use INTERRUPT Gate so interrupt Must have been disabled.
+// REMEMBER to sti() on ALL exiting conditions (whether successful or not)
 int irq_int_entry (int irq)
 {
-    printf("IRQ #%d !", irq);
-
-    if (irq >= NR_IRQS) return -1;
-    if (irq < 0) return -1;
+    if (irq >= NR_IRQS)
+    {
+        sti();
+        return -EINVAL;
+    }
+    if (irq < 0)
+    {
+        sti();
+        return -EINVAL;
+    }
 
     irq_desc_t* desc = irq_descs + irq;
     handle_level_irq(irq, desc);
@@ -152,20 +166,18 @@ int irq_int_entry (int irq)
 int bind_irq(unsigned int irq, unsigned int device_id,
         irq_good_handler_t handler, unsigned int policy_flags)
 {
-    int retval;
-    if (irq >= NR_IRQS) return -1;
-    if (!handler) return -1;
-    retval = setup_irq(irq, device_id, handler, policy_flags);
-
-    return retval;
+    if (irq >= NR_IRQS) return -EINVAL;
+    if (irq < 0) return -EINVAL;
+    if (!handler) return -EINVAL;
+    return setup_irq(irq, device_id, handler, policy_flags);
 }
 
 void unbind_irq(unsigned int irq, unsigned int device_id)
 {
-    irq_desc_t* this_desc = irq_descs + irq;
     uint32_t flag;
+    irq_desc_t* this_desc = irq_descs + irq;
     irqaction_list* list = &this_desc->actions;
-    spin_lock_irqsave(&this_desc->lock, flag);
+    spin_lock_irqsave(&this_desc->actionsLock, flag);
 
     while(1)
     {
@@ -176,8 +188,13 @@ void unbind_irq(unsigned int irq, unsigned int device_id)
         remove_action(list, ptr);
     }
     if(!find_action(list, -1, NULL))
-        disable_irq(irq);
-    spin_unlock_irqrestore(&this_desc->lock, flag);
+    {
+        spin_unlock(&this_desc->actionsLock); sti();
+        cli(); spin_lock(&this_desc->lock);
+        disable_irq_nolock(irq);
+        spin_unlock_irqrestore(&this_desc->lock, flag);
+    }
+    else spin_unlock_irqrestore(&this_desc->actionsLock, flag);
 }
 
 // Condition: interrupt must have already been disabled.
@@ -192,7 +209,10 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     // Validate IRQ state here.
     if (desc->depth + 1 >= MAX_DEPTH)
     {
+        // !!! Strange: if no eoi is sent, the interrupt never happens again
+        send_eoi_nolock(irq);
         spin_unlock(&desc->lock);
+        sti();
         return;
     }
     desc->depth++;
@@ -204,26 +224,37 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     sti();
     nop();
 
+    // interrupt must be enabled before this line.
     spin_lock_irqsave(&desc->actionsLock, flag);
     for (action = first_action(&desc->actions); action; action = action->next)
         action->handler(irq, action->dev_id);
     spin_unlock_irqrestore(&desc->actionsLock, flag);
+
+    spin_lock_irqsave(&desc->lock, flag);
+    desc->depth--;
+    spin_unlock_irqrestore(&desc->lock, flag);
 }
 
 static int setup_irq(unsigned int irq, unsigned int device_id,
         irq_good_handler_t handler, unsigned int policy_flags)
 {
+    int ret = 0;
+    unsigned int flag;
     irq_desc_t* this_desc = irq_descs + irq;
     irqaction_list* list = &this_desc->actions;
-    int ret;
-    unsigned int flag;
 
-    spin_lock_irqsave(&this_desc->lock, flag);
-    if(!find_action(list, device_id, handler))
-        enable_irq(irq);
-    //WANRNING!!!: ret should be general kernel error instead of linked list's private ret
-    ret = add_action(list, handler, policy_flags, 0, device_id);
-    spin_unlock_irqrestore(&this_desc->lock, flag);
+    spin_lock_irqsave(&this_desc->actionsLock, flag);
+    if(!first_action(list))
+    {
+        spin_unlock(&this_desc->actionsLock); sti();
+        cli(); spin_lock(&this_desc->lock);
+        enable_irq_nolock(irq);
+        spin_unlock(&this_desc->lock); sti();
+        cli(); spin_lock(&this_desc->actionsLock);
+    }
+    if(add_action(list, handler, policy_flags, 0, device_id) != 0)
+        ret = -ENOMEM;
+    spin_unlock_irqrestore(&this_desc->actionsLock, flag);
 
     return ret;
 }
