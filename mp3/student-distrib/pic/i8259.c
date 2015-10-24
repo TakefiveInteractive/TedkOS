@@ -210,6 +210,8 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     // Validate IRQ state here.
     if (desc->depth + 1 >= MAX_DEPTH)
     {
+        // !!! Strange: if no eoi is sent, the interrupt never happens again
+        send_eoi_nolock(irq);
         spin_unlock(&desc->lock);
         sti();
         return;
@@ -223,10 +225,15 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     sti();
     nop();
 
+    // interrupt must be enabled before this line.
     spin_lock_irqsave(&desc->actionsLock, flag);
     for (action = first_action(&desc->actions); action; action = action->next)
         action->handler(irq, action->dev_id);
     spin_unlock_irqrestore(&desc->actionsLock, flag);
+
+    spin_lock_irqsave(&desc->lock, flag);
+    desc->depth--;
+    spin_unlock_irqrestore(&desc->lock, flag);
 }
 
 static int setup_irq(unsigned int irq, unsigned int device_id,
