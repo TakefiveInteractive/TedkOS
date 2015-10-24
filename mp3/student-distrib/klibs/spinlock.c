@@ -3,60 +3,45 @@
 
 void spin_lock_init(spinlock_t* lock)
 {
-
-
+    *lock = SPINLOCK_UNLOCKED;
 }
 
 void spin_lock(spinlock_t* lock)
 {
-     int check = 0;
-     do {
-     	asm volatile("movl %1, %0;"//the curr lock status
-                    "movl %2, %%eax;"//move macro into eax
-                    "xchgl %1, %%eax;"
-
-     			: "=r"(check)/* output  */
-     			: "r"(lock), "i"(SPINLOCK_LOCKED) /* input %1 , %2(SPINLOCK_LOCKED)*/
-     			: "cc","%eax"/* clobbered register */
-     			);
-     } while(check);
+    asm volatile(
+        "movl %1, %%eax                     ;"
+        "1: lock xchgl (%0), %%eax          ;"
+        "cmpl %%eax, %1                     ;"
+        "je 1b                              ;"
+        :
+        : "r"(lock), "i"(SPINLOCK_LOCKED)   /* input */
+        : "cc", "eax", "memory");
 }
 
 void spin_unlock(spinlock_t* lock)
 {
-    do {
-        asm volatile("movl %1,%%eax;"//move macro into eax
-                    "xchgl %0, %%eax;"
-
-     			: //"=r"(check)/* output  */
-     			: "r"(lock), "i"(SPINLOCK_UNLOCKED) /* input %0 , %1(macro)*/
-     			: "cc","%eax"
-     			);
-    } while(0);
+    *lock = SPINLOCK_UNLOCKED;
 }
 
-void spin_lock_irqsave(spinlock_t* lock, uint32_t flag)
-{
-
-}
-
-void spin_unlock_irqrestore(spinlock_t* lock, uint32_t flag)
-{
-
-}
-
+// 1 on success. 0 on failure.
 uint32_t spin_trylock(spinlock_t* lock)
 {
-    return 0;
+    register uint32_t temp = SPINLOCK_LOCKED;
+    asm volatile(
+        "lock xchgl (%1), %0                ;"
+        "cmpl %0, %2                        ;"
+        "je 1f                              ;"
+        "movl $1, %0                        ;"
+        "jmp 2f                             ;"
+        "1: movl $0, %0                     ;"
+        "2:                                 ;"
+        : "+r"(temp)
+        : "r"(lock), "i"(SPINLOCK_LOCKED)
+        : "cc", "eax", "memory");
+    return temp;
 }
 
 uint32_t spin_is_locked(spinlock_t* lock)
 {
-    return 1;
-}
-
-void spin_lock_unlock_wait(spinlock_t* lock)
-{
-
-
+    return *lock == SPINLOCK_LOCKED;
 }
