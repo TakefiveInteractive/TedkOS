@@ -6,12 +6,24 @@
 #define _PIC_ACTION_LIST_SIZE   256
 
 typedef struct {
-	int firstDataIdx;
+    int size;           // How many data are actually stored
 	irqaction_t data[_PIC_ACTION_LIST_SIZE];
-	char hasDataHere[_PIC_ACTION_LIST_SIZE];
+    irqaction_t *head, *tail;
+    // Note that if either of head, tail is NULL, both are NULL. 
+    //           if either of head, tail is NOT NULL, both are NOT NULL. 
 } irqaction_list;
 
+/****
+ *
+ * WARNING!!!!
+ *   This DS will NOT lock a spinlock !!!
+ *
+ ****/
+
 /************ These DS functions can be tested *****************/
+
+// Initialize an empty list.
+extern void init_list(irqaction_list* list);
 
 // Add a new action in the list, initilized with arguments passed in.
 // This function returns 0 upon success.
@@ -28,9 +40,9 @@ extern irqaction* first_action(irqaction_list* list);
 // IF hander_to_find == NULL, then match only using deviceId_to_find
 // IF device_id < 0, match only using handler.
 // IF both NULL and dev < 0, then match everything.
-extern int find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find);
+extern irqaction* find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find);
 
 // Pass the index to remove as itemIdx
-extern void remove_action(irqaction_list* list, int itemIdx);
+extern void remove_action(irqaction_list* list, irqaction* item);
 
 #endif /*_PIC_PRIV_LIST_H*/
