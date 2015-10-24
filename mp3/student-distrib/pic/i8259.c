@@ -52,7 +52,6 @@ void i8259_init(void)
         irq_descs[i].actionsLock  = SPINLOCK_UNLOCKED;
         irq_descs[i].lock  = SPINLOCK_UNLOCKED;
         irq_descs[i].depth = 0;
-        spin_lock(&
         init_list(&irq_descs[i].actions);
     }
 }
