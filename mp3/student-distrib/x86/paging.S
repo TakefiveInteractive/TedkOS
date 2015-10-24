@@ -1,4 +1,4 @@
-# vim:ts=4 noexpandtab
+# vim:ts=4 expandtab
 
 #define ASM
 #include <inc/x86/paging.h>
@@ -8,7 +8,7 @@ CLEAR_PAE   =   0x00000020
 SET_PG      =   0x80000000
 
 .global enable_paging
-.global global_pagedir, page_table
+.global global_cr3val, page_table
 
 .text
 .align 4
@@ -23,7 +23,7 @@ SET_PG      =   0x80000000
 #      and write-through. But we default to enable caching and
 #      disable write-through on such a level.
 #     Parameter:
-#        pointer to head of Page Directory
+#        NONE. 
 #     WARNING:
 #        THE POINTER MUST BE 4-KB ALIGNED!!!!
 #        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
@@ -42,7 +42,7 @@ enable_paging:
     orl  $SET_PG, %eax
     movl %eax, %cr0
 
-    movl global_pagedir, %eax      # eax <- Pointer to Page Directory
+    movl global_cr3val, %eax      # eax <- Pointer to Page Directory
     movl %eax, %cr3
 
     ret
@@ -53,6 +53,6 @@ enable_paging:
 # Those table may be later allocated by kernel.
 # At boot the paging tables is initialized,
 #   by analyzing MEMORY LAYOUT and ALLOCATING AT THAT TIME
-global_pagedir:
+global_cr3val:
     .long 0
 
