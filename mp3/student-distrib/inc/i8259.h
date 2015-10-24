@@ -28,7 +28,7 @@
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
-#define PIC_EOI             0x60
+#define PIC_EOI         0x20
 #define NR_IRQS         16
 #define MAX_DEPTH       8
 
