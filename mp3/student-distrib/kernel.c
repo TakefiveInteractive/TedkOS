@@ -11,6 +11,7 @@
 #include <inc/x86/idt_init.h>
 #include <inc/i8259.h>
 #include <inc/debug.h>
+#include <inc/known_drivers.h>
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -21,6 +22,7 @@
 void
 entry (unsigned long magic, unsigned long addr)
 {
+    int i;
 	multiboot_info_t *mbi;
 
 	/* Clear the screen. */
@@ -156,6 +158,12 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
+    for(i = 0; i < num_known_drivers; i++)
+    {
+        printf("Loading driver '%s' ...", known_drivers[i].name);
+        know_drivers[i].init();
+        printf(" ... OK!\n");
+    }
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -166,7 +174,7 @@ entry (unsigned long magic, unsigned long addr)
 	asm volatile("int $0x80;");
 	asm volatile("int $0x22;");
 	printf("Let's trigger exception\n");
-	int i = 1;
+	i = 1;
 	i--;
 	i /= i;
 
