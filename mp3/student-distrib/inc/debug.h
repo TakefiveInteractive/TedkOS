@@ -1,5 +1,5 @@
 /* debug.h - Useful macros for debugging
- * vim:ts=4 noexpandtab
+ * vim:ts=4 expandtab
  */
 
 #ifndef _DEBUG_H
