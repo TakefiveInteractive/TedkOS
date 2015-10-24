@@ -136,10 +136,10 @@ void send_eoi(uint32_t irq_num)
 static void send_eoi_nolock(uint32_t irq_num)
 {
     if (irq_num < 8) {
-        outb(EOI | irq_num, MASTER_8259_PORT);
+        outb(PIC_EOI, MASTER_8259_PORT);
     } else {
-        outb(EOI | SLAVE_PIN, MASTER_8259_PORT);
-        outb(EOI | (irq_num - 8), SLAVE_8259_PORT);
+        outb(PIC_EOI, MASTER_8259_PORT);
+        outb(PIC_EOI, SLAVE_8259_PORT);
     }
 }
 
