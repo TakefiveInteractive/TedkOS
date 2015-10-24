@@ -147,8 +147,6 @@ static void send_eoi_nolock(uint32_t irq_num)
 // REMEMBER to sti() on ALL exiting conditions (whether successful or not)
 int irq_int_entry (int irq)
 {
-    printf("IRQ #%d !", irq);
-
     if (irq >= NR_IRQS)
     {
         sti();

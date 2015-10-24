@@ -14,7 +14,6 @@ void interrupt_handler_with_number (size_t index, uint32_t code)
         printf("UNSUPPORTED INTERRUPT!");
         return;
     }
-    printf("INTERRUPT %x !", index);
     if (index <= 0x1f)
     {
         // Exception
