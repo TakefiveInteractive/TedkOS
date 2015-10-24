@@ -161,7 +161,7 @@ entry (unsigned long magic, unsigned long addr)
     for(i = 0; i < num_known_drivers; i++)
     {
         printf("Loading driver '%s' ...", known_drivers[i].name);
-        know_drivers[i].init();
+        known_drivers[i].init();
         printf(" ... OK!\n");
     }
 
