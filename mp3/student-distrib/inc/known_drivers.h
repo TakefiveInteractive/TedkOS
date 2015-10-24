@@ -14,7 +14,7 @@
 
 driver_t known_drivers[] = {
 	ADD_DRIVER(rtc, "Real Time Clock driver"),
-	ADD_DRIVER(kb,"Keyboard")
+	ADD_DRIVER(kb, "Keyboard")
 	/*, ADD_DRIVER(keyboard)*/
 };
 
