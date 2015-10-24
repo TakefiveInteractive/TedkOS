@@ -7,14 +7,32 @@
 // !!!  Be careful to add C types and function
 //  declarations in #ifndef ASM part
 
-// Flags to enable write-through or disable cache
+#define CLEAR_PAGING_FLAGS  0xFFFFF000  // Use '&'
+
+// APPLIES TO ALL FLAGS:
+//      *_BASE must be applied in all situations!!!!
+
+// Flags to DESCRIBE actual PAGE
+// This INCLUDES 4-MB Pages (They are entries in PD, NOT PT)
+#define PG_4MB_BASE         0x081       // Use '='
+#define PG_4KB              0xFFFFFF7F  // Use '&'
+#define PG_GLOABL           0x100       // Use '|'
+#define PG_NOT_DIRTY        0xFFFFFFBF  // Use '&'
+#define PG_NOT_ACCESSED     0xFFFFFFDF  // Use '&'
+#define PG_DISABLE_CACHE    0x010       // Use '|'
+#define PG_WRITE_THROUGH    0x008       // Use '|'
+#define PG_USER             0x004       // Use '|'
+#define PG_NOT_USER         0xFFFFFFFB  // Use '&'
+#define PG_WRITABLE         0x002       // Use '|'
+#define PG_READONLY         0xFFFFFFFD  // Use '&'
+
+// Flags to DESCRIBE page DIRECTORY
 // To be used with: 
-//      enable_paging 
-//      LOAD_PAGE_DIR 
+//      REDIRECT_PAGE_DIR 
 // This is effective for a WHOLE Page Directory (NOT an ENTRY)
 // We usually should not use these flags!!
-#define PD_DISABLE_CACHE    0x10
-#define PD_WRITE_THROUGH    0x08
+#define PD_DISABLE_CACHE    0x10        // Use '|'
+#define PD_WRITE_THROUGH    0x08        // Use '|'
 
 // The number of entires and alignment requirement
 //      for Page Directory and Page Table
@@ -28,15 +46,15 @@
 /*************** IN CP1 we use static Page Tables ********/
 /*********** Later we change by modifying pointer ********/
 
-// global_pagedir is pointer to the currently used page DIRECTORY.
+// global_cr3val is pointer to the currently used page DIRECTORY.
 //   DO NOT directly CHANGE these pointers to switch DIR!!!
-//   If you want to load another table, use LOAD_PAGE_DIR
+//   If you want to load another table, use REDIRECT_PAGE_DIR
 //    OR LOAD_PAGE_TABLE. They help you modify this pointer.
 
 // We make these pointers public so that we can use MACROs
 
-// global_pagedir points to head of a WHOLE Page Directory. It has 1024 entries.
-extern uint32_t* global_pagedir;
+// global_cr3val points to head of a WHOLE Page Directory. It has 1024 entries.
+extern uint32_t* global_cr3val;
 
 // LOAD_PAGE_TABLE  (PT pointer -> an ENTRY in PD)
 //  This macro accepts a pointer to page table
@@ -46,26 +64,27 @@ extern uint32_t* global_pagedir;
 //        When set to 0, the meaning is the antonyme of all
 //          PT_* FLAGS' name combined.
 //     WARNING:
-//        THE POINTER MUST BE 4-KB ALIGNED!!!!
+//        TABLE_ADDR MUST HAVE FLAGS ALREADY APPLIED!!!!
+//        THE POINTER PART MUST BE 4-KB ALIGNED!!!!
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
 //        this pointer uses PHYSICAL address
-#define LOAD_PAGE_TABLE(PD_IDX, TABLE_ADDR, PT_FLAGS)   \
-    {global_pagedir[(PD_IDX)] = (((uint32_t)(TABLE_ADDR)) | ((uint32_t)(PT_FLAGS)));}
+#define LOAD_PAGE_TABLE(PD_IDX, TABLE_ADDR)   \
+    {global_cr3val[(PD_IDX)] = ((uint32_t)(TABLE_ADDR) & CLEAR_PAGING_FLAGS);}
 
-//     Description:     (PD pointer -> global_pagedir)
-//        This function changes the global_pagedir and sets pd_flags too
-//        Thus it will NOT flush TLB.
-//        C Calling Convention
+//     Description:     (set cr3 = global_cr3val = ACTUAL_PAGE_DIR_ADDR)
+//        This function changes the global_cr3val and sets pd_flags too
+//        Thus it will NOT load global_cr3val to CR3 OR FLUSH TLB.
 //     Default effects: (set pd_flags = 0 to use default)
-//        Actually you can set the WHOLE PROCESS as not cached
+//        Actually you can set the WHOLE MEMORY  as not cached
 //      and write-through. But we default to enable caching and
 //      disable write-through on such a level.
 //     OUTPUT:
-//        update the global var: global_pagedir
+//        update the global var: global_cr3val
 //     WARNING:
-//        this pointer uses PHYSICAL address
-#define INIT_GLOBAL_PAGEDIR(ACTUAL_PAGE_DIR_ADDR, PD_FLAGS)
-void init_global_pagedir(uint32_t* actualPageDirAddr, uint32_t pd_flags)
+//        the ACTUAL_PAGE_DIR_ADDR pointer uses PHYSICAL address
+#define REDIRECT_PAGE_DIR(ACTUAL_PAGE_DIR_ADDR) {                                 \
+    global_cr3val = (uint32_t*)(((uint32_t)ACTUAL_PAGE_DIR_ADDR) & CLEAR_PAGING_FLAGS);  \
+}
 
 // enable_paging
 //     WARNING:
@@ -73,33 +92,17 @@ void init_global_pagedir(uint32_t* actualPageDirAddr, uint32_t pd_flags)
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
 void* enable_paging();
 
-// LOAD_PAGE_DIR  (PD pointer -> CR3)
-//  This macro accepts a pointer to page directory
-//     There is no need to flush TLB after using this function.
-//     Default effects: (set pd_flags = 0 to use default)
-//        Actually you can set the WHOLE PROCESS as not cached
-//      and write-through. But we default to enable caching and
-//      disable write-through on such a level.
-//     WARNING:
-//        THE POINTER MUST BE 4-KB ALIGNED!!!!
-//        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
-//        this pointer uses PHYSICAL address
-#define LOAD_PAGE_DIR(DIR_ADDR, PD_FLAGS) \
-    {asm volatile (          \
-   "movl %1, %%cr3"          \
-    : "="(((uint32_t)(DIR_ADDR)) | ((uint32_t)(PD_FLAGS))) : : "cc");}
-
-
-// FLUSH_PAGE_TLB
-//   This macro flushes the TLB but
-//   still points to the same Page Directory.
+// RELOAD_CR3
+//   This macro can be used to:
+//      1. flushes the TLB
+//      2. reload global_cr3val to CR3
 //     WARNING:
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
-#define FLUSH_PAGE_TLB  \
-    {asm volatile (       \
-    "movl %%cr3, %%eax"   \
-    "movl %%eax, %%cr3"   \
-    : : : "cc", "eax");}
+#define RELOAD_CR3 {            \
+    asm volatile (                  \
+        "movl %0, %%cr3"            \
+        : : "r"(global_cr3val));    \
+}
 
 #endif /* ASM */
 
