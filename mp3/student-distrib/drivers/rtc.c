@@ -1,9 +1,8 @@
 #include <inc/rtc.h>
-#include <inc/lib.h>
 
 DEFINE_DRIVER_INIT(rtc)
 {
-    bind_irq(RTC_IRQ, RTC_ID, test_interrupts, RTC_POLICY);
+    bind_irq(RTC_IRQ, RTC_ID, (irq_good_handler_t)test_interrupts, RTC_POLICY);
 	return;
 }
 
