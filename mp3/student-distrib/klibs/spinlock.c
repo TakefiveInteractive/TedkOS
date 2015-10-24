@@ -14,7 +14,7 @@ void spin_lock(spinlock_t* lock)
         "cmpl %%eax, %1                     ;"
         "je 1b                              ;"
         :
-        : "r"(lock), "i"(SPINLOCK_LOCKED)   /* input */
+        : "r"(lock), "i"((uint32_t)SPINLOCK_LOCKED)
         : "cc", "eax", "memory");
 }
 
@@ -36,7 +36,7 @@ uint32_t spin_trylock(spinlock_t* lock)
         "1: movl $0, %0                     ;"
         "2:                                 ;"
         : "+r"(temp)
-        : "r"(lock), "i"(SPINLOCK_LOCKED)
+        : "r"(lock), "i"((uint32_t)SPINLOCK_LOCKED)
         : "cc", "eax", "memory");
     return temp;
 }
