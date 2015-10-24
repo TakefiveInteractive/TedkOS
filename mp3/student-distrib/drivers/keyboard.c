@@ -54,35 +54,33 @@ unsigned char KBascii[128] =
     0,	/* All other keys are undefined */
 };
 
-void kb_handler(int irq, unsigned int saved_reg);
+int kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
-	//enable_irq(KB_IRQ);
+	// bind handler to pic
 	bind_irq(KB_IRQ_NUM,KB_ID,kb_handler,KD_POLICY);
-	//bind handler to pic
 	return;
 }
 
 DEFINE_DRIVER_REMOVE(kb) {
 	//rm handler from pic
 	unbind_irq(KB_IRQ_NUM,KB_ID);
-	//disable_irq(KB_IRQ);
     return;
 }
 
 /* keyboard_handler
  * description:
- *		initialize the keyboard
+ *		Handle keyboard interrupts
  * input:
  *		int irq, pt_reg* saved_reg(not used)
  * output,return:
- *		none
+ *		currently the value is ignored, 0 for success.
+ *      Look at <inc/error.h> for more error codes.
  * side effect:
- *		initialize the keyboard
+ *		changes keyboard buffer (if we have a buffer)
+ *      print keyboard character to terminal
  */
-void kb_handler(int irq, unsigned int saved_reg){
-	cli();
-
+int kb_handler(int irq, unsigned int saved_reg){
 	uint8_t keyboard_scancode;
 
  	keyboard_scancode = inb(KB_PORT);//read the input
@@ -91,13 +89,5 @@ void kb_handler(int irq, unsigned int saved_reg){
  		printf("%c", key);
  	}
 
- 	send_eoi(KB_IRQ_NUM);//send_eoi in i8259.h
-
-	sti();
-	asm("leave;					\
-		iret;"
-		);
-
-
-
+    return 0;
 }
