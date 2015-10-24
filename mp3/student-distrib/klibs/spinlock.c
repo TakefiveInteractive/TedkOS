@@ -17,8 +17,6 @@ void spin_lock(spinlock_t* lock)
      			: "cc"
      			);
      } while(0)
-
-    //*lock = SPINLOCK_LOCKED;
 }
 
 void spin_unlock(spinlock_t* lock)
@@ -31,8 +29,6 @@ void spin_unlock(spinlock_t* lock)
      			: "cc"
      			);
     } while(0)
-
-    //*lock = SPINLOCK_UNLOCKED;
 }
 
 void spin_lock_irqsave(spinlock_t* lock, uint32_t flag)
