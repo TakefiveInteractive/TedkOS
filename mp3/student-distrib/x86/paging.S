@@ -4,8 +4,9 @@
 #include <inc/x86/paging.h>
 
 # Constant Immidiate Values only used by enable_paging:
-CLEAR_PAE   =   0x00000020
-SET_PG      =   0x80000000
+ENABLE_4MB_PAGE =   0x00000010      # Use in CR4
+CLEAR_PAE       =   0xFFFFFFDF      # Use in CR4
+SET_PG          =   0x80000000      # Use in CR0
 
 .global enable_paging
 .global global_cr3val, page_table
@@ -42,6 +43,7 @@ enable_paging:
 
     movl %cr4, %eax
     andl $CLEAR_PAE, %eax
+    orl  $ENABLE_4MB_PAGE, %eax
     movl %eax, %cr4
 
     movl %cr0, %eax
