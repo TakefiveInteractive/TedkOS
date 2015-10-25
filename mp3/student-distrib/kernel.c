@@ -196,8 +196,8 @@ entry (unsigned long magic, unsigned long addr)
 static void kernel_enable_basic_paging(void* usable_mem)
 {
     int32_t i;
-    uint32_t* pageDir   = usable_mem & ALIGN_4KB_ADDR + 0x1000;
-    uint32_t* pageTable = usable_mem & ALIGN_4KB_ADDR + 0x2000;
+    uint32_t* pageDir   = (uint32_t*)((uint32_t) usable_mem & ALIGN_4KB_ADDR + 0x1000);
+    uint32_t* pageTable = (uint32_t*)((uint32_t) usable_mem & ALIGN_4KB_ADDR + 0x2000);
     memset(pageDir  , 0, 0x1000);
     memset(pageTable, 0, 0x1000);
     REDIRECT_PAGE_DIR(pageDir, 0);
