@@ -83,7 +83,7 @@ extern uint32_t* global_cr3val;
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
 //        this pointer uses PHYSICAL address
 #define LOAD_4KB_PAGE(PD_IDX, PT_IDX, PAGE_ADDR, FLAGS)   \
-    {((uint32_t*)global_cr3val[(PD_IDX)])[(PT_IDX)] = ((uint32_t)PG_4KB_BASE) | ((uint32_t)(PAGE_ADDR) & ALIGN_4KB_ADDR) | ((uint32_t)FLAGS);}
+    {((uint32_t*)(global_cr3val[(PD_IDX)] & ALIGN_4KB_ADDR))[(PT_IDX)] = ((uint32_t)PG_4KB_BASE) | ((uint32_t)(PAGE_ADDR) & ALIGN_4KB_ADDR) | ((uint32_t)FLAGS);}
 
 // LOAD_4MB_PAGE  (pointer will be stored IN an ENTRY in page DIRECTORY)
 //  This macro accepts a pointer to a physical 4MB page
@@ -144,11 +144,9 @@ void* enable_paging();
 
 #endif /* ASM */
 
-#undef PG_4MB_BASE         0x081       // Use '='
-#undef PG_4KB_BASE         0x001       // Use '='
-#undef PT_BASE             0x001       // Use '='
-#undef PD_BASE             0x000       // Use '='
-#undef ALIGN_4KB_ADDR      0xFFFFF000  // Use '&'. This will help make sure flags are not affected by address.
-#undef ALIGN_4MB_ADDR      0xFFC00000  // Use '&'. This will help make sure flags are not affected by address.
+#undef PG_4MB_BASE
+#undef PG_4KB_BASE
+#undef PT_BASE
+#undef PD_BASE
 
 #endif /* _X86_PAGING_H */
