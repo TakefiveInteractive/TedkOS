@@ -155,7 +155,7 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
     /* Paging */
-    kernel_enable_basic_paging((void*)0xf0000);
+    kernel_enable_basic_paging((void*)0x800000);
 
 	/* Init the PIC */
 	i8259_init();
