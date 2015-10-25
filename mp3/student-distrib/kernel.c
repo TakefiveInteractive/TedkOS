@@ -19,7 +19,11 @@
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
 // Make sure usable_mem has at least 12KB memory (later it will be 5MB memory.)
-static void kernel_enable_basic_paging(void* usable_mem);
+// It uses the two aligned arrays declared below.
+static void kernel_enable_basic_paging();
+
+uint32_t basicPageDir[1024] __attribute__((aligned (4096)));
+uint32_t basicPageTable0[1024] __attribute__((aligned (4096)));
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -155,7 +159,7 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
     /* Paging */
-    kernel_enable_basic_paging((void*)0x800000);
+    kernel_enable_basic_paging();
 
 	/* Init the PIC */
 	i8259_init();
@@ -196,8 +200,8 @@ entry (unsigned long magic, unsigned long addr)
 static void kernel_enable_basic_paging(void* usable_mem)
 {
     int32_t i;
-    uint32_t* pageDir   = (uint32_t*)(((uint32_t)usable_mem & ALIGN_4KB_ADDR) + 0x1000);
-    uint32_t* pageTable = (uint32_t*)(((uint32_t)usable_mem & ALIGN_4KB_ADDR) + 0x2000);
+    uint32_t* pageDir   = basicPageDir;
+    uint32_t* pageTable = basicPageTable0;
     memset(pageDir  , 0, 0x1000);
     memset(pageTable, 0, 0x1000);
     REDIRECT_PAGE_DIR(pageDir, 0);
