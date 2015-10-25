@@ -17,6 +17,9 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
+// Make sure usable_mem has at least 12KB memory (later it will be 5MB memory.)
+static void kernel_enable_basic_paging(void* usable_mem);
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
@@ -150,6 +153,9 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS_SEL);
 	}
 
+    /* Paging */
+    kernel_enable_basic_paging((void*)0xf0000);
+
 	/* Init the PIC */
 	i8259_init();
 
@@ -184,5 +190,22 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
+}
+
+static void kernel_enable_basic_paging(void* usable_mem)
+{
+    int32_t i;
+    uint32_t* pageDir   = usable_mem & ALIGN_4KB_ADDR + 0x1000;
+    uint32_t* pageTable = usable_mem & ALIGN_4KB_ADDR + 0x2000;
+    memset(pageDir  , 0, 0x1000);
+    memset(pageTable, 0, 0x1000);
+    REDIRECT_PAGE_DIR(pageDir, 0);
+    LOAD_4MB_PAGE(1, 1 << 22, PG_WRITABLE);
+    LOAD_PAGE_TABLE(0, pageTable, PT_WRITABLE);
+    for(i = 0; i < 0x400; i++)
+    {
+        LOAD_4KB_PAGE(i, i << 12, PG_WRITABLE);
+    }
+    enable_paging();
 }
 
