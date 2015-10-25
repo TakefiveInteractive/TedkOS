@@ -7,10 +7,14 @@
 // !!!  Be careful to add C types and function
 //  declarations in #ifndef ASM part
 
+
+// ALIGN_XKB_ADDR and **_BASE will be applied to FLAGS AUTOMATICALLY !!!!!
+// DO NOT USE THEM OUTSIDE THIS HEADER !!!!!
+
 #define ALIGN_4KB_ADDR      0xFFFFF000  // Use '&'. This will help make sure flags are not affected by address.
 #define ALIGN_4MB_ADDR      0xFFC00000  // Use '&'. This will help make sure flags are not affected by address.
 
-// APPLIES TO ALL FLAGS:
+// APPLIES TO ALL MACRO FUNCTIONS:
 //      *_BASE must be applied in all situations!!!!
 
 // Flags to DESCRIBE actual PAGE
@@ -68,7 +72,19 @@
 // global_cr3val points to head of a WHOLE Page Directory. It has 1024 entries.
 extern uint32_t* global_cr3val;
 
-// LOAD_4MB_PAGE  (pointer will be stored IN an ENTRY in PD)
+// LOAD_4KB_PAGE  (pointer will be stored IN an ENTRY in page TABLE)
+//  This macro accepts a pointer to a physical 4KB page
+//      THIS DOES NOT FLUSH TLB FOR YOU.
+//      YOU NEED TO **FLUSH TLB**
+//     WARNING:
+//        TABLE_ADDR MUST HAVE FLAGS ALREADY APPLIED!!!!
+//        THE POINTER PART MUST BE 4-KB ALIGNED!!!!
+//        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
+//        this pointer uses PHYSICAL address
+#define LOAD_4KB_PAGE(PD_IDX, PT_IDX, PAGE_ADDR, FLAGS)   \
+    {((uint32_t*)global_cr3val[(PD_IDX)])[(PT_IDX)] = ((uint32_t)PG_4KB_BASE) | ((uint32_t)(PAGE_ADDR) & ALIGN_4KB_ADDR) | ((uint32_t)FLAGS);}
+
+// LOAD_4MB_PAGE  (pointer will be stored IN an ENTRY in page DIRECTORY)
 //  This macro accepts a pointer to a physical 4MB page
 //      THIS DOES NOT FLUSH TLB FOR YOU.
 //      YOU NEED TO **FLUSH TLB**
@@ -77,11 +93,11 @@ extern uint32_t* global_cr3val;
 //        THE POINTER PART MUST BE 4-MB ALIGNED!!!!
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
 //        this pointer uses PHYSICAL address
-#define LOAD_4MB_PAGE(PD_IDX, PAGE_ADDR)   \
-    {global_cr3val[(PD_IDX)] = ((uint32_t)(PAGE_ADDR) & ALIGN_4MB_ADDR);}
+#define LOAD_4MB_PAGE(PD_IDX, PAGE_ADDR, FLAGS)   \
+    {global_cr3val[(PD_IDX)] = ((uint32_t)PG_4MB_BASE) | ((uint32_t)(PAGE_ADDR) & ALIGN_4MB_ADDR) | ((uint32_t)FLAGS);}
 
 // LOAD_PAGE_TABLE  (pointer will be stored IN an ENTRY in PD)
-//  This macro accepts a pointer to page table
+//  This macro accepts a pointer to page TABLE
 //      THIS DOES NOT FLUSH TLB FOR YOU.
 //      YOU NEED TO **FLUSH TLB**
 //     WARNING:
@@ -89,8 +105,8 @@ extern uint32_t* global_cr3val;
 //        THE POINTER PART MUST BE 4-KB ALIGNED!!!!
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
 //        this pointer uses PHYSICAL address
-#define LOAD_PAGE_TABLE(PD_IDX, TABLE_ADDR)   \
-    {global_cr3val[(PD_IDX)] = ((uint32_t)(TABLE_ADDR) & ALIGN_4KB_ADDR);}
+#define LOAD_PAGE_TABLE(PD_IDX, TABLE_ADDR, FLAGS)   \
+    {global_cr3val[(PD_IDX)] = ((uint32_t)PT_BASE) | (uint32_t)(TABLE_ADDR) & ALIGN_4KB_ADDR | ((uint32_t)FLAGS);}
 
 //     Description:     (set cr3 = global_cr3val = ACTUAL_PAGE_DIR_ADDR)
 //        This function changes the global_cr3val and sets pd_flags too
