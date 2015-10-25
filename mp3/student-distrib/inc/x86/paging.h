@@ -47,6 +47,7 @@
 //      REDIRECT_PAGE_DIR 
 // This is effective for a WHOLE Page Directory (NOT an ENTRY)
 // We usually should not use these flags!!
+#define PD_BASE             0x00        // Use '='
 #define PD_DISABLE_CACHE    0x10        // Use '|'
 #define PD_WRITE_THROUGH    0x08        // Use '|'
 
@@ -106,7 +107,7 @@ extern uint32_t* global_cr3val;
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
 //        this pointer uses PHYSICAL address
 #define LOAD_PAGE_TABLE(PD_IDX, TABLE_ADDR, FLAGS)   \
-    {global_cr3val[(PD_IDX)] = ((uint32_t)PT_BASE) | (uint32_t)(TABLE_ADDR) & ALIGN_4KB_ADDR | ((uint32_t)FLAGS);}
+    {global_cr3val[(PD_IDX)] = ((uint32_t)PT_BASE) | ((uint32_t)(TABLE_ADDR) & ALIGN_4KB_ADDR) | ((uint32_t)FLAGS);}
 
 //     Description:     (set cr3 = global_cr3val = ACTUAL_PAGE_DIR_ADDR)
 //        This function changes the global_cr3val and sets pd_flags too
@@ -119,8 +120,8 @@ extern uint32_t* global_cr3val;
 //        update the global var: global_cr3val
 //     WARNING:
 //        the ACTUAL_PAGE_DIR_ADDR pointer uses PHYSICAL address
-#define REDIRECT_PAGE_DIR(ACTUAL_PAGE_DIR_ADDR) {                                 \
-    global_cr3val = (uint32_t*)(((uint32_t)ACTUAL_PAGE_DIR_ADDR) & ALIGN_4KB_ADDR);  \
+#define REDIRECT_PAGE_DIR(ACTUAL_PAGE_DIR_ADDR, FLAGS) {                                 \
+    global_cr3val = (uint32_t*)(((uint32_t)PD_BASE) | ((uint32_t)(ACTUAL_PAGE_DIR_ADDR) & ALIGN_4KB_ADDR) | ((uint32_t) FLAGS));  \
 }
 
 // enable_paging
@@ -143,5 +144,11 @@ void* enable_paging();
 
 #endif /* ASM */
 
+#undef PG_4MB_BASE         0x081       // Use '='
+#undef PG_4KB_BASE         0x001       // Use '='
+#undef PT_BASE             0x001       // Use '='
+#undef PD_BASE             0x000       // Use '='
+#undef ALIGN_4KB_ADDR      0xFFFFF000  // Use '&'. This will help make sure flags are not affected by address.
+#undef ALIGN_4MB_ADDR      0xFFC00000  // Use '&'. This will help make sure flags are not affected by address.
 
 #endif /* _X86_PAGING_H */
