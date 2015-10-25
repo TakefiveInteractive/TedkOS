@@ -144,9 +144,11 @@ void* enable_paging();
 
 #endif /* ASM */
 
+/*
 #undef PG_4MB_BASE
 #undef PG_4KB_BASE
 #undef PT_BASE
 #undef PD_BASE
+*/
 
 #endif /* _X86_PAGING_H */
