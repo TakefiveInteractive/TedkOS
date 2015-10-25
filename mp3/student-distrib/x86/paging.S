@@ -29,6 +29,12 @@ SET_PG      =   0x80000000
 #        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
 #        this pointer uses PHYSICAL address
 enable_paging:
+
+    # We must set CR3 to the correct value before
+    #  enabling paging.
+
+    movl global_cr3val, %eax      # eax <- Pointer to Page Directory
+    movl %eax, %cr3
     
     # According to IA-32 manual:
     # The best order is to clear PAE first and then set PG
@@ -41,9 +47,6 @@ enable_paging:
     movl %cr0, %eax
     orl  $SET_PG, %eax
     movl %eax, %cr0
-
-    movl global_cr3val, %eax      # eax <- Pointer to Page Directory
-    movl %eax, %cr3
 
     ret
 
