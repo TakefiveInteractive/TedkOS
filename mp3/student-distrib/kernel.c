@@ -207,7 +207,9 @@ static void kernel_enable_basic_paging(void* usable_mem)
     REDIRECT_PAGE_DIR(pageDir, 0);
     LOAD_4MB_PAGE(1, 1 << 22, PG_WRITABLE);
     LOAD_PAGE_TABLE(0, pageTable, PT_WRITABLE);
-    for(i = 0; i < 0x400; i++)
+	
+	// IMPORTANT!!! Must start from i = 1. NOT i = 0 !!!!!
+    for(i = 1; i < 0x400; i++)
     {
         LOAD_4KB_PAGE(0, i, i << 12, PG_WRITABLE);
     }
