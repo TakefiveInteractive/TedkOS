@@ -1,5 +1,6 @@
 #include <inc/klibs/palloc.h>
 #include <inc/klibs/AutoSpinLock.h>
+#include <inc/proc/tasks.h>
 #include <inc/x86/paging.h>
 
 namespace palloc
@@ -276,7 +277,7 @@ namespace palloc
 
     bool MemMapManager::loadProcessMap(const ProcessDesc* proc)
     {
-        const TinyMemMap& map = proc->map;
+        const TinyMemMap& map = proc->memmap;
         if(!bIsStarted)
             return false;
         AutoSpinLock lock(cpu_cr3_lock);
