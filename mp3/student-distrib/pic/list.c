@@ -1,6 +1,11 @@
 #include <stddef.h>
 #include "list.h"
+
+#ifdef GTEST_DEBUG
+#include <string.h>
+#else
 #include <inc/lib.h>
+#endif
 
 // firstDataIdx == -1 <=> List is EMPTY
 
