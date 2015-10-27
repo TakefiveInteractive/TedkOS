@@ -30,13 +30,11 @@ void rtc_init()
     sti();
 }
 
-/* rtc_handler  *********** NOT IMPLEMENTING FOR NOW
- * DESCRIPTION: Handle rtc interrupts
- * INPUT: irq -- interrupt number
- *        saved_reg -- not used for now
- * OUTPUT: current the returned value is ignored, 0 for success
- *         look at <inc/error.h> for more error codes
- * SIDE EFFECT: NOT FOR NOW
+/**
+ * rtc_handler() is interrupt handler for rtc
+ * @param  irq       interrupt number
+ * @param  saved_reg not used for now
+ * @return           0 for success, always 0
  */
 int rtc_handler(int irq, unsigned int saved_reg)
 {
@@ -59,7 +57,9 @@ int rtc_handler(int irq, unsigned int saved_reg)
  */
 int read (int fd, void* buf, int nbytes)
 {
+    // wait until interrupt_flag sets to 1
     while (interrupt_flag == 0) {;}
+    // set interrupt flag back to 0
     interrupt_flag = 0;
     return 0;
 }
