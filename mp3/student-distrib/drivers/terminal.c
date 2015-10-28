@@ -3,15 +3,22 @@
 #include <inc/driver.h>
 #include <inc/lib.h>
 
+// The width must be an even number so that
+//      scroll_down can use rep movsd
 #define SCREEN_WIDTH    80
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
+#define VMEM_HEAD       ((char*)0xB8000)
 
-static char* video_mem = (char *)0xB8000;
+static char* video_mem = VMEM_HEAD;
 
 #define TERM_BUFFER_SIZE                128
 
-char* term_buffer[TERM_BUFFER_SIZE];
+// We assume that read() should also be able to
+//  return key combinations and special keys
+//      Thus we have to store whole kernel keycode
+//  But I am still waiting for Piazza's response.
+uint32_t* term_buffer[TERM_BUFFER_SIZE];
 
 // the position where new typed
 // characters should go in buffer.
@@ -19,6 +26,23 @@ int buffer_position;
 
 /********** Private, yet debuggable functions ***********/
 void set_cursor(uint32_t x, uint32_t y);
+void scroll_down();
+
+/********** Private functions ***********/
+
+/*
+ *   Inputs:
+ *       uint_8* c = PRINTABLE ascii character
+ *       uint_32 x : the x coordinate to display at
+ *       uint_32 y : the y coordinate to display at
+ *   Return Value: void
+ *	Function: Output a character to the screen
+ */
+static inline void show_char_at(uint32_t x, uint32_t y, uint8_t c)
+{
+    *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1)) = c;
+    *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1) + 1) = TEXT_STYLE;
+}
 
 /********** Public functions ***********/
 
@@ -35,22 +59,6 @@ DEFINE_DRIVER_REMOVE(term)
 
 void kb_to_term(uint32_t kenerlKeycode)
 {
-}
-
-/*
-* void putc(uint32_t x, uint32_t y, uint8_t c);
-*   Inputs:
-*       uint_8* c = PRINTABLE ascii character
-*       uint_32 x : the x coordinate to display at
-*       uint_32 y : the y coordinate to display at
-*   Return Value: void
-*	Function: Output a character to the screen
-*/
-
-static inline void show_char_at(uint32_t x, uint32_t y, uint8_t c)
-{
-    *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1)) = c;
-    *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1) + 1) = TEXT_STYLE;
 }
 
 #define CURSOR_LOC_HIGH_REG     0x0E
@@ -92,5 +100,38 @@ void set_cursor(uint32_t x, uint32_t y)
     outb(CURSOR_LOC_LOW_REG , addr_reg);
     outb(location & 0xff, data_reg);
     outb(old_addr, addr_reg);
+}
+
+// Scroll the whole screen down by 1 line.
+// There is a VGA way to do this. But we don't have time now.
+void scroll_down()
+{
+    // The width must be an even number so that
+    //      scroll_down can use rep movsd
+
+    // Move lines up
+    asm volatile (
+        "cld                                                    ;"
+        "movl %0, %%ecx                                         ;"
+        "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
+        : /* no outputs */
+        : "i" ((SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2 / 4),
+          "S" (video_mem + 2 * SCREEN_WIDTH),
+          "D" (video_mem)
+        : "cc", "memory", "ecx"
+    );
+
+    // Clear the content of the last line.
+    asm volatile (
+        "cld                                                    ;"
+        "movl %0, %%ecx                                         ;"
+        "movl %1, %%eax                                         ;"
+        "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
+        : /* no outputs */
+        : "i" (SCREEN_WIDTH),
+          "i" (' ' + (TEXT_STYLE << 8)),
+          "D" (video_mem + (SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2)
+        : "cc", "memory", "ecx", "eax"
+    );
 }
 
