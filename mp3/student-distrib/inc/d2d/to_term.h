@@ -13,6 +13,8 @@ void kb_to_term(uint32_t kernelKeycode);
 // 2. Otherwise for keys that combine with other keys, their keycode starts
 //        from 0x10000
 // 3. Otherwise the keys are represented using values from 0x100 to 0xff00
+// 4. The MSB represents whether the event is KEY_PRESSED or KEY_RELEASED
+//        MSB 0 = PRESSED, MSB 1 = RELEASED
 
 // define a = 'a'. define A = 'A'. define Ctrl+a = 'a' | KKC_CTRL
 
@@ -24,17 +26,15 @@ void kb_to_term(uint32_t kernelKeycode);
 //      And for CTRL-L the user does not need to find it in buffer.
 //      THUS: user level keycode does not contain "combine-able" keys
 
-// KKC for pressing "combine-able" keys
-#define KKC_CTRL_DOWN   0x010000
-#define KKC_ALT_DOWN    0x020000
-#define KKC_SHIFT_DOWN  0x040000
-#define KKC_SUPER_DOWN  0x080000
+// KKC representing whether the event was pressing or releasing a key
+#define KKC_PRESS       0x00000000
+#define KKC_RELEASE     0x80000000
 
-// KKC for releasing "combine-able" keys
-#define KKC_CTRL_UP     0x010000
-#define KKC_ALT_UP      0x020000
-#define KKC_SHIFT_UP    0x040000
-#define KKC_SUPER_UP    0x080000
+// KKC for "combine-able" keys
+#define KKC_CTRL        0x010000
+#define KKC_ALT         0x020000
+#define KKC_SHIFT       0x040000
+#define KKC_SUPER       0x080000
 
 // KKC for special but not "combine-able" keys
 #define KKC_ENTER       0x000100
