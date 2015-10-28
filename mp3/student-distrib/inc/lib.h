@@ -7,16 +7,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <inc/terminal.h>
 
-#ifndef DEBUG
-#define clear() {term_cls();}
-#define putc(C) {term_putc(C);}
-#else
-#define clear() {orig_clear();}
-#define putc(C) {orig_putc(C);}
-#endif
-
+void putc(uint8_t c);
+void clear(void);
 
 // These functions are replaced by terminal
 //   Modify the macros above to redirect.

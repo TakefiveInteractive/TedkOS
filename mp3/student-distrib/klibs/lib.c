@@ -12,6 +12,28 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
+#ifndef DEBUG
+#include <inc/terminal.h>
+#endif
+
+void clear(void)
+{
+#ifndef DEBUG
+    term_cls();
+#else
+    orig_clear();
+#endif
+}
+
+void putc(uint8_t c)
+{
+#ifndef DEBUG
+    term_putc(c);
+#else
+    orig_putc(c);
+#endif
+}
+
 /*
 * void orig_clear(void);
 *   Inputs: void
