@@ -112,23 +112,26 @@ void scroll_down()
     // Move lines up
     asm volatile (
         "cld                                                    ;"
+        "movl %0, %%ecx                                         ;"
         "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
         : /* no outputs */
-        : "ecx" ((SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2 / 4),
+        : "i" ((SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2 / 4),
           "S" (video_mem + 2 * SCREEN_WIDTH),
           "D" (video_mem)
-        : "cc", "memory"
+        : "cc", "memory", "ecx"
     );
 
     // Clear the content of the last line.
     asm volatile (
         "cld                                                    ;"
+        "movl %0, %%ecx                                         ;"
+        "movl %1, %%eax                                         ;"
         "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
         : /* no outputs */
-        : "ecx" (SCREEN_WIDTH),
-          "eax" (' ' + (TEXT_STYLE << 8)),
-          "D" (video_mem)
-        : "cc", "memory"
+        : "i" (SCREEN_WIDTH),
+          "i" (' ' + (TEXT_STYLE << 8)),
+          "D" (video_mem),
+        : "cc", "memory", "ecx", "eax"
     );
 }
 
