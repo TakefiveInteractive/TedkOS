@@ -65,8 +65,37 @@ DEFINE_DRIVER_REMOVE(term)
     // Currently nothing to do here.
 }
 
-void kb_to_term(uint32_t kenerlKeycode)
+void kb_to_term(uint32_t kernelKeycode)
 {
+    // This one is NOT a FINAL design.
+    uint32_t flag;
+    spin_lock_irqsave(&screen_lock, flag);
+    if(kernelKeycode == KKC_ENTER) {
+        if(next_char_y < SCREEN_HEIGHT - 1)
+        {
+            next_char_y++;
+            next_char_x = 0;
+        }
+        else
+        {
+            next_char_x = 0;
+            scroll_down_nolock();
+        }
+    } else if (!(kernelKeycode & 0xFFFFFF00)) {
+        // In this case we have directly printable characters
+        char c = (char)kernelKeycode;
+        show_char_at_nolock(next_char_x, next_char_y, c);
+        next_char_x++;
+        if(next_char_x == SCREEN_WIDTH)
+        {
+            next_char_x = 0;
+            if(next_char_y < SCREEN_HEIGHT - 1)
+                next_char_y++;
+            else scroll_down_nolock();
+        }
+    }
+    set_cursor_nolock(next_char_x, next_char_y);
+    spin_unlock_irqrestore(&screen_lock, flag);
 }
 
 // clear screen
