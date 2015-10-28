@@ -32,8 +32,8 @@ uint32_t* term_buffer[TERM_BUFFER_SIZE];
 int buffer_position;
 
 /********** Private, yet debuggable functions ***********/
-void set_cursor(uint32_t x, uint32_t y);
 void scroll_down_nolock();
+void set_cursor_nolock(uint32_t x, uint32_t y);
 
 /********** Private functions ***********/
 
