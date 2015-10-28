@@ -6,7 +6,7 @@
 #include <inc/d2d/to_term.h>
 
 // The width must be an even number so that
-//      scroll_down_nolock can use rep movsd
+//      scroll_down_nolock can use rep movsd.
 #define SCREEN_WIDTH    80
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
