@@ -130,7 +130,7 @@ void scroll_down()
         : /* no outputs */
         : "i" (SCREEN_WIDTH),
           "i" (' ' + (TEXT_STYLE << 8)),
-          "D" (video_mem)
+          "D" (video_mem + (SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2)
         : "cc", "memory", "ecx", "eax"
     );
 }
