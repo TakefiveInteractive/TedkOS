@@ -13,14 +13,14 @@ static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
 /*
-* void clear(void);
+* void orig_clear(void);
 *   Inputs: void
 *   Return Value: none
 *	Function: Clears video memory
 */
 
 void
-clear(void)
+orig_clear(void)
 {
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
@@ -178,14 +178,14 @@ puts(char* s)
 }
 
 /*
-* void putc(uint8_t c);
+* void orig_putc(uint8_t c);
 *   Inputs: uint_8* c = character to print
 *   Return Value: void
 *	Function: Output a character to the console
 */
 
 void
-putc(uint8_t c)
+orig_putc(uint8_t c)
 {
     if(c == '\n' || c == '\r') {
         screen_y++;

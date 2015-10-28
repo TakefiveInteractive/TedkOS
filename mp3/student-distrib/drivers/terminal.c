@@ -10,6 +10,9 @@
 #define TEXT_STYLE      0x7
 #define VMEM_HEAD       ((char*)0xB8000)
 
+// The coordinate to display the next char at.
+static uint32_t next_char_x = 0;
+static uint32_t next_char_y = 0;
 static char* video_mem = VMEM_HEAD;
 
 #define TERM_BUFFER_SIZE                128
@@ -60,6 +63,52 @@ DEFINE_DRIVER_REMOVE(term)
 void kb_to_term(uint32_t kenerlKeycode)
 {
 }
+
+// clear screen
+void term_cls(void)
+{
+    asm volatile (
+        "cld                                                    ;"
+        "movl %0, %%ecx                                         ;"
+        "movl %1, %%eax                                         ;"
+        "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
+        : /* no outputs */
+        : "i" (SCREEN_WIDTH * SCREEN_HEIGHT),
+          "i" (' ' + (TEXT_STYLE << 8)),
+          "D" (video_mem)
+        : "cc", "memory", "ecx", "eax"
+    );
+    next_char_x = next_char_y = 0;
+}
+
+// Print one char. Must be either printable or newline character
+void term_putc(uint8_t c)
+{
+    if(c == '\n' || c == '\r') {
+        if(next_char_y < SCREEN_HEIGHT - 1)
+        {
+            next_char_y++;
+            next_char_x = 0;
+        }
+        else
+        {
+            next_char_x = 0;
+            scroll_down();
+        }
+    } else {
+        show_char_at(next_char_x, next_char_y, c);
+        next_char_x++;
+        if(next_char_x == NUM_COLS)
+        {
+            next_char_x = 0;
+            if(next_char_y < SCREEN_HEIGHT - 1)
+                next_char_y++;
+            else scroll_down();
+        }
+    }
+}
+
+/********** Implementation of Private Functions ***********/
 
 #define CURSOR_LOC_HIGH_REG     0x0E
 #define CURSOR_LOC_LOW_REG      0x0F

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/keyboard.h>
+#include <inc/d2d/to_term.h>
 
 #define KB_PORT 0x60
 #define KB_INT_NUM 0x21
@@ -8,17 +9,17 @@
 #define KB_ID 1
 #define KD_POLICY 0
 
-unsigned char KBascii[128] =
+uint32_t KBascii[128] =
 {
     0,  27,/* esc */
 	'1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 	'-', '=',
-	'\b',/* Backspace */
+	KKC_BACKSPACE,/* Backspace */
 	'\t',/* Tab */
 	'q', 'w', 'e', 'r',	/* 19 */
 	't', 'y', 'u', 'i', 'o', 'p', '[', ']',
-	'\n',	/* Enter key */
-    0,	/* 29   - Control */
+	KKC_ENTER,	/* Enter key */
+    0,	/* 29   - Control */        // PLEASE COMPLETE THE REST of the TABLE 
 	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',	/* 39 */
 	'\'', '`',
 	0,	/* Left shift */
@@ -84,9 +85,14 @@ int kb_handler(int irq, unsigned int saved_reg){
 	uint8_t keyboard_scancode;
 
  	keyboard_scancode = inb(KB_PORT);//read the input
+
+    //!!! WARNING: We should not use "keyboard_scancode & 0x80" anymore
+    //!!!   Because that filters out the events for release keys
+    //!!!   BUT we need to know when keys like SHIFT, ALT are released
+
  	if (!(keyboard_scancode & 0x80)) {
- 		uint8_t key = KBascii[keyboard_scancode];
- 		printf("%c", key);
+ 		uint32_t kernel_keycode = KBascii[keyboard_scancode];
+ 		kb_to_term(kernel_keycode);
  	}
 
     return 0;
