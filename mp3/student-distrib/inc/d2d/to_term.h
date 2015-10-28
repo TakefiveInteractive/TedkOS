@@ -1,9 +1,12 @@
 #ifndef _DRIVER_TO_TERMINAL_H
 #define _DRIVER_TO_TERMINAL_H
 
+#include <stdint.h>
+#include <stddef.h>
+
 // The keyboard drive should preprocess their hardware level keycode to
 //   convent them into kernel level keycode and pass the keycode here.
-void kb_to_term(int32_t kenerlKeycode);
+void kb_to_term(uint32_t kenerlKeycode);
 
 // Definitions of kernel level keycodes are defined here as well.
 // 1. For keys that have a PRINTABLE character, their kernel keycode is equal to ASCII.
