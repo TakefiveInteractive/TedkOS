@@ -1,8 +1,10 @@
 #include <inc/rtc.h>
+#include <inc/spinlock.h>
 
 uint8_t frequency_converter(int freq);
 void rtc_change_frequency(uint8_t rate);
 int interrupt_flag = 0;
+spinlock_t lock = SPINLOCK_UNLOCKED;
 
 DEFINE_DRIVER_INIT(rtc)
 {
@@ -22,12 +24,10 @@ DEFINE_DRIVER_REMOVE(rtc)
  */
 void rtc_init()
 {
-    cli();
     outb(RTC_STATUS_B_NMI, RTC_ADDRESS);
     uint8_t prev = inb(RTC_DATA);
     outb(RTC_STATUS_B_NMI, RTC_ADDRESS);
     outb(prev | RTC_STATUS_B_EN, RTC_DATA);
-    sti();
 }
 
 /**
@@ -38,13 +38,14 @@ void rtc_init()
  */
 int rtc_handler(int irq, unsigned int saved_reg)
 {
-    cli();
+    unsigned int flag;
+    spin_lock_irqsave(&lock, flag);
     /* test_interrupts(); */
     /* read register c to allow future use */
     outb(RTC_STATUS_C, RTC_ADDRESS);
     inb(RTC_DATA);
     interrupt_flag = 1;
-    sti();
+    spin_unlock_irqrestore(&lock, flag);
     return 0;
 }
 
@@ -136,10 +137,11 @@ uint8_t frequency_converter(int freq)
  */
 void rtc_change_frequency(uint8_t rate)
 {
-    cli();
+    unsigned int flag;
+    spin_lock_irqsave(&lock, flag);
     outb(RTC_STATUS_A_NMI, RTC_ADDRESS);
     uint8_t prev = inb(RTC_DATA);
     outb(RTC_STATUS_A_NMI, RTC_ADDRESS);
     outb((prev & HIGH_BIT_MASK) | rate, RTC_DATA);
-    sti();
+    spin_unlock_irqrestore(&lock, flag);
 }
