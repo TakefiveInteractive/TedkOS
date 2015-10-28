@@ -3,6 +3,8 @@
 #include <inc/driver.h>
 #include <inc/lib.h>
 
+// The width must be an even number so that
+//      scroll_down can use rep movsd
 #define SCREEN_WIDTH    80
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
@@ -104,15 +106,29 @@ void set_cursor(uint32_t x, uint32_t y)
 // There is a VGA way to do this. But we don't have time now.
 void scroll_down()
 {
+    // The width must be an even number so that
+    //      scroll_down can use rep movsd
+
+    // Move lines up
     asm volatile (
         "cld                                                    ;"
-        "movl %0,%%ecx                                          ;"
         "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
         : /* no outputs */
-        : "i" ((SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2 / 4),
+        : "ecx" ((SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2 / 4),
           "S" (video_mem + 2 * SCREEN_WIDTH),
           "D" (video_mem)
-        : "cc", "ecx", "memory"
+        : "cc", "memory"
+    );
+
+    // Clear the content of the last line.
+    asm volatile (
+        "cld                                                    ;"
+        "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
+        : /* no outputs */
+        : "ecx" (SCREEN_WIDTH),
+          "eax" (' ' + (TEXT_STYLE << 8)),
+          "D" (video_mem)
+        : "cc", "memory"
     );
 }
 
