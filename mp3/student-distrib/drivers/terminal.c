@@ -63,7 +63,7 @@ void set_cursor(uint32_t x, uint32_t y)
     // location will be passed to VGA register as Cursor Location Field.
     uint8_t old_addr;
     uint16_t addr_reg, data_reg; 
-    uint16_t location = ((SCREEN_WIDTH*y + x) << 1);
+    uint16_t location = SCREEN_WIDTH * y + x;
     if(inb(0x3CC) & 0x1)
     {
         addr_reg = 0x3D4;
