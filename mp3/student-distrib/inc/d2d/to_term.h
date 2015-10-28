@@ -18,9 +18,10 @@ void kb_to_term(uint32_t kenerlKeycode);
 
 // KKC is short for kernel keycode
 
-#define KKC_CTRL    0x10000
-#define KKC_ALT     0x20000
-#define KKC_SHIFT   0x40000
+#define KKC_CTRL        0x10000
+#define KKC_ALT         0x20000
+#define KKC_SHIFT       0x40000
+#define KKC_SUPER       0x80000
 
 // and so on
 
