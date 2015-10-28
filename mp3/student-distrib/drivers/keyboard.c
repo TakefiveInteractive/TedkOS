@@ -9,46 +9,81 @@
 #define KB_ID 1
 #define KD_POLICY 0
 
+
+/*
+* See http://wiki.osdev.org/PS/2_Keyboard
+*/
 uint32_t KBascii[128] =
 {
-    0,  27,/* esc */
-	'1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
-	'-', '=',
+    /* keycode here is all pressed keycode */
+    0,/* unused,nothing happened */
+    KKC_ESC,/* esc */
+	0x02,/* 1 */
+    0x03,/* 2 */
+    0x04,/* 3 */
+    0x05,/* 4 */
+    0x06,/* 5 */
+    0x07,/* 6 */
+    0x08,/* 7 */
+    0x09,/* 8 */
+    0x0A,/* 9 */
+    0x0B,/* 0 */
+	0x0C,/* - */
+    0x0D,/* = */
 	KKC_BACKSPACE,/* Backspace */
-	'\t',/* Tab */
-	'q', 'w', 'e', 'r',	/* 19 */
-	't', 'y', 'u', 'i', 'o', 'p', '[', ']',
+	KKC_TAB,/* Tab */
+	0x10,/* Q (default: q)*/
+    0x11,/* W */
+    'e',
+    'r',	/* 19 */
+	't',
+    'y',
+    'u',
+    'i',
+    'o',
+    'p',
+    '[',
+    ']',
 	KKC_ENTER,	/* Enter key */
-    0,	/* 29   - Control */        // PLEASE COMPLETE THE REST of the TABLE 
-	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',	/* 39 */
+    KKC_CTRL,	/* 29 - Control */
+	'a',
+    's',
+    'd',
+    'f',
+    'g',
+    'h',
+    'j',
+    'k',
+    'l',
+    ';',	/* 39 */
 	'\'', '`',
-	0,	/* Left shift */
+	KKC_SHIFT,	/* Left shift */
 	'\\', 'z', 'x', 'c', 'v', 'b', 'n',			/* 49 */
 	'm', ',', '.', '/',
-	0,	/* Right shift */
+	KKC_SHIFT,	/* Right shift */
 	'*',
-    0,	/* Alt */
+    KKC_ALT,	/* Alt */
 	' ',/* Space */
-    0,	/* Caps lock */
+    KKC_CAPSLOCK,	/* Caps lock */
     0,
 	/* 59 - F1 key ... > */
     0, 0, 0, 0, 0, 0, 0, 0, 0,
 	/* < ... F10 */
     0,	/* 69 - Num lock*/
     0,	/* Scroll Lock */
-    0,	/* Home key */
-    0,	/* Up Arrow */
-    0,	/* Page Up */
+    KKC_HOME,	/* Home key */
+    KKC_UP,	/* Up Arrow */
+    KKC_PAGEUP,	/* Page Up */
 	'-',
-    0,	/* Left Arrow */
+    KKC_LEFT,	/* Left Arrow */
     0,
-    0,	/* Right Arrow */
+    KKC_RIGHT,	/* Right Arrow */
 	'+',
-    0,	/* 79 - End key*/
-    0,	/* Down Arrow */
-    0,	/* Page Down */
-    0,	/* Insert Key */
-    '\177',	/* Delete Key */
+    KKC_END,	/* 79 - End key*/
+    KKC_DOWN,	/* Down Arrow */
+    KKC_PAGEDOWN,	/* Page Down */
+    KKC_INSERT,	/* Insert Key */
+    KKC_DELETE,	/* Delete Key */
     0, 0, 0,
     0,	/* F11 Key */
     0,	/* F12 Key */
@@ -90,7 +125,7 @@ int kb_handler(int irq, unsigned int saved_reg){
     //!!!   Because that filters out the events for release keys
     //!!!   BUT we need to know when keys like SHIFT, ALT are released
 
- 	if (!(keyboard_scancode & 0x80)) {
+ 	if (!(keyboard_scancode)) {
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
  		kb_to_term(kernel_keycode);
  	}
