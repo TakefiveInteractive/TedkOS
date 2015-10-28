@@ -14,7 +14,7 @@ void kb_to_term(uint32_t kenerlKeycode);
 //        from 0x10000
 // 3. Otherwise the keys are represented using values from 0x100 to 0xff00
 
-// define a = 'a'. define A = 'a' | KKC_SHIFT
+// define a = 'a'. define A = 'A'. define Ctrl+a = 'a' | KKC_CTRL
 
 // KKC is short for kernel keycode
 
