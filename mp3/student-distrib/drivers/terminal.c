@@ -56,6 +56,14 @@ static inline void show_char_at(uint32_t x, uint32_t y, uint8_t c)
 #define CURSOR_LOC_HIGH_REG     0x0E
 #define CURSOR_LOC_LOW_REG      0x0F
 
+/*
+ * void set_cursor(uint32_t x, uint32_t y)
+ * Inputs:
+ *      x and y must be within correct range,
+ *      (see SCREEN_WIDTH and SCREEN_HEIGHT)
+ *      if they are out of range, nothing will happen
+ * Function: moves cursor to screen location (x,y).
+ */
 void set_cursor(uint32_t x, uint32_t y)
 {
     // old_addr stores old CRTC Register's address
@@ -64,6 +72,10 @@ void set_cursor(uint32_t x, uint32_t y)
     uint8_t old_addr;
     uint16_t addr_reg, data_reg; 
     uint16_t location = SCREEN_WIDTH * y + x;
+    if(x >= SCREEN_WIDTH)
+        return;
+    if(y >= SCREEN_HEIGHT)
+        return;
     if(inb(0x3CC) & 0x1)
     {
         addr_reg = 0x3D4;
