@@ -2,9 +2,10 @@
 #include <stddef.h>
 #include <inc/driver.h>
 #include <inc/lib.h>
+#include <inc/spinlock.h>
 
 // The width must be an even number so that
-//      scroll_down can use rep movsd
+//      scroll_down_nolock can use rep movsd
 #define SCREEN_WIDTH    80
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
@@ -14,6 +15,9 @@
 static uint32_t next_char_x = 0;
 static uint32_t next_char_y = 0;
 static char* video_mem = VMEM_HEAD;
+
+// The lock must be called when operating on the screen.
+static spinlock_t screen_lock = SPINLOCK_UNLOCKED;
 
 #define TERM_BUFFER_SIZE                128
 
@@ -29,7 +33,7 @@ int buffer_position;
 
 /********** Private, yet debuggable functions ***********/
 void set_cursor(uint32_t x, uint32_t y);
-void scroll_down();
+void scroll_down_nolock();
 
 /********** Private functions ***********/
 
@@ -40,8 +44,9 @@ void scroll_down();
  *       uint_32 y : the y coordinate to display at
  *   Return Value: void
  *	Function: Output a character to the screen
+ *  WARNING: lock screen_lock WHEN CALLING !!!
  */
-static inline void show_char_at(uint32_t x, uint32_t y, uint8_t c)
+static inline void show_char_at_nolock(uint32_t x, uint32_t y, uint8_t c)
 {
     *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1)) = c;
     *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1) + 1) = TEXT_STYLE;
@@ -67,6 +72,8 @@ void kb_to_term(uint32_t kenerlKeycode)
 // clear screen
 void term_cls(void)
 {
+    uint32_t flag;
+    spin_lock_irqsave(&screen_lock, flag);
     asm volatile (
         "cld                                                    ;"
         "movl %0, %%ecx                                         ;"
@@ -79,11 +86,14 @@ void term_cls(void)
         : "cc", "memory", "ecx", "eax"
     );
     next_char_x = next_char_y = 0;
+    spin_unlock_irqrestore(&screen_lock, flag);
 }
 
 // Print one char. Must be either printable or newline character
 void term_putc(uint8_t c)
 {
+    uint32_t flag;
+    spin_lock_irqsave(&screen_lock, flag);
     if(c == '\n' || c == '\r') {
         if(next_char_y < SCREEN_HEIGHT - 1)
         {
@@ -93,19 +103,21 @@ void term_putc(uint8_t c)
         else
         {
             next_char_x = 0;
-            scroll_down();
+            scroll_down_nolock();
         }
     } else {
-        show_char_at(next_char_x, next_char_y, c);
+        show_char_at_nolock(next_char_x, next_char_y, c);
         next_char_x++;
-        if(next_char_x == NUM_COLS)
+        if(next_char_x == SCREEN_WIDTH)
         {
             next_char_x = 0;
             if(next_char_y < SCREEN_HEIGHT - 1)
                 next_char_y++;
-            else scroll_down();
+            else scroll_down_nolock();
         }
     }
+    set_cursor_nolock(next_char_x, next_char_y);
+    spin_unlock_irqrestore(&screen_lock, flag);
 }
 
 /********** Implementation of Private Functions ***********/
@@ -114,14 +126,15 @@ void term_putc(uint8_t c)
 #define CURSOR_LOC_LOW_REG      0x0F
 
 /*
- * void set_cursor(uint32_t x, uint32_t y)
+ * void set_cursor_nolock(uint32_t x, uint32_t y)
  * Inputs:
  *      x and y must be within correct range,
  *      (see SCREEN_WIDTH and SCREEN_HEIGHT)
  *      if they are out of range, nothing will happen
  * Function: moves cursor to screen location (x,y).
+ * WARNING: lock the screen_lock !!!
  */
-void set_cursor(uint32_t x, uint32_t y)
+void set_cursor_nolock(uint32_t x, uint32_t y)
 {
     // old_addr stores old CRTC Register's address
     // addr_reg and data_reg are used to operate CRTC registers
@@ -153,10 +166,11 @@ void set_cursor(uint32_t x, uint32_t y)
 
 // Scroll the whole screen down by 1 line.
 // There is a VGA way to do this. But we don't have time now.
-void scroll_down()
+// WARNING: lock the screen_lock !!!
+void scroll_down_nolock()
 {
     // The width must be an even number so that
-    //      scroll_down can use rep movsd
+    //      scroll_down_nolock can use rep movsd
 
     // Move lines up
     asm volatile (
