@@ -7,14 +7,27 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/terminal.h>
+
+#ifndef DEBUG
+#define clear() {term_cls();}
+#define putc(C) {term_putc(C);}
+#else
+#define clear() {orig_clear();}
+#define putc(C) {orig_putc(C);}
+#endif
+
+
+// These functions are replaced by terminal
+//   Modify the macros above to redirect.
+void orig_putc(uint8_t c);
+void orig_clear(void);
 
 int32_t printf(char *format, ...);
-void putc(uint8_t c);
 int32_t puts(char *s);
 char *itoa(uint32_t value, char* buf, int32_t radix);
 char *strrev(char * s);
 uint32_t strlen(const char* s);
-void clear(void);
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);
