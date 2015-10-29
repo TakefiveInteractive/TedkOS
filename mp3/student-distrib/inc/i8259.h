@@ -8,7 +8,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <inc/spinlock.h>
+#include <inc/klibs/spinlock.h>
 #include <inc/i8259_extra.h>
 
 /* Ports that each PIC sits on */

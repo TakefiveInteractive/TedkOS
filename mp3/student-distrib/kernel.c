@@ -7,7 +7,7 @@
 #include <inc/multiboot.h>
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/desc.h>
-#include <inc/lib.h>
+#include <inc/klibs/lib.h>
 #include <inc/x86/idt_init.h>
 #include <inc/i8259.h>
 #include <inc/debug.h>

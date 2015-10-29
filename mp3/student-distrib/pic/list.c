@@ -1,6 +1,6 @@
 #include <stddef.h>
 #include "list.h"
-#include <inc/lib.h>
+#include <inc/klibs/lib.h>
 
 // firstDataIdx == -1 <=> List is EMPTY
 
