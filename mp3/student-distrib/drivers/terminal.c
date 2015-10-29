@@ -16,15 +16,15 @@
 // This field is used to tell whether COMBINATION key is pressed
 //      If so, then it also contains all COMBINATION keys pressed.
 //      Note that pending_kc's MSB is never 1 (released)
-static uint32_t pending_kc;
+static uint32_t pending_kc = 0;
 
 // The coordinate to display the next char at.
-static uint32_t next_char_x;
-static uint32_t next_char_y;
+static uint32_t next_char_x = 0;
+static uint32_t next_char_y = 0;
 
 // This variable must be initialized every time _init() is called.
 //  Later we might use VGA panning so this value might change.
-static char* video_mem;
+static char* video_mem = VMEM_HEAD;
 
 // The lock must be called when operating on the screen.
 static spinlock_t term_lock = SPINLOCK_UNLOCKED;
@@ -37,7 +37,7 @@ char* term_read_buf[TERM_BUFFER_SIZE];
 
 // the position where new typed
 // characters should go in term_read_buf.
-int term_read_bufpos;
+int term_read_bufpos = 0;
 
 /********** Private, yet debuggable functions ***********/
 void scroll_down_nolock(void);
