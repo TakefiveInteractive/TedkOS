@@ -3,8 +3,8 @@
  */
 
 #include <inc/i8259.h>
-#include <inc/lib.h>
-#include <inc/spinlock.h>
+#include <inc/klibs/lib.h>
+#include <inc/klibs/spinlock.h>
 #include <inc/error.h>
 
 #define SLAVE_PIN 0x02

@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inc/x86/err_handler.h>
-#include <inc/lib.h>
+#include <inc/klibs/lib.h>
 
 enum exception_type {
     Fault,

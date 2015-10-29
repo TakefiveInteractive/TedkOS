@@ -2,7 +2,7 @@
  * vim:ts=4 expandtab
  */
 
-#include <inc/lib.h>
+#include <inc/klibs/lib.h>
 #define VIDEO 0xB8000
 #define NUM_COLS 80
 #define NUM_ROWS 25

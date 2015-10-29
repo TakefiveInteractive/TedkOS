@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <inc/spinlock.h>
+#include <inc/klibs/spinlock.h>
 
 void spin_lock_init(spinlock_t* lock)
 {
