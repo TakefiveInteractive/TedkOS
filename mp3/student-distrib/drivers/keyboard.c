@@ -35,10 +35,7 @@ uint32_t KBascii[128] =
     KKC_ALT,	/* left Alt */
 	' ',/* Space */
     KKC_CAPSLOCK,	/* Caps lock */
-    0,
-	/* 59 - F1 key ... > */
-    0, 0, 0, 0, 0, 0, 0, 0, 0,
-	/* < ... F10 */
+    KKC_F1, KKC_F2, KKC_F3, KKC_F4, KKC_F5, KKC_F6, KKC_F7, KKC_F8, KKC_F9, KKC_F10
     0,	/* 69 - Num lock*/
     0,	/* Scroll Lock */
     KKC_HOME,	/* Home key */
@@ -55,8 +52,8 @@ uint32_t KBascii[128] =
     KKC_INSERT,	/* Insert Key */
     KKC_DELETE,	/* Delete Key */
     0, 0, 0,
-    0,	/* F11 Key */
-    0,	/* F12 Key */
+    KKC_F11,	/* F11 Key */
+    KKC_F12,	/* F12 Key */
     0,	/* All other keys are undefined */
 };
 
@@ -89,7 +86,7 @@ DEFINE_DRIVER_REMOVE(kb) {
 int kb_handler(int irq, unsigned int saved_reg){
 	uint8_t keyboard_scancode;
 
- 	keyboard_scancode = inb(KB_PORT);//read the input
+ 	keyboard_scancode = inb(KB_PORT);                           //read the input
 
     //!!! WARNING: We should not use "keyboard_scancode & 0x80" anymore
     //!!!   Because that filters out the events for release keys
@@ -98,14 +95,14 @@ int kb_handler(int irq, unsigned int saved_reg){
     if(keyboard_scancode==0) {
         return 0;
     }
-    if ((keyboard_scancode & 0x80) == 0 ) {//pressed
+    if ((keyboard_scancode & 0x80) == 0 ) {                     //pressed
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
  		kb_to_term(kernel_keycode);
  	}
 
- 	if (!(keyboard_scancode & 0x80)) {//released
+ 	if (!(keyboard_scancode & 0x80)) {                          //released
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
- 		kb_to_term(kernel_keycode+0x80);//how about abc?
+ 		kb_to_term(kernel_keycode|0x80);
  	}
 
     return 0;
