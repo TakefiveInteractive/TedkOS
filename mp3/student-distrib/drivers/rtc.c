@@ -1,5 +1,5 @@
 #include <inc/rtc.h>
-#include <inc/spinlock.h>
+#include <inc/klibs/spinlock.h>
 
 uint8_t frequency_converter(int freq);
 void rtc_change_frequency(uint8_t rate);
