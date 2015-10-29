@@ -22,7 +22,7 @@ sp_kkc_handler_table:
     .long term_capslock_handler
 
     # fill up the rest of the table with none_handler
-    .rept 255 - 3 - 4 - 2
+    .rept 255 - 4 - 4 - 2
     .long term_none_handler
     .endr
 
