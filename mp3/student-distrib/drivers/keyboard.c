@@ -35,7 +35,7 @@ uint32_t KBascii[128] =
     KKC_ALT,	/* left Alt */
 	' ',/* Space */
     KKC_CAPSLOCK,	/* Caps lock */
-    KKC_F1, KKC_F2, KKC_F3, KKC_F4, KKC_F5, KKC_F6, KKC_F7, KKC_F8, KKC_F9, KKC_F10
+    KKC_F1, KKC_F2, KKC_F3, KKC_F4, KKC_F5, KKC_F6, KKC_F7, KKC_F8, KKC_F9, KKC_F10,
     0,	/* 69 - Num lock*/
     0,	/* Scroll Lock */
     KKC_HOME,	/* Home key */
