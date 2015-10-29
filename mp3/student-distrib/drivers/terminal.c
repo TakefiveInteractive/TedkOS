@@ -116,7 +116,7 @@ void kb_to_term(uint32_t kernelKeycode)
     special_part = kernelKeycode & 0x0000FF00;
     combine_part = kernelKeycode & 0x7FFF0000;
 
-    if(kernelKeycode & 0x80000000 == KKC_RELEASE)
+    if((kernelKeycode & 0x80000000) == KKC_RELEASE)
     {
         // calculate change so that (pending_kc & change) is the NEW pending_kc
         // If neither part exists, nothing should change, thus default to ~0x0
@@ -145,7 +145,7 @@ void kb_to_term(uint32_t kernelKeycode)
             // Currently this is the ONLY COMBINATION allowed.
             if(pending_kc == KKC_CTRL && ascii_part == 'l')
                 clear_screen_nolock();
-            else if(pending_kc & ~ KKC_SHIFT == 0)
+            else if((pending_kc & (~KKC_SHIFT)) == 0)
             {
                 // In this case we have directly printable characters
                 char c = (char)ascii_part;
