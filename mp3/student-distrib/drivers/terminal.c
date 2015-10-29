@@ -153,7 +153,14 @@ void kb_to_term(uint32_t kernelKeycode)
             {
                 // In this case we have directly printable characters
                 char c = (char)ascii_part;
-                if(pending_kc & KKC_SHIFT || caps_locked)
+                if(caps_locked)
+                {
+                    if('a' <= c && c <= 'z')
+                        c = c - 'a' + 'A';
+                    else if('A' <=c && c<= 'Z')
+                        c = c - 'A' + 'a';
+                }
+                if(pending_kc & KKC_SHIFT)
                 {
                     // If this ascii has a shift, then do shift.
                     if(ascii_shift_table[ascii_part])
