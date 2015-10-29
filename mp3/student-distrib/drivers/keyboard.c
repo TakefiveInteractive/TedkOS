@@ -18,41 +18,19 @@ uint32_t KBascii[128] =
     /* keycode here is all pressed keycode */
     0,/* unused,nothing happened */
     KKC_ESC,/* esc */
-	0x02,/* 1 */
-    0x03,/* 2 */
-    0x04,/* 3 */
-    0x05,/* 4 */
-    0x06,/* 5 */
-    0x07,/* 6 */
-    0x08,/* 7 */
-    0x09,/* 8 */
-    0x0A,/* 9 */
-    0x0B,/* 0 */
-	0x0C,/* - */
-    0x0D,/* = */
+	'1','2','3','4','5','6','7','8','9','0','-','=',
 	KKC_BACKSPACE,/* Backspace */
 	KKC_TAB,/* Tab */
-	0x10,/* Q (default: q)*/
-    0x11,/* W */
-    0x12,/* E */
-    0x13,/* R */
-	0x14,/* T */
-    0x15,/* Y */
-    0x16,/* U */
-    0x17,/* I */
-    0x18,/* O */
-    0x19,/* P */
-    0x1A,/* [ */
-    0x1B,/* ] */
+	'q','w','e','r','t','y','u','i','o','p','[',']',
 	KKC_ENTER,	/* Enter key */
     KKC_CTRL,	/* left Control */
-	0x1E,/* A */
-    0x1F,/* S */
-    0x20,/* D */
-    0x21,/* F */
-    0x22,/* G */
-    0x23,/* H */
-    'j',/* J */
+	'A',
+    'S',
+    'D',
+    'F',
+    'G',
+    'H',
+    'j',
     'k',
     'l',
     ';',	/* 39 */
