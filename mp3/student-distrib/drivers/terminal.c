@@ -69,7 +69,7 @@ DEFINE_DRIVER_INIT(term)
     spin_lock_irqsave(&term_lock, flag);
 
     // Initialize the buffer.
-    buffer_position = 0;
+    term_read_bufpos = 0;
 
     // 0 means no key is pressed or release, nothing happened.
     pending_kc = 0;
@@ -137,7 +137,7 @@ void kb_to_term(uint32_t kernelKeycode)
         else if(special_part)
         {
             if(!pending_kc)
-                sp_kkc_handler_table[(pending_kc & 0xFF00) >> 8](pending_kc);
+                sp_kkc_handler_table[special_part >> 8](special_part >> 8);
             // Currently we do NOT handle the case of COMBINE+SPECIAL
         }
         else if(ascii_part)         // Avoid 0x0
@@ -152,8 +152,8 @@ void kb_to_term(uint32_t kernelKeycode)
                 if(pending_kc & KKC_SHIFT)
                 {
                     // If this ascii has a shift, then do shift.
-                    if(ascii_shift_table[c])
-                        c = ascii_shift_table[c];
+                    if(ascii_shift_table[ascii_part])
+                        c = ascii_shift_table[ascii_part];
                 }
                 show_char_at_nolock(next_char_x, next_char_y, c);
                 next_char_x++;
