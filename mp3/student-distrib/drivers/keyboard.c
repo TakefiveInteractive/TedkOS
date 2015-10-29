@@ -100,7 +100,7 @@ int kb_handler(int irq, unsigned int saved_reg){
  		kb_to_term(kernel_keycode|KKC_PRESS);
  	}
 
- 	if (!(keyboard_scancode & 0x80)) {                          //released
+ 	if (keyboard_scancode & 0x80) {                             //released
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
  		kb_to_term(kernel_keycode|KKC_RELEASE);
  	}
