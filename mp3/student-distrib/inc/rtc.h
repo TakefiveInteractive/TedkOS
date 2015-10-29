@@ -3,9 +3,9 @@
 
 #include <inc/driver.h>
 
-#include "lib.h"
+#include <inc/klibs/lib.h>
+#include <inc/i8259.h>
 #include <stddef.h>
-#include "i8259.h"
 
 /** RTC IRQ */
 #define RTC_IRQ 8
