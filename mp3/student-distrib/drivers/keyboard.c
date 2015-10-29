@@ -29,7 +29,7 @@ uint32_t KBascii[128] =
 	'*',
     0,	/* Alt */
 	' ',/* Space */
-    0,	/* Caps lock */
+    KKC_CAPSLOCK,	/* Caps lock */
     0,
 	/* 59 - F1 key ... > */
     0, 0, 0, 0, 0, 0, 0, 0, 0,

@@ -18,6 +18,8 @@
 //      Note that pending_kc's MSB is never 1 (released)
 static uint32_t pending_kc = 0;
 
+static uint8_t caps_locked = 0;
+
 // The coordinate to display the next char at.
 static uint32_t next_char_x = 0;
 static uint32_t next_char_y = 0;
@@ -73,6 +75,8 @@ DEFINE_DRIVER_INIT(term)
 
     // 0 means no key is pressed or release, nothing happened.
     pending_kc = 0;
+
+    caps_locked = 0;
 
     // The coordinate to display the next char at.
     next_char_x = 0;
@@ -149,7 +153,7 @@ void kb_to_term(uint32_t kernelKeycode)
             {
                 // In this case we have directly printable characters
                 char c = (char)ascii_part;
-                if(pending_kc & KKC_SHIFT)
+                if(pending_kc & KKC_SHIFT || caps_locked)
                 {
                     // If this ascii has a shift, then do shift.
                     if(ascii_shift_table[ascii_part])
@@ -198,7 +202,7 @@ void term_backspace_handler(uint32_t keycode)
 
 void term_capslock_handler(uint32_t keycode)
 {
-    ;
+    caps_locked = !caps_locked;
 }
 
 void term_delete_handler(uint32_t keycode)
