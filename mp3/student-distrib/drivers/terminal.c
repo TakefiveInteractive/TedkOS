@@ -276,6 +276,15 @@ void term_putc(uint8_t c)
             next_char_x = 0;
             scroll_down_nolock();
         }
+    } else if (c == '\t') {
+        next_char_x += 4 - (next_char_x % TAB_WIDTH);
+        if(next_char_x >= SCREEN_WIDTH)
+        {
+            next_char_x = next_char_x % SCREEN_WIDTH;
+            if(next_char_y < SCREEN_HEIGHT - 1)
+                next_char_y++;
+            else scroll_down_nolock();
+        }
     } else {
         show_char_at_nolock(next_char_x, next_char_y, c);
         next_char_x++;
