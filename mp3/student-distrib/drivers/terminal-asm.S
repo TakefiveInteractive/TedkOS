@@ -6,6 +6,9 @@
 
 # an array of NUM_SPECIAL_KKC=255 function pointers.
 sp_kkc_handler_table:
+    # 0 is always un-occupied
+    .long term_none_handler
+
     .long term_enter_handler
     .long term_backspace_handler
     .long term_delete_handler
