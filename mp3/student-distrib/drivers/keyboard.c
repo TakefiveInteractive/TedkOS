@@ -24,15 +24,7 @@ uint32_t KBascii[128] =
 	'q','w','e','r','t','y','u','i','o','p','[',']',
 	KKC_ENTER,	/* Enter key */
     KKC_CTRL,	/* left Control */
-	'A',
-    'S',
-    'D',
-    'F',
-    'G',
-    'H',
-    'j',
-    'k',
-    'l',
+	'a','s','d','f','g','h','j','k','l',
     ';',	/* 39 */
 	'\'', '`',
 	KKC_SHIFT,	/* Left shift */
@@ -40,7 +32,7 @@ uint32_t KBascii[128] =
 	'm', ',', '.', '/',
 	KKC_SHIFT,	/* Right shift */
 	'*',
-    KKC_ALT,	/* Alt */
+    KKC_ALT,	/* left Alt */
 	' ',/* Space */
     KKC_CAPSLOCK,	/* Caps lock */
     0,
@@ -103,7 +95,7 @@ int kb_handler(int irq, unsigned int saved_reg){
     //!!!   Because that filters out the events for release keys
     //!!!   BUT we need to know when keys like SHIFT, ALT are released
 
- 	if (!(keyboard_scancode)) {
+ 	if (!(keyboard_scancode & 0x80)) {//released
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
  		kb_to_term(kernel_keycode);
  	}
