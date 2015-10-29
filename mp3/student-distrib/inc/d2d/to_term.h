@@ -6,15 +6,25 @@
 
 // The keyboard drive should preprocess their hardware level keycode to
 //   convent them into kernel level keycode and pass the keycode here.
+/* IMPORTANT!! you can only pass one part at a time
+ *  'a' is ok. KKC_ENTER is ok,
+ *  but SHIFT|'a' is not ok.
+ */
 void kb_to_term(uint32_t kernelKeycode);
 
 // Definitions of kernel level keycodes are defined here as well.
+// 0. KKC = 0 means no key is pressed or release, nothing happened.
 // 1. For keys that have a PRINTABLE character, their kernel keycode is equal to ASCII.
 // 2. Otherwise for keys that combine with other keys, their keycode starts
 //        from 0x10000
 // 3. Otherwise the keys are represented using values from 0x100 to 0xff00
 // 4. The MSB represents whether the event is KEY_PRESSED or KEY_RELEASED
 //        MSB 0 = PRESSED, MSB 1 = RELEASED
+
+// According to the rules above, for each category we can have the following number of keys:
+#define NUM_ASCII_KKC   0xFF
+#define NUM_SPECIAL_KKC 0xFF
+#define NUM_COMBINE_KKC 7
 
 // define a = 'a'. define A = 'A'. define Ctrl+a = 'a' | KKC_CTRL
 

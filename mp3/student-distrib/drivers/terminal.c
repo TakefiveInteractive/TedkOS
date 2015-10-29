@@ -7,34 +7,42 @@
 
 // The width must be an even number so that
 //      scroll_down_nolock can use rep movsd.
+#define TAB_WIDTH       4
 #define SCREEN_WIDTH    80
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
 #define VMEM_HEAD       ((char*)0xB8000)
 
+// This field is used to tell whether COMBINATION key is pressed
+//      If so, then it also contains all COMBINATION keys pressed.
+//      Note that pending_kc's MSB is never 1 (released)
+static uint32_t pending_kc;
+
 // The coordinate to display the next char at.
-static uint32_t next_char_x = 0;
-static uint32_t next_char_y = 0;
-static char* video_mem = VMEM_HEAD;
+static uint32_t next_char_x;
+static uint32_t next_char_y;
+
+// This variable must be initialized every time _init() is called.
+//  Later we might use VGA panning so this value might change.
+static char* video_mem;
 
 // The lock must be called when operating on the screen.
-static spinlock_t screen_lock = SPINLOCK_UNLOCKED;
+static spinlock_t term_lock = SPINLOCK_UNLOCKED;
 
 #define TERM_BUFFER_SIZE                128
 
-// We assume that read() should also be able to
-//  return key combinations and special keys
-//      Thus we have to store whole kernel keycode
-//  But I am still waiting for Piazza's response.
-uint32_t* term_buffer[TERM_BUFFER_SIZE];
+// term_read_buf is the buffer returned when user calls read()
+// read() should only return normal characters
+char* term_read_buf[TERM_BUFFER_SIZE];
 
 // the position where new typed
-// characters should go in buffer.
-int buffer_position;
+// characters should go in term_read_buf.
+int term_read_bufpos;
 
 /********** Private, yet debuggable functions ***********/
-void scroll_down_nolock();
+void scroll_down_nolock(void);
 void set_cursor_nolock(uint32_t x, uint32_t y);
+void clear_screen_nolock(void);
 
 /********** Private functions ***********/
 
@@ -45,7 +53,7 @@ void set_cursor_nolock(uint32_t x, uint32_t y);
  *       uint_32 y : the y coordinate to display at
  *   Return Value: void
  *	Function: Output a character to the screen
- *  WARNING: lock screen_lock WHEN CALLING !!!
+ *  WARNING: lock term_lock WHEN CALLING !!!
  */
 static inline void show_char_at_nolock(uint32_t x, uint32_t y, uint8_t c)
 {
@@ -57,8 +65,21 @@ static inline void show_char_at_nolock(uint32_t x, uint32_t y, uint8_t c)
 
 DEFINE_DRIVER_INIT(term)
 {
+    uint32_t flag;
+    spin_lock_irqsave(&term_lock, flag);
+
     // Initialize the buffer.
     buffer_position = 0;
+
+    // 0 means no key is pressed or release, nothing happened.
+    pending_kc = 0;
+
+    // The coordinate to display the next char at.
+    next_char_x = 0;
+    next_char_y = 0;
+    video_mem = VMEM_HEAD;
+
+    spin_unlock_irqrestore(&term_lock, flag);
 }
 
 DEFINE_DRIVER_REMOVE(term)
@@ -66,44 +87,144 @@ DEFINE_DRIVER_REMOVE(term)
     // Currently nothing to do here.
 }
 
+//********** DEFINE HANDLERS and DISPATCHER for keycodes **********
+
+// special kernel keycode (but not combine-able) handler
+// such as ENTER, BACKSPACE, DELETE
+// actually we will declere one handler per key
+// But incase we need to differentiate KEY_DOWN and KEY_UP,
+//      We still passes the kernelKeycode to handler
+typedef void (*sp_kkc_handler)(uint32_t kernelKeycode);
+
+// jump table composed of sp_kkc_handler, defined in terminal-asm.S
+// Warning: these handlers DO NOT LOCK spinlocks !!!
+extern sp_kkc_handler sp_kkc_handler_table[NUM_SPECIAL_KKC];
+extern char ascii_shift_table[128];
+
+/* IMPORTANT!! you can only pass one part at a time
+ *  'a' is ok. KKC_ENTER is ok,
+ *  but SHIFT|'a' is not ok.
+ */
 void kb_to_term(uint32_t kernelKeycode)
 {
     // This one is NOT a FINAL design.
     uint32_t flag;
-    spin_lock_irqsave(&screen_lock, flag);
-    if(kernelKeycode == KKC_ENTER) {
-        if(next_char_y < SCREEN_HEIGHT - 1)
-        {
-            next_char_y++;
-            next_char_x = 0;
-        }
-        else
-        {
-            next_char_x = 0;
-            scroll_down_nolock();
-        }
-    } else if (!(kernelKeycode & 0xFFFFFF00)) {
-        // In this case we have directly printable characters
-        char c = (char)kernelKeycode;
-        show_char_at_nolock(next_char_x, next_char_y, c);
-        next_char_x++;
-        if(next_char_x == SCREEN_WIDTH)
-        {
-            next_char_x = 0;
-            if(next_char_y < SCREEN_HEIGHT - 1)
-                next_char_y++;
-            else scroll_down_nolock();
-        }
+    uint32_t ascii_part, special_part, combine_part;
+    spin_lock_irqsave(&term_lock, flag);
+    
+    ascii_part   = kernelKeycode & 0x000000FF;
+    special_part = kernelKeycode & 0x0000FF00;
+    combine_part = kernelKeycode & 0x7FFF0000;
+
+    if(kernelKeycode & 0x80000000 == KKC_RELEASE)
+    {
+        // calculate change so that (pending_kc & change) is the NEW pending_kc
+        // If neither part exists, nothing should change, thus default to ~0x0
+        uint32_t change = 0xFFFFFFFF;
+
+        /* WE ASSUME keyboard supports auto-repeat interrupts. */
+
+        change &= ~combine_part;
+
+        pending_kc &= change;
     }
-    set_cursor_nolock(next_char_x, next_char_y);
-    spin_unlock_irqrestore(&screen_lock, flag);
+    else
+    {
+        // Simulate linux: everytime a new key is pressed,
+        //     old pressed ascii/special key is discarded
+        if(combine_part)
+            pending_kc = pending_kc | combine_part;
+        else if(special_part)
+        {
+            if(!pending_kc)
+                sp_kkc_handler_table[(pending_kc & 0xFF00) >> 8](pending_kc);
+            // Currently we do NOT handle the case of COMBINE+SPECIAL
+        }
+        else if(ascii_part)         // Avoid 0x0
+        {
+            // Currently this is the ONLY COMBINATION allowed.
+            if(pending_kc == KKC_CTRL && ascii_part == 'l')
+                clear_screen_nolock();
+            else if(pending_kc & ~ KKC_SHIFT == 0)
+            {
+                // In this case we have directly printable characters
+                char c = (char)ascii_part;
+                if(pending_kc & KKC_SHIFT)
+                {
+                    // If this ascii has a shift, then do shift.
+                    if(ascii_shift_table[c])
+                        c = ascii_shift_table[c];
+                }
+                show_char_at_nolock(next_char_x, next_char_y, c);
+                next_char_x++;
+                if(next_char_x == SCREEN_WIDTH)
+                {
+                    next_char_x = 0;
+                    if(next_char_y < SCREEN_HEIGHT - 1)
+                        next_char_y++;
+                    else scroll_down_nolock();
+                }
+            }
+        }
+
+        // Only pressing events can put OR remove any text onto screen.
+        // Thus set_cursor_nolock is called within this 'else'
+        set_cursor_nolock(next_char_x, next_char_y);
+    }
+    spin_unlock_irqrestore(&term_lock, flag);
 }
 
-// clear screen
-void term_cls(void)
+//--------------- Definition of sp_kkc_handlers. These must match with terminal-asm.S !!! ----------------
+
+// Warning: these handlers DO NOT LOCK spinlocks !!!
+void term_enter_handler(uint32_t keycode)
 {
-    uint32_t flag;
-    spin_lock_irqsave(&screen_lock, flag);
+    if(next_char_y < SCREEN_HEIGHT - 1)
+    {
+        next_char_y++;
+        next_char_x = 0;
+    }
+    else
+    {
+        next_char_x = 0;
+        scroll_down_nolock();
+    }
+}
+
+void term_backspace_handler(uint32_t keycode)
+{
+    ;
+}
+
+void term_capslock_handler(uint32_t keycode)
+{
+    ;
+}
+
+void term_delete_handler(uint32_t keycode)
+{
+    ;
+}
+
+void term_tab_handler(uint32_t keycode)
+{
+    next_char_x += 4 - (next_char_x % TAB_WIDTH);
+    if(next_char_x >= SCREEN_WIDTH)
+    {
+        next_char_x = next_char_x % SCREEN_WIDTH;
+        if(next_char_y < SCREEN_HEIGHT - 1)
+            next_char_y++;
+        else scroll_down_nolock();
+    }
+}
+
+void term_none_handler(uint32_t keycode)
+{
+    ;
+}
+
+void clear_screen_nolock(void)
+{
     asm volatile (
         "cld                                                    ;"
         "movl %0, %%ecx                                         ;"
@@ -116,14 +237,23 @@ void term_cls(void)
         : "cc", "memory", "ecx", "eax"
     );
     next_char_x = next_char_y = 0;
-    spin_unlock_irqrestore(&screen_lock, flag);
+    set_cursor_nolock(next_char_x, next_char_y);
+}
+
+// clear screen
+void term_cls(void)
+{
+    uint32_t flag;
+    spin_lock_irqsave(&term_lock, flag);
+    clear_screen_nolock();
+    spin_unlock_irqrestore(&term_lock, flag);
 }
 
 // Print one char. Must be either printable or newline character
 void term_putc(uint8_t c)
 {
     uint32_t flag;
-    spin_lock_irqsave(&screen_lock, flag);
+    spin_lock_irqsave(&term_lock, flag);
     if(c == '\n' || c == '\r') {
         if(next_char_y < SCREEN_HEIGHT - 1)
         {
@@ -147,7 +277,7 @@ void term_putc(uint8_t c)
         }
     }
     set_cursor_nolock(next_char_x, next_char_y);
-    spin_unlock_irqrestore(&screen_lock, flag);
+    spin_unlock_irqrestore(&term_lock, flag);
 }
 
 /********** Implementation of Private Functions ***********/
@@ -162,7 +292,7 @@ void term_putc(uint8_t c)
  *      (see SCREEN_WIDTH and SCREEN_HEIGHT)
  *      if they are out of range, nothing will happen
  * Function: moves cursor to screen location (x,y).
- * WARNING: lock the screen_lock !!!
+ * WARNING: lock the term_lock !!!
  */
 void set_cursor_nolock(uint32_t x, uint32_t y)
 {
@@ -196,8 +326,8 @@ void set_cursor_nolock(uint32_t x, uint32_t y)
 
 // Scroll the whole screen down by 1 line.
 // There is a VGA way to do this. But we don't have time now.
-// WARNING: lock the screen_lock !!!
-void scroll_down_nolock()
+// WARNING: lock the term_lock !!!
+void scroll_down_nolock(void)
 {
     // The width must be an even number so that
     //      scroll_down_nolock can use rep movsd
