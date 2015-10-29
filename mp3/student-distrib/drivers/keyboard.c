@@ -95,9 +95,17 @@ int kb_handler(int irq, unsigned int saved_reg){
     //!!!   Because that filters out the events for release keys
     //!!!   BUT we need to know when keys like SHIFT, ALT are released
 
- 	if (!(keyboard_scancode & 0x80)) {//released
+    if(keyboard_scancode==0) {
+        return 0;
+    }
+    if ((keyboard_scancode & 0x80) == 0 ) {//pressed
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
  		kb_to_term(kernel_keycode);
+ 	}
+
+ 	if (!(keyboard_scancode & 0x80)) {//released
+ 		uint32_t kernel_keycode = KBascii[keyboard_scancode];
+ 		kb_to_term(kernel_keycode+0x80);//how about abc?
  	}
 
     return 0;
