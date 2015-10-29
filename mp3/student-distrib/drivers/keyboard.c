@@ -15,7 +15,7 @@ uint32_t KBascii[128] =
 	'1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 	'-', '=',
 	KKC_BACKSPACE,/* Backspace */
-	'\t',/* Tab */
+	KKC_TAB,/* Tab */
 	'q', 'w', 'e', 'r',	/* 19 */
 	't', 'y', 'u', 'i', 'o', 'p', '[', ']',
 	KKC_ENTER,	/* Enter key */
