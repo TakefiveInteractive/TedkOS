@@ -30,7 +30,15 @@ sp_kkc_handler_table:
 # this is a 128 byte array
 .align 4
 ascii_shift_table:
-    .rept 44
+    # These bytes are not valid
+    .rept 39
+    .byte 0
+    .endr
+
+    .byte '"'
+
+    # These bytes are not valid
+    .rept 4
     .byte 0
     .endr
 
