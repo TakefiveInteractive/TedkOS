@@ -97,12 +97,12 @@ int kb_handler(int irq, unsigned int saved_reg){
     }
     if ((keyboard_scancode & 0x80) == 0 ) {                     //pressed
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
- 		kb_to_term(kernel_keycode);
+ 		kb_to_term(kernel_keycode|KKC_PRESS);
  	}
 
  	if (!(keyboard_scancode & 0x80)) {                          //released
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
- 		kb_to_term(kernel_keycode|0x80);
+ 		kb_to_term(kernel_keycode|KKC_RELEASE);
  	}
 
     return 0;
