@@ -38,8 +38,9 @@
 /** High bit */
 #define HIGH_BIT_MASK 0xF0
 
-extern DEFINE_DRIVER_INIT(rtc);
-extern DEFINE_DRIVER_REMOVE(rtc);
+DEFINE_DRIVER_INIT(rtc);
+DEFINE_DRIVER_REMOVE(rtc);
+
 void rtc_init();
 int rtc_handler(int irq, unsigned int saved_reg);
 

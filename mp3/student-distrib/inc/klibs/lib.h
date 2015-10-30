@@ -8,6 +8,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void putc(uint8_t c);
 void clear(void);
 
@@ -16,8 +20,8 @@ void clear(void);
 void orig_putc(uint8_t c);
 void orig_clear(void);
 
-int32_t printf(char *format, ...);
-int32_t puts(char *s);
+int32_t printf(const char *format, ...);
+int32_t puts(const char *s);
 char *itoa(uint32_t value, char* buf, int32_t radix);
 char *strrev(char * s);
 uint32_t strlen(const char* s);
@@ -28,8 +32,8 @@ void* memset_dword(void* s, int32_t c, uint32_t n);
 void* memcpy(void* dest, const void* src, uint32_t n);
 void* memmove(void* dest, const void* src, uint32_t n);
 int32_t strncmp(const char* s1, const char* s2, uint32_t n);
-char* strcpy(char* dest, const char*src);
-char* strncpy(char* dest, const char*src, uint32_t n);
+char* strcpy(char* dest, const char *src);
+char* strncpy(char* dest, const char *src, uint32_t n);
 
 /* Userspace address-check functions */
 int32_t bad_userspace_addr(const void* addr, int32_t len);
@@ -156,5 +160,9 @@ do {                                    \
 			: "memory", "cc"        \
 			);                      \
 } while(0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _LIB_H */
