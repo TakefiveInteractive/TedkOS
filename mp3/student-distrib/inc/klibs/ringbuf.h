@@ -67,8 +67,7 @@ int ringbuf_is_empty(ringbuf_t* buf);
 
 void ringbuf_push(ringbuf_t* buf, void* item);
 
-// Return the item that is nearest to be poped
-// But _front does not actually pop it.
+// _front does not actually pop it.
 //  If empty, returns non-zero. success <=> 0
 int ringbuf_front(ringbuf_t* buf, void* result);
 
@@ -77,6 +76,17 @@ int ringbuf_front(ringbuf_t* buf, void* result);
 // If empty, returns null.
 void* ringbuf_front_nocp(ringbuf_t* buf);
 
-void ringbuf_pop(ringbuf_t* buf);
+// _back does not actually pop it.
+//  If empty, returns non-zero. success <=> 0
+int ringbuf_back(ringbuf_t* buf, void* result);
+
+// This function does not do memcpy, so be careful
+//      not to access the pointer after pop.
+// If empty, returns null.
+void* ringbuf_back_nocp(ringbuf_t* buf);
+
+
+void ringbuf_pop_front(ringbuf_t* buf);
+void ringbuf_pop_back(ringbuf_t* buf);
 
 #endif /* _KLIBS_RINGBUF_H */

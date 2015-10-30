@@ -38,8 +38,7 @@ void ringbuf_push(ringbuf_t* buf, void* item)
     buf->len++;
 }
 
-// Return the item that is nearest to be poped
-// But _front does not actually pop it.
+// _front does not actually pop it.
 //  If empty, returns non-zero. success <=> 0
 int ringbuf_front(ringbuf_t* buf, void* result)
 {
@@ -63,11 +62,50 @@ void* ringbuf_front_nocp(ringbuf_t* buf)
         return buf->data + buf->head * buf->_macro_ringbuf_type_size;
 }
 
-void ringbuf_pop(ringbuf_t* buf)
+void ringbuf_pop_front(ringbuf_t* buf)
 {
     if(buf->head == -1)
         return;
     buf->head = (buf->head + 1) % buf->_macro_ringbuf_size;
+    buf->len--;
+    if(buf->len==0)
+        buf->head = -1;
+}
+
+
+// _back does not actually pop it.
+//  If empty, returns non-zero. success <=> 0
+int ringbuf_back(ringbuf_t* buf, void* result)
+{
+    if(buf->head == -1)
+        return -1;
+    else
+    {
+        int32_t end = (buf->tail + buf->_macro_ringbuf_size - 1) % buf->_macro_ringbuf_size;
+        memcpy(result, buf->data + end * buf->_macro_ringbuf_type_size, buf->_macro_ringbuf_type_size);
+        return 0;
+    }
+}
+
+// This function does not do memcpy, so be careful
+//      not to access the pointer after pop.
+// If empty, returns null.
+void* ringbuf_back_nocp(ringbuf_t* buf)
+{
+    if(buf->head == -1)
+        return NULL;
+    else
+    {
+        int32_t end = (buf->tail + buf->_macro_ringbuf_size - 1) % buf->_macro_ringbuf_size;
+        return buf->data + end * buf->_macro_ringbuf_type_size;
+    }
+}
+
+void ringbuf_pop_back(ringbuf_t* buf)
+{
+    if(buf->head == -1)
+        return;
+    buf->tail = (buf->tail + buf->_macro_ringbuf_size - 1) % buf->_macro_ringbuf_size;
     buf->len--;
     if(buf->len==0)
         buf->head = -1;
