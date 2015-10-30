@@ -36,7 +36,7 @@ namespace filesystem {
             Filename() { this->str = nullptr; }
 
             bool operator == (const Filename& rhs) const {
-                return strncmp(str, rhs.str, MaxFilenameLength);
+                return strncmp(str, rhs.str, MaxFilenameLength) == 0;
             }
 
             bool operator != (const Filename& rhs) const {
@@ -122,7 +122,6 @@ namespace filesystem {
         uint8_t *imageStartingAddress;
         uint8_t imageLength;
         uint32_t numBlocks;
-        uint8_t *startingAddr;
 
         bool readBlock(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint32_t len);
 
