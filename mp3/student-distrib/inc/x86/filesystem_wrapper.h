@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <inc/multiboot.h>
 #include <inc/lphashtable.h>
-#include <inc/lib.h>
+#include <inc/klibs/lib.h>
 #include <inc/x86/filesystem.h>
 
 

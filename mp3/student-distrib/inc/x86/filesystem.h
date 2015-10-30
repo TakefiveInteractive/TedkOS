@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <inc/multiboot.h>
 #include <inc/lphashtable.h>
-#include <inc/lib.h>
+#include <inc/klibs/lib.h>
 
 struct dentry_t {
     char filename[33] = {};
