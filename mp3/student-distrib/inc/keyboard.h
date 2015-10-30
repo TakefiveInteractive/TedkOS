@@ -6,8 +6,8 @@
 #include "lib.h"
 #include "i8259.h"
 
-extern DEFINE_DRIVER_INIT(kb);
-extern DEFINE_DRIVER_REMOVE(kb);
+DEFINE_DRIVER_INIT(kb);
+DEFINE_DRIVER_REMOVE(kb);
 
 #endif
 

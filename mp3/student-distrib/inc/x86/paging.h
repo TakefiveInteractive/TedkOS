@@ -43,8 +43,8 @@
 #define PT_READONLY         0xFFFFFFFD  // Use '&'
 
 // Flags to DESCRIBE page DIRECTORY
-// To be used with: 
-//      REDIRECT_PAGE_DIR 
+// To be used with:
+//      REDIRECT_PAGE_DIR
 // This is effective for a WHOLE Page Directory (NOT an ENTRY)
 // We usually should not use these flags!!
 #define PD_BASE             0x00        // Use '='
@@ -59,6 +59,10 @@
 #define PT_ARR_ALGIN        0x1000
 
 #ifndef ASM
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*************** IN CP1 we use static Page Tables ********/
 /*********** Later we change by modifying pointer ********/
@@ -141,6 +145,10 @@ void* enable_paging();
         "movl %0, %%cr3"            \
         : : "r"(global_cr3val));    \
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ASM */
 
