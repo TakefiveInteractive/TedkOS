@@ -13,7 +13,7 @@ struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
 
 void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
 {
-    this->startingAddr = startingAddr;
+    this->imageStartingAddress = startingAddr;
     Reader reader(startingAddr);
     // Read boot block
     reader >> numDentries >> numInodes >> numTotalDataBlocks >> Reader::skip<52>();
@@ -87,7 +87,7 @@ int32_t KissFS::readData(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t
         for (size_t i = startingDataBlock; i < inodes[inode].numDataBlocks; i++)
         {
             uint32_t datablockId = inodes[inode].datablocks[i];
-            if (datablockId <= numTotalDataBlocks && datablockId > numInodes)
+            if (datablockId <= numTotalDataBlocks)
             {
                 // read stuff
                 uint32_t len = length;
@@ -119,7 +119,7 @@ bool KissFS::readBlock(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint
     uint32_t rawBlockId = datablockId + numInodes + 1;
     if (rawBlockId >= numBlocks) return false;
 
-    memcpy(buf, startingAddr + rawBlockId * BlockSize + offset, len);
+    memcpy(buf, imageStartingAddress + rawBlockId * BlockSize + offset, len);
     return true;
 }
 

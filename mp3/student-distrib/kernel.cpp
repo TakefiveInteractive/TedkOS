@@ -205,6 +205,12 @@ _entry (unsigned long magic, unsigned long addr)
     printf("Loading frame0.txt, size = %d\n", len);
     puts((const char *)buf);
 
+    read_dentry_by_name((const uint8_t *)"frame1.txt", &dentry);
+    uint8_t buf1[200] = {};
+    size_t len1 = read_data(dentry.inode, 0, buf1, sizeof(buf1));
+    printf("Loading frame1.txt, size = %d\n", len1);
+    puts((const char *)buf1);
+
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
 }
