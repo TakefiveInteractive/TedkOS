@@ -28,8 +28,6 @@
 //      if ringbuf is full, it kicks out the oldest element
 typedef struct 
 {
-    RINGBUF_TYPE data[RINGBUF_SIZE];
-
     // stores the actual RINGBUF_SIZE 
     //  this value varies by .c file,
     //  thus the implementation must know it.
@@ -48,6 +46,9 @@ typedef struct
 
     // actual number of items stored.
     int32_t len;
+
+    // !!!! data is of UNCERTAIN size !!!! MUST BE PLACED AT THE END !!!!
+    RINGBUF_TYPE data[RINGBUF_SIZE];
 } ringbuf_t;
 
 
