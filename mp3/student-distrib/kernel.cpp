@@ -13,7 +13,7 @@
 #include <inc/debug.h>
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
-#include <inc/filesystem.h>
+#include <inc/x86/filesystem_wrapper.h>
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -195,6 +195,15 @@ _entry (unsigned long magic, unsigned long addr)
     */
 
 	/* Execute the first program (`shell') ... */
+    dentry_t dentry;
+    read_dentry_by_index(0, &dentry);
+    printf("First file: %s\n", dentry.filename);
+
+    read_dentry_by_name((const uint8_t *)"frame0.txt", &dentry);
+    uint8_t buf[200] = {};
+    size_t len = read_data(dentry.inode, 0, buf, sizeof(buf));
+    printf("Loading frame0.txt, size = %d\n", len);
+    puts((const char *)buf);
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
