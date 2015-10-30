@@ -254,14 +254,14 @@ void term_backspace_handler(uint32_t keycode)
             );
             next_char_y--;
             next_char_x = SCREEN_WIDTH - i->x_offset;
-            for(int j = SCREEN_WIDTH - 1; j > next_char_x; j--)
+            for(int j = SCREEN_WIDTH - 1; j >= next_char_x; j--)
                 show_char_at_nolock(j, next_char_y, ' ');
         }
         else
         {
             uint32_t orig_x = next_char_x;
             next_char_x = orig_x - i->x_offset;
-            for(int j = orig_x; j > next_char_x; j--)
+            for(int j = orig_x; j >= next_char_x; j--)
                 show_char_at_nolock(j, next_char_y, ' ');
         }
         ringbuf_pop_back(&term_delete_buf);
