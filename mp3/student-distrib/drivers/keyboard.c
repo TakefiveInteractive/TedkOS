@@ -19,7 +19,7 @@ uint32_t KBascii[128] =
 	'q', 'w', 'e', 'r',	/* 19 */
 	't', 'y', 'u', 'i', 'o', 'p', '[', ']',
 	KKC_ENTER,	/* Enter key */
-    0,	/* 29   - Control */        // PLEASE COMPLETE THE REST of the TABLE 
+    0,	/* 29   - Control */        // PLEASE COMPLETE THE REST of the TABLE
 	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',	/* 39 */
 	'\'', '`',
 	0,	/* Left shift */
@@ -81,10 +81,11 @@ DEFINE_DRIVER_REMOVE(kb) {
  *		changes keyboard buffer (if we have a buffer)
  *      print keyboard character to terminal
  */
-int kb_handler(int irq, unsigned int saved_reg){
+int kb_handler(int irq, unsigned int saved_reg)
+{
 	uint8_t keyboard_scancode;
 
- 	keyboard_scancode = inb(KB_PORT);//read the input
+    keyboard_scancode = inb(KB_PORT);   //read the input
 
     //!!! WARNING: We should not use "keyboard_scancode & 0x80" anymore
     //!!!   Because that filters out the events for release keys

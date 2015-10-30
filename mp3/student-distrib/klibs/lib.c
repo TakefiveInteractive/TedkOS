@@ -70,10 +70,10 @@ orig_clear(void)
  *       the "#" modifier to alter output.
  * */
 int32_t
-printf(char *format, ...)
+printf(const char *format, ...)
 {
 	/* Pointer to the format string */
-	char* buf = format;
+	const char* buf = format;
 
 	/* Stack pointer for the other parameters */
 	int32_t* esp = (void *)&format;
@@ -188,7 +188,7 @@ format_char_switch:
 */
 
 int32_t
-puts(char* s)
+puts(const char* s)
 {
 	register int32_t index = 0;
 	while(s[index] != '\0') {
