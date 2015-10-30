@@ -343,6 +343,10 @@ void term_putc(uint8_t c)
 {
     uint32_t flag;
     spin_lock_irqsave(&term_lock, flag);
+
+    // Re-Initialize the DELETE buffer. (Things printed from screens are not deletable)
+    RINGBUF_INIT(&term_delete_buf);
+
     if(c == '\n' || c == '\r') {
         if(next_char_y < SCREEN_HEIGHT - 1)
         {
