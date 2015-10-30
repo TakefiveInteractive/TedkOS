@@ -54,7 +54,7 @@ typedef struct
 
 // read(keyboard) should return displayed contents
 // But it does not rely on term_DELETE_buf.
-//  !!! EVENTUALLY I decide that keyboard manage that buffer !!!
+// !!! read(keyboard) is MANAGED BY TERMINAL's ANOTHER buffer !!!!
 //      This buffer is used to indicate:
 //        how much offset is when deleting a character
 ringbuf_t term_delete_buf;
