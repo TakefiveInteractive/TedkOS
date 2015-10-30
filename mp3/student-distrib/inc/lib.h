@@ -8,6 +8,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void putc(uint8_t c);
 void clear(void);
 
@@ -156,5 +160,9 @@ do {                                    \
 			: "memory", "cc"        \
 			);                      \
 } while(0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _LIB_H */

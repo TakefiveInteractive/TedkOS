@@ -20,7 +20,7 @@
 
 // Make sure usable_mem has at least 12KB memory (later it will be 5MB memory.)
 // It uses the two aligned arrays declared below.
-static void kernel_enable_basic_paging();
+void kernel_enable_basic_paging(void* usable_mem);
 
 uint32_t basicPageDir[1024] __attribute__((aligned (4096)));
 uint32_t basicPageTable0[1024] __attribute__((aligned (4096)));
@@ -28,7 +28,7 @@ uint32_t basicPageTable0[1024] __attribute__((aligned (4096)));
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
-entry (unsigned long magic, unsigned long addr)
+_entry (unsigned long magic, unsigned long addr)
 {
     int i;
 	multiboot_info_t *mbi;
@@ -159,7 +159,7 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
     /* Paging */
-    kernel_enable_basic_paging();
+    kernel_enable_basic_paging(NULL);
 
 	/* Init the PIC */
 	i8259_init();
@@ -197,7 +197,7 @@ entry (unsigned long magic, unsigned long addr)
 	asm volatile(".1: hlt; jmp .1;");
 }
 
-static void kernel_enable_basic_paging(void* usable_mem)
+void kernel_enable_basic_paging(void* usable_mem)
 {
     int32_t i;
     uint32_t* pageDir   = basicPageDir;
@@ -207,12 +207,18 @@ static void kernel_enable_basic_paging(void* usable_mem)
     REDIRECT_PAGE_DIR(pageDir, 0);
     LOAD_4MB_PAGE(1, 1 << 22, PG_WRITABLE);
     LOAD_PAGE_TABLE(0, pageTable, PT_WRITABLE);
-	
+
 	// IMPORTANT!!! Must start from i = 1. NOT i = 0 !!!!!
     for(i = 1; i < 0x400; i++)
     {
         LOAD_4KB_PAGE(0, i, i << 12, PG_WRITABLE);
     }
     enable_paging();
+}
+
+extern "C" void
+entry (unsigned long magic, unsigned long addr)
+{
+    _entry(magic, addr);
 }
 
