@@ -31,15 +31,33 @@ static char* video_mem = VMEM_HEAD;
 // The lock must be called when operating on the screen.
 static spinlock_t term_lock = SPINLOCK_UNLOCKED;
 
-#define TERM_BUFFER_SIZE                128
+typedef struct
+{
+    char displayed_char;
+    
+    //offset is the space this item took up on screen
+    // x_offset is always positive.
+    // For normal characters, x_offset = 1
+    // !!! If newline occurs:
+    //  x_offset = SCREEN_WIDTH - old_x
+    uint32_t x_offset;
 
-// term_read_buf is the buffer returned when user calls read()
-// read() should only return normal characters
-char* term_read_buf[TERM_BUFFER_SIZE];
+    // y_offset > 0 if and only if ONE new line occur
+    // Otherwise (=0) no new line.
+    uint8_t y_offset;
+} buf_item;
 
-// the position where new typed
-// characters should go in term_read_buf.
-int term_read_bufpos = 0;
+#define TERM_BUFFER_SIZE        128
+#define RINGBUF_SIZE            TERM_BUFFER_SIZE
+#define RINGBUF_TYPE            buf_item
+#include <inc/klibs/ringbuf.h>
+
+// read(keyboard) should return displayed contents
+// But it does not rely on term_DELETE_buf.
+//  !!! EVENTUALLY I decide that keyboard manage that buffer !!!
+//      This buffer is used to indicate:
+//        how much offset is when deleting a character
+ringbuf_t term_delete_buf;
 
 /********** Private, yet debuggable functions ***********/
 void scroll_down_nolock(void);
@@ -71,7 +89,7 @@ DEFINE_DRIVER_INIT(term)
     spin_lock_irqsave(&term_lock, flag);
 
     // Initialize the buffer.
-    term_read_bufpos = 0;
+    RINGBUF_INIT(&term_delete_buf);
 
     // 0 means no key is pressed or release, nothing happened.
     pending_kc = 0;
@@ -153,6 +171,8 @@ void kb_to_term(uint32_t kernelKeycode)
             {
                 // In this case we have directly printable characters
                 char c = (char)ascii_part;
+                uint32_t old_x;
+                buf_item rec;
                 if(pending_kc & KKC_SHIFT)
                 {
                     // If this ascii has a shift, then do shift.
@@ -167,14 +187,24 @@ void kb_to_term(uint32_t kernelKeycode)
                         c = c - 'A' + 'a';
                 }
                 show_char_at_nolock(next_char_x, next_char_y, c);
+                rec.displayed_char = c;
+                old_x = next_char_x;
                 next_char_x++;
                 if(next_char_x == SCREEN_WIDTH)
                 {
+                    rec.x_offset = SCREEN_WIDTH - old_x;
+                    rec.y_offset = 1;
                     next_char_x = 0;
                     if(next_char_y < SCREEN_HEIGHT - 1)
                         next_char_y++;
                     else scroll_down_nolock();
                 }
+                else
+                {
+                    rec.x_offset = next_char_x - old_x;
+                    rec.y_offset = 0;
+                }
+                ringbuf_push(&term_delete_buf, &rec);
             }
         }
 
@@ -200,11 +230,43 @@ void term_enter_handler(uint32_t keycode)
         next_char_x = 0;
         scroll_down_nolock();
     }
+    RINGBUF_INIT(&term_delete_buf);
 }
 
 void term_backspace_handler(uint32_t keycode)
 {
-    ;
+    if(!ringbuf_is_empty(&term_delete_buf))
+    {
+        buf_item* i = ringbuf_front_nocp(&term_delete_buf);
+        if(i->y_offset)
+        {
+            // Clear current line
+            asm volatile (
+                "cld                                                    ;"
+                "movl %0, %%ecx                                         ;"
+                "movl %1, %%eax                                         ;"
+                "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
+                : /* no outputs */
+                : "i" (SCREEN_WIDTH),
+                  "i" (' ' + (TEXT_STYLE << 8)),
+                  "D" (video_mem + next_char_y * SCREEN_WIDTH)
+                : "cc", "memory", "ecx", "eax"
+            );
+            next_char_y--;
+            next_char_x = SCREEN_WIDTH - i->x_offset;
+            for(int j = SCREEN_WIDTH - 1; j > next_char_x; j--)
+                show_char_at_nolock(j, next_char_y, ' ');
+        }
+        else
+        {
+            uint32_t orig_x = next_char_x;
+            next_char_x = orig_x - i->x_offset;
+            for(int j = orig_x; j > next_char_x; j--)
+                show_char_at_nolock(j, next_char_y, ' ');
+        }
+        ringbuf_pop(&term_delete_buf);
+    }
+    set_cursor_nolock(next_char_x, next_char_y);
 }
 
 void term_capslock_handler(uint32_t keycode)
@@ -219,14 +281,29 @@ void term_delete_handler(uint32_t keycode)
 
 void term_tab_handler(uint32_t keycode)
 {
-    next_char_x += 4 - (next_char_x % TAB_WIDTH);
+    uint32_t old_x;
+    buf_item rec;
+    rec.displayed_char = '\t';
+    old_x = next_char_x;
+    next_char_x  += 4 - (next_char_x % TAB_WIDTH);
     if(next_char_x >= SCREEN_WIDTH)
     {
-        next_char_x = next_char_x % SCREEN_WIDTH;
+        rec.x_offset = SCREEN_WIDTH - old_x;
+        rec.y_offset = 1;
+
+        // Linux VM is bad at this.
+        // I decided to make any tab start at newline.
+        next_char_x = 0;
         if(next_char_y < SCREEN_HEIGHT - 1)
             next_char_y++;
         else scroll_down_nolock();
     }
+    else
+    {
+        rec.x_offset = next_char_x - old_x;
+        rec.y_offset = 0;
+    }
+    ringbuf_push(&term_delete_buf, &rec);
 }
 
 void term_none_handler(uint32_t keycode)
@@ -234,6 +311,7 @@ void term_none_handler(uint32_t keycode)
     ;
 }
 
+// this function DOES move cursor or next_char_*
 void clear_screen_nolock(void)
 {
     asm volatile (
