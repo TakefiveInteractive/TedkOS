@@ -320,6 +320,9 @@ void term_none_handler(uint32_t keycode)
 // this function DOES move cursor or next_char_*
 void clear_screen_nolock(void)
 {
+    // Re-Initialize the DELETE buffer.
+    RINGBUF_INIT(&term_delete_buf);
+
     asm volatile (
         "cld                                                    ;"
         "movl %0, %%ecx                                         ;"
