@@ -237,7 +237,7 @@ void term_backspace_handler(uint32_t keycode)
 {
     if(!ringbuf_is_empty(&term_delete_buf))
     {
-        buf_item* i = ringbuf_front_nocp(&term_delete_buf);
+        buf_item* i = ringbuf_back_nocp(&term_delete_buf);
         if(i->y_offset)
         {
             // Clear current line
@@ -249,7 +249,7 @@ void term_backspace_handler(uint32_t keycode)
                 : /* no outputs */
                 : "i" (SCREEN_WIDTH),
                   "i" (' ' + (TEXT_STYLE << 8)),
-                  "D" (video_mem + next_char_y * SCREEN_WIDTH)
+                  "D" (video_mem + next_char_y * SCREEN_WIDTH * 2)
                 : "cc", "memory", "ecx", "eax"
             );
             next_char_y--;
@@ -264,7 +264,7 @@ void term_backspace_handler(uint32_t keycode)
             for(int j = orig_x; j > next_char_x; j--)
                 show_char_at_nolock(j, next_char_y, ' ');
         }
-        ringbuf_pop(&term_delete_buf);
+        ringbuf_pop_back(&term_delete_buf);
     }
     set_cursor_nolock(next_char_x, next_char_y);
 }
