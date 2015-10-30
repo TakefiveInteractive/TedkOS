@@ -159,8 +159,10 @@ void kb_to_term(uint32_t kernelKeycode)
         else if(special_part)
         {
             if(!pending_kc)
-                sp_kkc_handler_table[special_part >> 8](special_part >> 8);
-            // Currently we do NOT handle the case of COMBINE+SPECIAL
+                sp_kkc_handler_table[special_part >> 8](kernelKeycode);
+            else if(special_part == KKC_CAPSLOCK)
+                sp_kkc_handler_table[KKC_CAPSLOCK >> 8](kernelKeycode);
+            // Currently we do NOT handle other cases of COMBINE+SPECIAL
         }
         else if(ascii_part)         // Avoid 0x0
         {
