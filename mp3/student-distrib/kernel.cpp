@@ -13,6 +13,7 @@
 #include <inc/debug.h>
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
+#include <inc/filesystem.h>
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -63,15 +64,14 @@ _entry (unsigned long magic, unsigned long addr)
 		printf ("cmdline = %s\n", (char *) mbi->cmdline);
 
 	if (CHECK_FLAG (mbi->flags, 3)) {
-		int mod_count = 0;
-		int i;
-		module_t* mod = (module_t*)mbi->mods_addr;
-		while(mod_count < mbi->mods_count) {
-			printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
-			printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
+		size_t mod_count = 0;
+		module_t* mod = (module_t*) mbi->mods_addr;
+		while (mod_count < mbi->mods_count) {
+			printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int) mod->mod_start);
+			printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int) mod->mod_end);
 			printf("First few bytes of module:\n");
-			for(i = 0; i<16; i++) {
-				printf("0x%x ", *((char*)(mod->mod_start+i)));
+			for (size_t i = 0; i < 16; i++) {
+				printf("0x%x ", *((char*)(mod->mod_start + i)));
 			}
 			printf("\n");
 			mod_count++;
@@ -166,6 +166,9 @@ _entry (unsigned long magic, unsigned long addr)
 
 	/* Init the interuupts */
 	init_idt();
+
+    /* Initialize file system */
+    filesystem::init_from_multiboot(mbi);
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
