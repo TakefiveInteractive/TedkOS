@@ -7,7 +7,7 @@
 #include <inc/multiboot.h>
 #include <inc/lphashtable.h>
 #include <inc/klibs/lib.h>
-#include <inc/x86/filesystem.h>
+#include <inc/fs/filesystem.h>
 
 
 #ifdef __cplusplus
