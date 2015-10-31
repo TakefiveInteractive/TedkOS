@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <inc/keyboard.h>
 #include <inc/d2d/to_term.h>
+#include <inc/klibs/spinlock.h>
 
 #define KB_PORT 0x60
 #define KB_INT_NUM 0x21
@@ -57,17 +58,33 @@ uint32_t KBascii[128] =
     0,	/* All other keys are undefined */
 };
 
+//--------------- Special key Prefix is 0xE0 ---------------
+#define SPECIAL_PREFIX      0xE0
+int8_t  pending_special = 0;
+spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
+
 int kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
+    uint32_t flag;
+    spin_lock_irqsave(&keyboard_lock, flag);
+
 	// bind handler to pic
 	bind_irq(KB_IRQ_NUM,KB_ID,kb_handler,KD_POLICY);
+
+    spin_unlock_irqrestore(&keyboard_lock, flag);
 	return;
 }
 
 DEFINE_DRIVER_REMOVE(kb) {
+    uint32_t flag;
+    spin_lock_irqsave(&keyboard_lock, flag);
+
 	//rm handler from pic
 	unbind_irq(KB_IRQ_NUM,KB_ID);
+    pending_special = 0;
+
+    spin_unlock_irqrestore(&keyboard_lock, flag);
     return;
 }
 
@@ -85,6 +102,8 @@ DEFINE_DRIVER_REMOVE(kb) {
  */
 int kb_handler(int irq, unsigned int saved_reg){
 	uint8_t keyboard_scancode;
+    uint32_t flag;
+    spin_lock_irqsave(&keyboard_lock, flag);
 
  	keyboard_scancode = inb(KB_PORT);                           //read the input
 
@@ -92,9 +111,24 @@ int kb_handler(int irq, unsigned int saved_reg){
     //!!!   Because that filters out the events for release keys
     //!!!   BUT we need to know when keys like SHIFT, ALT are released
 
-    if(keyboard_scancode==0) {
+    if(keyboard_scancode == 0) {
+        spin_unlock_irqrestore(&keyboard_lock, flag);
         return 0;
     }
+    if(keyboard_scancode == SPECIAL_PREFIX) {
+        pending_special = 1;
+        spin_unlock_irqrestore(&keyboard_lock, flag);
+        return 0;
+    }
+
+    // On some keyboards, keypad enter's 2nd code is not 0x1C
+    //   They use 0x18 as 2nd code, which conflicts with 'o'
+    if(pending_special && keyboard_scancode == 0x18) {
+        pending_special = 0;
+        spin_unlock_irqrestore(&keyboard_lock, flag);
+        return 0;
+    }
+    pending_special = 0;
     if ((keyboard_scancode & 0x80) == 0 ) {                     //pressed
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
  		kb_to_term(kernel_keycode|KKC_PRESS);
@@ -104,6 +138,8 @@ int kb_handler(int irq, unsigned int saved_reg){
  		uint32_t kernel_keycode = KBascii[keyboard_scancode & (~0x80)];
  		kb_to_term(kernel_keycode|KKC_RELEASE);
  	}
+
+    spin_unlock_irqrestore(&keyboard_lock, flag);
 
     return 0;
 }
