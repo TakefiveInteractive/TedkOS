@@ -91,22 +91,25 @@ DEFINE_DRIVER_INIT(term)
     // Initialize the buffer.
     RINGBUF_INIT(&term_delete_buf);
 
-    // 0 means no key is pressed or release, nothing happened.
-    pending_kc = 0;
-
-    caps_locked = 0;
-
-    // The coordinate to display the next char at.
-    next_char_x = 0;
-    next_char_y = 0;
-    video_mem = VMEM_HEAD;
-
     spin_unlock_irqrestore(&term_lock, flag);
 }
 
 DEFINE_DRIVER_REMOVE(term)
 {
-    // Currently nothing to do here.
+    uint32_t flag;
+    spin_lock_irqsave(&term_lock, flag);
+
+    // 0 means no key is pressed or release, nothing happened.
+    pending_kc = 0;
+
+    caps_locked = 0;
+
+    clear_screen_nolock();   
+    next_char_x = 0;
+    next_char_y = 0;
+    video_mem = VMEM_HEAD;
+
+    spin_unlock_irqrestore(&term_lock, flag);
 }
 
 //********** DEFINE HANDLERS and DISPATCHER for keycodes **********
