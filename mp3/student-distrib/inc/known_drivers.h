@@ -2,6 +2,7 @@
 #include <inc/driver.h>
 #include <inc/rtc.h>
 #include <inc/keyboard.h>
+#include <inc/terminal.h>
 
 /* Include the header of your driver here. */
 
