@@ -1,4 +1,3 @@
-
 var EdgeTypes = {
     'peek': 0,
     'consumePrint': 1,
@@ -12,7 +11,7 @@ var StateTypes = {
 };
 
 var start = {
-    name : "start",
+    name: "start",
     type: StateTypes.normal,
     // how many characters are read.
     size: 0,
@@ -33,6 +32,21 @@ var macro = {
     edges: []
 };
 
+var mDefineEntry = {
+    name: "mDefineEntry",
+    type: StateTypes.normal,
+    size: 1,
+    edges: []
+};
+
+var callDefine = {
+    name: "callDefine",
+    type: StateTypes.normal,
+    size: 0,
+    handler: null,
+    edges: []
+}
+
 // NOT FINISHED: notProcessed
 var notProcessed = {
     name: "notProcessed",
@@ -43,30 +57,30 @@ var notProcessed = {
 
 var cEscape = {
     name: "cEscape",
-  type: StateTypes.normal,
-  size: 1,
-  edges: []
+    type: StateTypes.normal,
+    size: 1,
+    edges: []
 };
 
 var cStartComment = {
     name: "cStartComment",
-  type: StateTypes.normal,
-  size: 1,
-  edges: []
+    type: StateTypes.normal,
+    size: 1,
+    edges: []
 };
 
 var cMultiComment = {
     name: "cMultiComment",
-  type: StateTypes.normal,
-  size: 1,
-  edges: []
+    type: StateTypes.normal,
+    size: 1,
+    edges: []
 };
 
 var cEndComment = {
     name: "cEndComment",
-  type: StateTypes.normal,
-  size: 1,
-  edges: []
+    type: StateTypes.normal,
+    size: 1,
+    edges: []
 };
 
 var error = {
@@ -218,7 +232,32 @@ cEndComment.edges.push({
     type: EdgeTypes.consumePrint,
     cond: null
 });
+
+macro.edges.push({
+    to: mDefineEntry,
+    type: EdgeTypes.consumePrint,
+    cond: /^#define[ \t]$/
+});
+
+mDefineEntry.edges.push({
+    to: callDefine,
+    type: EdgeTypes.peek,
+    cond: null
+});
+
+mDefineEntry.edges.push({
+    to: mDefineEntry,
+    type: EdgeTypes.consumePrint,
+    cond: /^[ \t]$/
+});
+
 /*
+cMultiComment.edges.push({
+    to: cMultiComment,
+    type: EdgeTypes.consumePrint,
+    cond: null
+});
+
 cMultiComment.edges.push({
     to: cMultiComment,
     type: EdgeTypes.consumePrint,
@@ -232,4 +271,6 @@ cMultiComment.edges.push({
 });
 */
 
-module.exports = {start, EdgeTypes, StateTypes, callExtendParse, lineStart};
+module.exports = {
+    start, EdgeTypes, StateTypes, callExtendParse, lineStart, callDefine
+};

@@ -1,6 +1,7 @@
 var _state = require('./state');
 var machine = _state.start;
 var callExtendParse = _state.callExtendParse;
+var callDefine = _state.callDefine;
 var edgeTypes = require('./state').EdgeTypes;
 var stateTypes = require('./state').StateTypes;
 var stream = require('stream');
@@ -119,43 +120,37 @@ function convert(str, mach) {
 
 var handlers = require('./handlers');
 
-// Set handler DISPATCHER
-callExtendParse.handler = (str, loc, state) => {
-	var endTag = /\n[\t ]*#endextend/;
-	var search = str.substring(loc).match(endTag);
-	if(!search)
-	{
-		console.log("Error! Missing #endextend");
-		console.log("Error near LINE: ", str.substring(0, loc - 1).split("\n").length);
-		var nextLine = str.indexOf('\n', loc);
-		var prevLine = str.lastIndexOf('\n', loc);
-		console.log(str.substring(prevLine, nextLine));
-		process.exit();
-	}
-	var jsonStr = str.substring(loc, loc + search.index);
-	var ans = "";
+var macroConsts = {};
+
+callDefine.handler = (str, loc, state) => {
+	// temp eliminates "\\\n" endings
+	var temp = str.substring(loc).replace(/\\\n/g," ");
+	var define = temp;
+
+	if(temp.indexOf('\n') != -1)
+		define = temp.substring(0, temp.indexOf('\n'));
+
 	try {
-		var input = JSON.parse(jsonStr);
-		if(!input.type)
-			throw ".type Missing";
-		if(!handlers[input.type])
-			throw ".type = " + input.type + " is not supported!"
-		ans = handlers[input.type](input);
-	}
-	catch (err) {
-		console.log("Error inside #extend:", err.toString());
-		console.log("Error near LINE: ", str.substring(0, loc - 1).split("\n").length);
-		var nextLine = str.indexOf('\n', loc);
-		var prevLine = str.lastIndexOf('\n', loc);
-		console.log(str.substring(prevLine, nextLine));
-		process.exit();
-	}
+		eval(define.trim().replace(/[ \t]+/, "="));
+	} catch(err) {}
+
+	try {
+		eval("macroConsts." + define.trim().replace(/[ \t]+/, "="));
+	} catch(err) {}
+
+	/*
+
+	try {
+		eval("macroConsts." + define.trim().replace(/[ \t]+/, "=").replace("=", "=macroConsts."));
+	} catch(err) {}
+	*/
+
 	return {
-		newLocation: loc + search.index + search[0].length,
+		newLocation: loc,
 		newState: _state.lineStart,
-		ansStr: ans
+		ansStr: ""
 	};
 };
 
 var content = fs.readFileSync('test').toString();
-console.log( "Process RESULT:\n", convert(content, machine));
+console.log( "Macros: ", macroConsts);
