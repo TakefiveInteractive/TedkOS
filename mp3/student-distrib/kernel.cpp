@@ -167,9 +167,6 @@ _entry (unsigned long magic, unsigned long addr)
 	/* Init the interuupts */
 	init_idt();
 
-    /* Initialize file system */
-    filesystem::init_from_multiboot(mbi);
-
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
     for(i = 0; i < num_known_drivers; i++)
@@ -178,6 +175,9 @@ _entry (unsigned long magic, unsigned long addr)
         known_drivers[i].init();
         printf(" ... OK!\n");
     }
+
+    /* Initialize file system */
+    filesystem::init_from_multiboot(mbi);
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
