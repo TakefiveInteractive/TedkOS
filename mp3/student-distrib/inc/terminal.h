@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <inc/klibs/lib.h>
-#include <inc/i8259.h>
+#include <inc/driver.h>
 
 DEFINE_DRIVER_INIT(term);
 DEFINE_DRIVER_REMOVE(term);
