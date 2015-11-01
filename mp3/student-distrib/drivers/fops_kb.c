@@ -95,6 +95,7 @@ int32_t keyb_open(const uint8_t* filename)
     else
     {
         isThisTerminalInUse[0] = 1;
+        isThisTerminalWaitingForEnter[0] = 0;
 
         // We ONLY need to initialize the read buffer HERE, and upon BOOTING.
         // do NOT initialize it anywhere else, except in CLOSE (required by TA)
@@ -120,11 +121,9 @@ int32_t keyb_close(int32_t fd)
     return 0;
 }
 
+// !!!! Warning: this function does NOT lock term_lock !!!!
 void term2kb_readover(int terminal_id)
 {
-    uint32_t flag;
-    spin_lock_irqsave(& term_lock, flag);
-    isThisTerminalInUse[terminal_id] = 0;
-    spin_unlock_irqrestore(&term_lock, flag);
+    isThisTerminalWaitingForEnter[terminal_id] = 0;
 }
 
