@@ -38,10 +38,24 @@ int kreader_main ()
         if ('\0' == buf[0])
             continue;
 
+        if (cnt==1 && buf[0] == '.')
+        {
+            int i;
+            for(i = 0; 0 == 0; i++)
+            {
+                rval = read_dentry_by_index(i, &dentry);
+                if(rval)
+                    break;
+                termputarr(1, "File: ");
+                termputarr(1, dentry.filename);
+                termputarr(1, "\n");
+            }
+            continue;
+        }
         rval = read_dentry_by_name(buf, &dentry);
         if (-1 == rval)
         {
-            termputarr (1, "no such command\n");
+            termputarr (1, "no such file\n");
         }
         else
         {
