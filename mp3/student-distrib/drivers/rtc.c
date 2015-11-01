@@ -113,10 +113,10 @@ uint8_t frequency_converter(int freq)
 {
     // rate must be above 0x02 and not over 0x0F
     switch (freq) {
-        case 16384: return 0x02;
-        case 8192: return 0x03;
-        case 4096: return 0x04;
-        case 2048: return 0x05;
+        // case 16384: return 0x02;
+        // case 8192: return 0x03;
+        // case 4096: return 0x04;
+        // case 2048: return 0x05;
         case 1024: return 0x06;
         case 512: return 0x07;
         case 256: return 0x08;
