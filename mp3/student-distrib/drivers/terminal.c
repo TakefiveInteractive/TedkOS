@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <inc/terminal.h>
 #include <inc/driver.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>

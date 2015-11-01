@@ -1,4 +1,5 @@
-#include <inc/term_fops.h>
+#include <inc/terminal.h>
+#include <inc/fops_term.h>
 #include <inc/error.h>
 
 // Terminal and keyboard's "sharing" policy:
@@ -13,8 +14,9 @@
 int32_t term_write(int32_t fd, const void* buf, int32_t nbytes)
 {
     int32_t i;
+    const char* cbuf = (const char*) buf;
     for(i = 0; i < nbytes; i++)
-        term_putc(buf[i]);
+        term_putc(cbuf[i]);
     return nbytes;
 }
 
