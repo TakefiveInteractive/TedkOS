@@ -2,6 +2,7 @@
 #include <inc/driver.h>
 #include <inc/rtc.h>
 #include <inc/keyboard.h>
+#include <inc/terminal.h>
 
 /* Include the header of your driver here. */
 
@@ -13,6 +14,7 @@
 }
 
 driver_t known_drivers[] = {
+    ADD_DRIVER(term, "Terminal driver"),
 	ADD_DRIVER(rtc, "Real Time Clock driver"),
 	ADD_DRIVER(kb, "Keyboard")
 	/*, ADD_DRIVER(keyboard)*/
