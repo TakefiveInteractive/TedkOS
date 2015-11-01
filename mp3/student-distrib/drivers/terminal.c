@@ -78,8 +78,7 @@ DEFINE_DRIVER_INIT(term)
 
     // Initialize the buffer.
     RINGBUF_INIT(&term_delete_buf);
-
-    // term_read_buf is initialized when program OPEN the keyboard
+    RINGBUF_INIT(&term_read_buf);
 
     spin_unlock_irqrestore(&term_lock, flag);
 }
