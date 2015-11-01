@@ -17,6 +17,9 @@
 #define RINGBUF_TYPE            term_buf_item
 #include <inc/klibs/ringbuf.h>
 
+// REQUIRE: '\n' MUST be stored in this buffer, TOO.
+extern ringbuf_t term_read_buf;
+
 int32_t kb_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t kb_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t kb_open(const uint8_t* filename);

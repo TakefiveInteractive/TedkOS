@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <inc/klibs/spinlock.h>
 #include <inc/driver.h>
 
 #define NUM_TERMINALS           1
@@ -31,9 +32,6 @@ typedef struct
 //  2. isThisTerminalInUse
 //  2. isThisTerminalWaitingForEnter
 extern spinlock_t term_lock;
-
-// REQUIRE: '\n' MUST be stored in this buffer, TOO.
-extern ringbuf_t term_read_buf;
 
 DEFINE_DRIVER_INIT(term);
 DEFINE_DRIVER_REMOVE(term);

@@ -1,6 +1,7 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/terminal.h>
-#include <inc/term_fops.h>
+#include <inc/fops_kb.h>
+#include <inc/fops_term.h>
 #include <inc/error.h>
 
 int8_t isThisTerminalInUse[NUM_TERMINALS] = {0};
@@ -26,6 +27,7 @@ int32_t keyb_read(int32_t fd, void* buf, int32_t nbytes)
     //      thus the user must own terminal currently.
     int32_t i;
     uint32_t flag;
+    char* cbuf = (char*) buf;
     spin_lock_irqsave(& term_lock, flag);
 
     // If ringbuf is not empty, read the LEFTOVER
@@ -35,9 +37,9 @@ int32_t keyb_read(int32_t fd, void* buf, int32_t nbytes)
         if(ringbuf_is_empty(&term_read_buf))
             break;
         ringbuf_front(&term_read_buf, &val);
-        buf[i] = val.displayed_char;
+        cbuf[i] = val.displayed_char;
         ringbuf_pop_front(&term_read_buf);
-        if(buf[i] == '\n')
+        if(cbuf[i] == '\n')
         {
             spin_unlock_irqrestore(&term_lock, flag);
             return i+1;
@@ -68,9 +70,9 @@ int32_t keyb_read(int32_t fd, void* buf, int32_t nbytes)
         if(ringbuf_is_empty(&term_read_buf))
             break;
         ringbuf_front(&term_read_buf, &val);
-        buf[i] = val.displayed_char;
+        cbuf[i] = val.displayed_char;
         ringbuf_pop_front(&term_read_buf);
-        if(buf[i] == '\n')
+        if(cbuf[i] == '\n')
         {
             spin_unlock_irqrestore(&term_lock, flag);
             return i+1;
