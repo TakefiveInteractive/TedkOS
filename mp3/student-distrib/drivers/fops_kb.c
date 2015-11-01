@@ -16,12 +16,12 @@ int8_t isThisTerminalWaitingForEnter[NUM_TERMINALS] = {0};
 //      2-2. Thus every terminal has its own read buffer.
 //      2-3. Also: thus: Open keyboard <=> scanf <=> only 1 program can open it in same terminal at one time.
 
-int32_t keyb_write(int32_t fd, const void* buf, int32_t nbytes)
+int32_t kb_write(int32_t fd, const void* buf, int32_t nbytes)
 {
     return -EFOPS;
 }
 
-int32_t keyb_read(int32_t fd, void* buf, int32_t nbytes)
+int32_t kb_read(int32_t fd, void* buf, int32_t nbytes)
 {
     // Dispatcher already checked that fd is valid,
     //      thus the user must own terminal currently.
@@ -83,7 +83,7 @@ int32_t keyb_read(int32_t fd, void* buf, int32_t nbytes)
     return i;
 }
 
-int32_t keyb_open(const uint8_t* filename)
+int32_t kb_open(const uint8_t* filename)
 {
     int32_t retval = 0;
     uint32_t flag;
@@ -106,7 +106,7 @@ int32_t keyb_open(const uint8_t* filename)
     return retval;
 }
 
-int32_t keyb_close(int32_t fd)
+int32_t kb_close(int32_t fd)
 {
     // Dispatcher already checked that fd is valid,
     //      thus the user must own terminal currently.
