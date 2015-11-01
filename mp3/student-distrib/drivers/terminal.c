@@ -34,7 +34,7 @@ static spinlock_t term_lock = SPINLOCK_UNLOCKED;
 typedef struct
 {
     char displayed_char;
-    
+
     //offset is the space this item took up on screen
     // x_offset is always positive.
     // For normal characters, x_offset = 1
@@ -133,7 +133,7 @@ void kb_to_term(uint32_t kernelKeycode)
     uint32_t flag;
     uint32_t ascii_part, special_part, combine_part;
     spin_lock_irqsave(&term_lock, flag);
-    
+
     ascii_part   = kernelKeycode & 0x000000FF;
     special_part = kernelKeycode & 0x0000FF00;
     combine_part = kernelKeycode & 0x7FFF0000;
@@ -411,7 +411,7 @@ void set_cursor_nolock(uint32_t x, uint32_t y)
     // addr_reg and data_reg are used to operate CRTC registers
     // location will be passed to VGA register as Cursor Location Field.
     uint8_t old_addr;
-    uint16_t addr_reg, data_reg; 
+    uint16_t addr_reg, data_reg;
     uint16_t location = SCREEN_WIDTH * y + x;
     if(x >= SCREEN_WIDTH)
         return;

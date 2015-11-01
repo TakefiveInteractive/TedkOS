@@ -94,7 +94,7 @@ _entry (unsigned long magic, unsigned long addr)
     _init();
 
     /* Initialize file system */
-    filesystem::init_from_multiboot();
+    filesystem::dispatcher.mountAll();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */

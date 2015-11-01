@@ -9,6 +9,11 @@ namespace util {
 template <typename T, unsigned int capacity>
 class MemoryPool
 {
+private:
+    int unusedIndex;
+    T memory[capacity];
+    T* unusedMemory[capacity];
+
 public:
     MemoryPool()
     {
@@ -31,10 +36,6 @@ public:
         unusedMemory[++unusedIndex] = ptr;
     }
 
-private:
-    int uusedIndex;
-    T memory[capacity];
-    T* unusedMemory[capacity];
 };
 
 }
