@@ -12,6 +12,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// !!!!
+// PUSH has no FRONT or BACK <=> PUSH_BACK
+// *_FRONT: FIFO.
+// *_BACK : STACK.
+
 int32_t ringbuf_length(ringbuf_t* buf)
 {
     return buf->len;

@@ -14,6 +14,7 @@
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
 #include <inc/x86/filesystem_wrapper.h>
+#include <inc/tests/kreader.h>
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -210,6 +211,15 @@ _entry (unsigned long magic, unsigned long addr)
     size_t len1 = read_data(dentry.inode, 0, buf1, sizeof(buf1));
     printf("Loading frame1.txt, size = %d\n", len1);
     puts((const char *)buf1);
+
+    while(1)
+    {
+        int rval;
+        printf("trying to start test programs... ");
+        rval = kreader_main();
+        if(rval)
+            printf("FAILED.\n");
+    }
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	asm volatile(".1: hlt; jmp .1;");
