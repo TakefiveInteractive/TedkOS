@@ -12,13 +12,16 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
-#ifndef DEBUG
+// using LEGACY_PUTC is HIGHLY NOT recommended!!!!!
+//  It WILL NOT affect terminal's write fops, though.
+//  Use it ONLY WHEN terminal driver is not working at all.
+#ifndef LEGACY_PUTC
 #include <inc/terminal.h>
 #endif
 
 void clear(void)
 {
-#ifndef DEBUG
+#ifndef LEGACY_PUTC
     term_cls();
 #else
     orig_clear();
@@ -27,7 +30,7 @@ void clear(void)
 
 void putc(uint8_t c)
 {
-#ifndef DEBUG
+#ifndef LEGACY_PUTC
     term_putc(c);
 #else
     orig_putc(c);
