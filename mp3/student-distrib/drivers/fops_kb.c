@@ -96,7 +96,7 @@ int32_t keyb_open(const uint8_t* filename)
     {
         isThisTerminalInUse[0] = 1;
 
-        // We ONLY need to initialize the read buffer HERE.
+        // We ONLY need to initialize the read buffer HERE, and upon BOOTING.
         // do NOT initialize it anywhere else, except in CLOSE (required by TA)
         RINGBUF_INIT(&term_read_buf);
     }
