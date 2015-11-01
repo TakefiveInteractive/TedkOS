@@ -120,7 +120,7 @@ int32_t keyb_close(int32_t fd)
     return 0;
 }
 
-void keyb_d2f_readover(int terminal_id)
+void term2kb_readover(int terminal_id)
 {
     uint32_t flag;
     spin_lock_irqsave(& term_lock, flag);
