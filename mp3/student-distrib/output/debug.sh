@@ -1,5 +1,52 @@
-#!/bin/sh
+#!/bin/bash
 
+case "$(uname -s)" in
+
+    Darwin)
+        echo
+        echo "Now we can build system withOUT third party tools"
+        echo 
+        echo "** you may need to modify qemu settings **"
+        echo
+        echo -ne "Use OS X safe build? (y/*) __\b\b"
+        read -n 1 confirm
+        echo 
+        if [ "$confirm" == "y" ];
+        then
+            cp ./osx/orig_fat.img ./osx/tedkos.img
+            if [ -d ~/mnt/tedkos ]; then
+                rm -rf ~/mnt/tedkos
+            fi
+            mkdir -p ~/mnt/tedkos
+            disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount -section 63 ./osx/tedkos.img)
+            mount -w -t msdos $disk ~/mnt/tedkos
+            cp ./bootimg ~/mnt/tedkos/
+            cp ./filesys_img ~/mnt/tedkos/
+            sync
+            umount ~/mnt/tedkos
+            hdiutil detach $disk
+
+            echo "System image successfully built."
+            echo "If you choose to start qemu here:"
+            echo ""
+            echo "    ** CHOOSE 'hdb' in boot menu! **"
+            echo ""
+            echo -ne "Start qemu? (y/*) __\b\b"
+            read -n 1 confirm
+            echo
+            if [ "$confirm" == "y" ];
+            then
+                (qemu-system-i386 -hda ./osx/grub.img -hdb ./osx/tedkos.img -m 256 -gdb tcp:127.0.0.1:1234 -name "TedkOS (hdb)")&
+                echo "PID of qemu = $!"
+            fi
+            exit 0
+        fi
+        ;;
+    *)
+        ;;
+esac
+
+read
 
 if [ -d /mnt/tmpmp3 ]; then
 rm -rf /mnt/tmpmp3

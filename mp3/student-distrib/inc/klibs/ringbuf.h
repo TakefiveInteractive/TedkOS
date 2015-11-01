@@ -67,6 +67,11 @@ int ringbuf_is_empty(ringbuf_t* buf);
 
 void ringbuf_push(ringbuf_t* buf, void* item);
 
+// !!!!
+// PUSH has no FRONT or BACK <=> PUSH_BACK
+// *_FRONT: FIFO.
+// *_BACK : STACK.
+
 // _front does not actually pop it.
 //  If empty, returns non-zero. success <=> 0
 int ringbuf_front(ringbuf_t* buf, void* result);
