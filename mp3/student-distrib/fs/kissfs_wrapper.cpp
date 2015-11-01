@@ -1,10 +1,11 @@
-#include <inc/fs/filesystem_wrapper.h>
+#include <inc/fs/kiss_wrapper.h>
+#include <inc/mbi_info.h>
 
 namespace filesystem {
 
-void init_from_multiboot(multiboot_info *mbi)
+void init_from_multiboot()
 {
-    module_t* mod = (module_t*) mbi->mods_addr;
+    module_t* mod = (module_t*) MultiBootInfoAddress->mods_addr;
     kissFS.initFromMemoryAddress((uint8_t *)mod->mod_start, (uint8_t *)mod->mod_end);
 }
 
