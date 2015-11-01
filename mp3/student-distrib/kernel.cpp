@@ -16,6 +16,9 @@
 #include <inc/fs/kiss_wrapper.h>
 #include <inc/mbi_info.h>
 
+/* Initialize runtime library */
+extern "C" void _init(void);
+
 // Make sure usable_mem has at least 12KB memory (later it will be 5MB memory.)
 // It uses the two aligned arrays declared below.
 void kernel_enable_basic_paging();
@@ -86,6 +89,9 @@ _entry (unsigned long magic, unsigned long addr)
 
     /* Init the interuupts */
     init_idt();
+
+    /* Initialize runtime library */
+    _init();
 
     /* Initialize file system */
     filesystem::init_from_multiboot();

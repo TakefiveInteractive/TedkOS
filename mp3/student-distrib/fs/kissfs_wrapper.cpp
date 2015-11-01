@@ -1,27 +1,25 @@
 #include <inc/fs/kiss_wrapper.h>
-#include <inc/mbi_info.h>
 
 namespace filesystem {
 
 void init_from_multiboot()
 {
-    module_t* mod = (module_t*) MultiBootInfoAddress->mods_addr;
-    kissFS.initFromMemoryAddress((uint8_t *)mod->mod_start, (uint8_t *)mod->mod_end);
+    static_cast<KissFS *>(dispatcher.kissFS)->init();
 }
 
 int32_t read_dentry(const uint8_t *fname, dentry_t *dentry)
 {
-    return kissFS.readDentry(fname, dentry);
+    return static_cast<KissFS *>(dispatcher.kissFS)->readDentry(fname, dentry);
 }
 
 int32_t read_dentry(const uint32_t index, dentry_t* dentry)
 {
-    return kissFS.readDentry(index, dentry);
+    return static_cast<KissFS *>(dispatcher.kissFS)->readDentry(index, dentry);
 }
 
 int32_t read_data(const uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length)
 {
-    return kissFS.readData(inode, offset, buf, length);
+    return static_cast<KissFS *>(dispatcher.kissFS)->readData(inode, offset, buf, length);
 }
 
 }
