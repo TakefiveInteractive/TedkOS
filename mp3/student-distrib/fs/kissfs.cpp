@@ -1,4 +1,5 @@
 #include <inc/fs/kiss.h>
+#include <inc/mbi_info.h>
 
 namespace filesystem {
 
@@ -7,6 +8,12 @@ uint32_t fsceil(uint32_t len, uint32_t blkSize)
     uint32_t remainder = len % blkSize;
     if (remainder > 0) return len / blkSize + 1;
     return len / blkSize;
+}
+
+void KissFS::init()
+{
+    module_t* mod = (module_t*) MultiBootInfoAddress->mods_addr;
+    initFromMemoryAddress((uint8_t *) mod->mod_start, (uint8_t *) mod->mod_end);
 }
 
 struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
@@ -122,7 +129,5 @@ bool KissFS::readBlock(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint
     memcpy(buf, imageStartingAddress + rawBlockId * BlockSize + offset, len);
     return true;
 }
-
-KissFS kissFS;
 
 }

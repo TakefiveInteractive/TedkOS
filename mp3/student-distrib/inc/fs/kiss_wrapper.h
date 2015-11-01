@@ -1,6 +1,5 @@
-
-#ifndef _FILESYSTEM_WRAPPER_H_
-#define _FILESYSTEM_WRAPPER_H_
+#ifndef _KISS_WRAPPER_H_
+#define _KISS_WRAPPER_H_
 
 #include <stddef.h>
 #include <stdint.h>
