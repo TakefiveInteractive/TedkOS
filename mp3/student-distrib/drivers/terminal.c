@@ -4,6 +4,7 @@
 #include <inc/driver.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/d2d/to_kb.h>
 #include <inc/d2d/to_term.h>
 
 // The width must be an even number so that
