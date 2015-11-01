@@ -1,19 +1,27 @@
 #include <inc/fs/filesystem.h>
 #include <inc/fs/kiss.h>
+#include <inc/fs/dev.h>
 
 namespace filesystem {
 
 const size_t MaxMountableFilesystems = 4;
 
-// DevFS _devFS;
-KissFS _kissFS;
+/* Our singleton objects here */
+Dispatcher dispatcher;
+DevFS devFS;
+KissFS kissFS;
+
 Dispatcher::Dispatcher()
 {
-    this->kissFS = &_kissFS;
+    this->_devFS = &devFS;
+    this->_kissFS = &kissFS;
 }
 
-/* Our singleton object here */
-Dispatcher dispatcher;
+void Dispatcher::mountAll()
+{
+    _kissFS->init();
+    _devFS->init();
+}
 
 }
 

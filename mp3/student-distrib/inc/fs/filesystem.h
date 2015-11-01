@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <inc/prefix_tree.h>
+
 #ifdef __cplusplus
 namespace filesystem {
 
@@ -16,19 +18,20 @@ public:
 
 class Dispatcher {
 private:
-    //PrefixTree lookup;
-    AbstractFS *devFS;
+    util::PrefixTree<AbstractFS *> lookup;
+    AbstractFS *_devFS;
 
 public:
-    AbstractFS *kissFS;  // this is public for cp2 cuz TAs have to test it
+    AbstractFS *_kissFS;  // this is public for cp2 cuz TAs have to test it
 
     Dispatcher();
 
-    /*void mountAll();
+    void mountAll();
+
     int32_t read(int32_t fd, void *buf, int32_t nbytes);
     int32_t write(int32_t fd, const void *buf, int32_t nbytes);
     int32_t open(const char *filename);
-    int32_t close(int32_t fd);*/
+    int32_t close(int32_t fd);
 };
 
 extern Dispatcher dispatcher;
