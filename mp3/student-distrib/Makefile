@@ -27,7 +27,7 @@ OBJS     += $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRC_CPP)))
 
 bootimg: Makefile $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o $(OUTDIR)/bootimg
-	(cd $(OUTDIR); sudo ./debug.sh)
+	(cd $(OUTDIR); ./debug.sh)
 
 dep: Makefile.dep
 

@@ -3,14 +3,19 @@
 case "$(uname -s)" in
 
     Darwin)
-        echo
-        echo "Now we can build system withOUT third party tools"
-        echo 
-        echo "** you may need to modify qemu settings **"
-        echo
-        echo -ne "Use OS X safe build? (y/*) __\b\b"
-        read -n 1 confirm
-        echo 
+		set confirm = "n"
+		if [ "$(id -u)" == "0" ]; then
+			echo "OS X safe build cannot be used when you are root."
+		else
+			echo
+			echo "Now we can build system withOUT third party tools"
+			echo 
+			echo "** you may need to modify qemu settings **"
+			echo
+			echo -ne "Use OS X safe build? (y/*) __\b\b"
+			read -n 1 confirm
+			echo 
+		fi
         if [ "$confirm" == "y" ];
         then
             cp ./osx/orig_fat.img ./osx/tedkos.img
@@ -46,7 +51,11 @@ case "$(uname -s)" in
         ;;
 esac
 
-read
+
+if [ "$(id -u)" != "0" ]; then
+	sudo $0
+	exit 0
+fi
 
 if [ -d /mnt/tmpmp3 ]; then
 rm -rf /mnt/tmpmp3
