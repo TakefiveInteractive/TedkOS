@@ -9,7 +9,7 @@
 // keyboard buffer size
 #define BUFSIZE 128
 
-#define termputarr(FD, ARR) {term_write((FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
+#define termputarr(FD, ARR) {term_write((FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t)-1);}
 
 int kreader_main ()
 {
@@ -81,4 +81,3 @@ int kreader_main ()
         }
     }
 }
-
