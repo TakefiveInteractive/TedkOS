@@ -96,7 +96,13 @@ int kshell_main ()
         {
             termputarr(term, "Calling ... \n");
             if(exec(kreader_main) < 0)
-                termputarr(term, "Call failed\n");
+                return -1;
+        }
+        else if (iscmd(buf, "hello"))
+        {
+            termputarr(term, "Calling ... \n");
+            if(exec(khello_main) < 0)
+                return -1;
         }
         else
         {
