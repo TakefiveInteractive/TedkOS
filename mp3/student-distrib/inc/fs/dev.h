@@ -6,19 +6,8 @@
 #include <inc/fs/filesystem.h>
 #include <inc/lphashtable.h>
 
-/* Read a single character from the device */
-typedef int32_t (*readFunc) (uint8_t *buf, int32_t bytes);
-
-/* Write a single character to device */
-typedef int32_t (*writeFunc) (const uint8_t *buf, int32_t bytes);
-
 #ifdef __cplusplus
 namespace filesystem {
-
-struct JumpTable {
-    readFunc read;
-    writeFunc write;
-};
 
 class DevFS : public AbstractFS {
 private:
