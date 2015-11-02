@@ -73,7 +73,7 @@ class AbstractFS {
 public:
     virtual void init() = 0;
     virtual bool open(const char* filename, FsSpecificData *fdData) = 0;
-    virtual bool close(const char* filename, FsSpecificData *fdData) = 0;
+    virtual bool close(FsSpecificData *fdData) = 0;
     virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len) = 0;
     virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len) = 0;
 };

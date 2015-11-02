@@ -91,11 +91,18 @@ int32_t Dispatcher::open(const char *filename)
 
 int32_t Dispatcher::close(int32_t fd)
 {
+    /* TODO: check invalid fd here 
     if (fd >= numFds)
     {
         return -1;
     }
+    */
     auto fdData = fileOfFd[fd];
+    bool result = fdData->fs->close(&fdData->fsSpecificData);
+    if (!result)
+    {
+        return -1;
+    }
     pool.release(fdData);
     numFds--;
     fileOfFd[fd] = nullptr;
