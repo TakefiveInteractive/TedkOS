@@ -14,7 +14,7 @@
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
 #include <inc/x86/filesystem_wrapper.h>
-#include <inc/tests/kreader.h>
+#include <inc/tests.h>
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
