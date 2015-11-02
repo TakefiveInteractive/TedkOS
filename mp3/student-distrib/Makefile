@@ -4,16 +4,19 @@
 
 OUTDIR = output/
 
+release: CFLAGS_EXTRA = -ffat-lto-objects -flto -fno-use-linker-plugin -O2
+release: bootimg
+
 # Flags to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -g -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
+CFLAGS 	+= -g $(CFLAGS_EXTRA) -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
 ASFLAGS +=
-LDFLAGS += -g -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -nostdlib -static
+LDFLAGS += -g $(CFLAGS_EXTRA) -nostdlib -static
 CC=`./detect-gcc.sh`
 CXX=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS += -I. -g
-CXXFLAGS += -g -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -std=c++11 -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
+CXXFLAGS += -g $(CFLAGS_EXTRA) -Wall -std=c++11 -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
 
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
@@ -32,9 +35,12 @@ OBJS     += $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRC_CPP)))
 INTERNAL_OBJS:=boot.o $(CRTI_OBJ) $(OBJS) $(CRTN_OBJ)
 ALL_OBJS:=boot.o $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
 
+
 bootimg: Makefile $(ALL_OBJS)
 	$(CC) $(LDFLAGS) $(ALL_OBJS) -Wl,--section-start=.init=400000 -Ttext=0x400010 -o $(OUTDIR)/bootimg
 	(cd $(OUTDIR); ./debug.sh)
+
+debug: bootimg
 
 dep: Makefile.dep
 

@@ -65,6 +65,10 @@ int32_t Dispatcher::open(const char *filename)
     const char *fn = filename;
     // Patch: support accessing rtc without fs root
     if (strncmp(fn, "rtc", strlen(fn)) == 0) fn = "/dev/rtc";
+    // Patch #2: append slash in front of raw path
+    const char goodName[70] = { '/', '\0' };
+
+
     auto x = lookup.search(fn);
     if (x.val == nullptr)
     {
