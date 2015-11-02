@@ -6,6 +6,7 @@ Makefile.dep
 bootimg
 gcc.dmg
 gcc-strip.tar.gz
+gcc-strip-nolink.tar.gz
 mp3/student-distrib/cross
 
 # If using osx-safe building, this file should be ignored
