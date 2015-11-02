@@ -52,23 +52,28 @@ int32_t KissFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32
 {
     if (data->filetype == DIRECTORY)
     {
-        // Read directory
-        dentry_t *dentries = reinterpret_cast<dentry_t *>(data->dentryData.base);
-        if (data->dentryData.idx >= data->dentryData.max)
-        {
-            return -1;
-        }
-        else
-        {
-            strncpy(reinterpret_cast<char *>(buf), dentries[data->dentryData.idx].filename, len);
-            data->dentryData.idx++;
-            if (data->dentryData.idx == data->dentryData.max - 1) return 0;
-            return strlen(reinterpret_cast<char *>(buf));
-        }
+        return readDir(data, offset, buf, len);
     }
     else
     {
         return readData(data->inode, offset, buf, len);
+    }
+}
+
+int32_t KissFS::readDir(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
+{
+    // Read directory
+    dentry_t *dentries = reinterpret_cast<dentry_t *>(data->dentryData.base);
+    if (data->dentryData.idx >= data->dentryData.max)
+    {
+        return -1;
+    }
+    else
+    {
+        strncpy(reinterpret_cast<char *>(buf), dentries[data->dentryData.idx].filename, len);
+        data->dentryData.idx++;
+        if (data->dentryData.idx == data->dentryData.max - 1) return 0;
+        return strlen(reinterpret_cast<char *>(buf));
     }
 }
 

@@ -90,6 +90,7 @@ namespace filesystem {
         uint32_t numBlocks;
 
         bool readBlock(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint32_t len);
+        int32_t readDir(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len);
         void initFromMemoryAddress(uint8_t *mem, uint8_t *end);
 
     public:
