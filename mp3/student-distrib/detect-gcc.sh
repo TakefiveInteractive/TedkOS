@@ -22,7 +22,7 @@ case "$(uname -s)" in
                 wget --no-check-certificate https://github.com/TakefiveInteractive/ece391ForMac/releases/download/0.1/gcc-strip-nolink.tar.gz &> /dev/null
             fi
             if [[ ! -a cross/bin/i686-elf-gcc ]] || [[ ! -a cross/bin/i686-elf-ld ]]; then
-                tar xzf gcc-strip.tar.gz
+                tar xzf gcc-strip-nolink.tar.gz
             fi
             PWD=$(pwd)
             echo "${PWD}/cross/bin/i686-elf-gcc"
