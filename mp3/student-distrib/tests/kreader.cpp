@@ -79,8 +79,17 @@ int kreader_main ()
         }
         else
         {
-            int len = fs_read(fd, filebuf, sizeof(filebuf) - 1);
-            term_write(NULL, filebuf, len);
+            int len = 0;
+            do
+            {
+                len = fs_read(fd, filebuf, sizeof(filebuf) - 1);
+                term_write(NULL, filebuf, len);
+                if (len > 0)
+                {
+                    termputarr(1, "\npress enter to read next block...");
+                    kb_read(0, buf, 1);
+                }
+            } while (len > 0);
         }
     }
 }
