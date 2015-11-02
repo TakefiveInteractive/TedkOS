@@ -25,13 +25,12 @@ SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
 SRC_CPP =  $(wildcard **/*.cpp) $(wildcard *.cpp)
 
 # This generates the list of .o files. The order matters, boot.o must be first
-OBJS      = boot.o
-OBJS     += $(filter-out crtn.o, $(filter-out crti.o, $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))))
+OBJS     = $(filter-out crtn.o, $(filter-out crti.o, $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))))
 OBJS     += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
 OBJS     += $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRC_CPP)))
 
-INTERNAL_OBJS:=$(CRTI_OBJ) $(OBJS) $(CRTN_OBJ)
-ALL_OBJS:=$(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
+INTERNAL_OBJS:=boot.o $(CRTI_OBJ) $(OBJS) $(CRTN_OBJ)
+ALL_OBJS:=boot.o $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
 
 bootimg: Makefile $(ALL_OBJS)
 	$(CC) $(LDFLAGS) $(ALL_OBJS) -Wl,--section-start=.init=400000 -Ttext=0x400010 -o $(OUTDIR)/bootimg
