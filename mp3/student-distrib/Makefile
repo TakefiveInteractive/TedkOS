@@ -5,28 +5,35 @@
 OUTDIR = output/
 
 # Flags to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
+CFLAGS 	+= -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
 ASFLAGS +=
-LDFLAGS += -nostdlib -static
+LDFLAGS += -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -nostdlib -static
 CC=`./detect-gcc.sh`
 CXX=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
-CPPFLAGS += -g -I.
-CXXFLAGS += -Wall -std=c++11 -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
+CPPFLAGS += -I. -g
+CXXFLAGS += -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -std=c++11 -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
+
+CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+CRTI_OBJ=crti.o
+CRTN_OBJ=crtn.o
 
 # This generates the list of source files
 SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
 SRC_CPP =  $(wildcard **/*.cpp) $(wildcard *.cpp)
 
 # This generates the list of .o files. The order matters, boot.o must be first
-OBJS      = boot.o
-OBJS     += $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))
+OBJS     = $(filter-out crtn.o, $(filter-out crti.o, $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))))
 OBJS     += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
 OBJS     += $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRC_CPP)))
 
-bootimg: Makefile $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o $(OUTDIR)/bootimg
+INTERNAL_OBJS:=boot.o $(CRTI_OBJ) $(OBJS) $(CRTN_OBJ)
+ALL_OBJS:=boot.o $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
+
+bootimg: Makefile $(ALL_OBJS)
+	$(CC) $(LDFLAGS) $(ALL_OBJS) -Wl,--section-start=.init=400000 -Ttext=0x400010 -o $(OUTDIR)/bootimg
 	(cd $(OUTDIR); ./debug.sh)
 
 dep: Makefile.dep
@@ -36,7 +43,7 @@ Makefile.dep: $(SRC)
 
 .PHONY: clean, tidy
 clean:
-	rm -f $(OBJS) Makefile.dep $(OUTDIR)/bootimg
+	rm -f $(INTERNAL_OBJS) Makefile.dep $(OUTDIR)/bootimg
 
 tidy: clean
 	rm -f $(OUTDIR)/mp3.img

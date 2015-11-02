@@ -93,7 +93,7 @@ DEFINE_DRIVER_REMOVE(term)
 
     caps_locked = 0;
 
-    clear_screen_nolock();   
+    clear_screen_nolock();
     next_char_x = 0;
     next_char_y = 0;
     video_mem = VMEM_HEAD;
@@ -125,7 +125,7 @@ void kb_to_term(uint32_t kernelKeycode)
     uint32_t flag;
     uint32_t ascii_part, special_part, combine_part;
     spin_lock_irqsave(&term_lock, flag);
-    
+
     ascii_part   = kernelKeycode & 0x000000FF;
     special_part = kernelKeycode & 0x0000FF00;
     combine_part = kernelKeycode & 0x7FFF0000;
@@ -231,7 +231,7 @@ void term_enter_handler(uint32_t keycode)
     }
     RINGBUF_INIT(&term_delete_buf);
     ringbuf_push(&term_read_buf, &newLine);
-    
+
     // currently we only have 1 terminal. CP2
     term2kb_readover(0);
 }
@@ -424,7 +424,7 @@ void set_cursor_nolock(uint32_t x, uint32_t y)
     // addr_reg and data_reg are used to operate CRTC registers
     // location will be passed to VGA register as Cursor Location Field.
     uint8_t old_addr;
-    uint16_t addr_reg, data_reg; 
+    uint16_t addr_reg, data_reg;
     uint16_t location = SCREEN_WIDTH * y + x;
     if(x >= SCREEN_WIDTH)
         return;
