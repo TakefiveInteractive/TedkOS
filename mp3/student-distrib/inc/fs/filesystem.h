@@ -48,6 +48,7 @@ struct HashFunc {
 };
 
 class AbstractFS;
+struct JumpTable;
 
 struct FsSpecificData {
     uint8_t filetype;
@@ -58,6 +59,7 @@ struct FsSpecificData {
             uint32_t idx;
             uint32_t max;
         } dentryData;
+        JumpTable jtable;
     };
 };      // Broken abstraction here... fix after kmalloc
 
