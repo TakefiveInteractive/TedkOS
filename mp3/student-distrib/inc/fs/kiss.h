@@ -1,5 +1,5 @@
-#ifndef _KISS_H_
-#define _KISS_H_
+#ifndef _FS_KISS_H_
+#define _FS_KISS_H_
 
 #include <stddef.h>
 #include <stdint.h>

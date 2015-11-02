@@ -3,8 +3,8 @@
 
 #include <inc/fops_kb.h>
 #include <inc/fops_term.h>
+#include <inc/fs/filesystem_wrapper.h>
 #include <inc/fs/kiss_wrapper.h>
-
 
 // keyboard buffer size
 #define BUFSIZE 128
@@ -25,7 +25,7 @@ int kreader_main ()
 
     while (1) {
         struct dentry_t dentry;
-        uint8_t filebuf[256] = {};
+        uint8_t filebuf[10000] = {};
 
         termputarr (1, "read file> ");
         if (-1 == (cnt = kb_read (0, buf, BUFSIZE-1))) {
@@ -38,9 +38,9 @@ int kreader_main ()
         if ('\0' == buf[0])
             continue;
 
-        if (cnt==1 && buf[0] == '.')
+        if (cnt == 1 && buf[0] == '.')
         {
-            int i;
+            /*int i;
             for(i = 0; 0 == 0; i++)
             {
                 rval = read_dentry_by_index(i, &dentry);
@@ -49,7 +49,24 @@ int kreader_main ()
                 termputarr(1, "File: ");
                 termputarr(1, dentry.filename);
                 termputarr(1, "\n");
+            }*/
+            int32_t fd, cnt;
+
+            if (-1 == (fd = fs_open("/."))) {
+                termputarr(1, "directory open failed\n");
+                continue;
             }
+
+            while (0 != (cnt = fs_read(fd, buf, sizeof(filebuf) - 1))) {
+                if (-1 == cnt) {
+                    termputarr(1, "directory entry read failed\n");
+                    continue;
+                }
+                buf[cnt] = '\n';
+                buf[cnt + 1] = '\0';
+                printf("%s", buf);
+            }
+
             continue;
         }
         rval = read_dentry_by_name(buf, &dentry);

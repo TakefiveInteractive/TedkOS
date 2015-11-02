@@ -107,9 +107,6 @@ _entry (unsigned long magic, unsigned long addr)
     }
 
     /* Enable interrupts */
-    /* Do not enable the following until after you have set up your
-     * IDT correctly otherwise QEMU will triple fault and simple close
-     * without showing you any output */
     sti();
 
     /* Execute the first program (`shell') ... */
