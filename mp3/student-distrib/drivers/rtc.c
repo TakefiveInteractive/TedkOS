@@ -1,23 +1,12 @@
 #include <inc/rtc.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/fs/fops.h>
+#include <inc/fs/dev_wrapper.h>
 
 uint8_t frequency_converter(int freq);
 void rtc_change_frequency(uint8_t rate);
-int interrupt_flag = 0;
-spinlock_t lock = SPINLOCK_UNLOCKED;
-
-DEFINE_DRIVER_INIT(rtc)
-{
-    bind_irq(RTC_IRQ, RTC_ID, rtc_handler, RTC_POLICY);
-    rtc_init();
-	return;
-}
-
-DEFINE_DRIVER_REMOVE(rtc)
-{
-    unbind_irq(RTC_IRQ, RTC_ID);
-    return;
-}
+volatile int interrupt_flag = 0;
+spinlock_t rtc_lock = SPINLOCK_UNLOCKED;
 
 /**
  * rtc_init() is used to initialize rtc
@@ -39,13 +28,13 @@ void rtc_init()
 int rtc_handler(int irq, unsigned int saved_reg)
 {
     unsigned int flag;
-    spin_lock_irqsave(&lock, flag);
+    spin_lock_irqsave(&rtc_lock, flag);
     /* test_interrupts(); */
     /* read register c to allow future use */
     outb(RTC_STATUS_C, RTC_ADDRESS);
     inb(RTC_DATA);
     interrupt_flag = 1;
-    spin_unlock_irqrestore(&lock, flag);
+    spin_unlock_irqrestore(&rtc_lock, flag);
     return 0;
 }
 
@@ -56,10 +45,10 @@ int rtc_handler(int irq, unsigned int saved_reg)
  * @param  nbytes [description]
  * @return        [description]
  */
-int rtc_read (int fd, void* buf, int nbytes)
+int32_t rtc_read (void* fd, uint8_t* buf, int32_t nbytes)
 {
     // wait until interrupt_flag sets to 1
-    while (interrupt_flag == 0) {;}
+    while (interrupt_flag == 0);
     // set interrupt flag back to 0
     interrupt_flag = 0;
     return 0;
@@ -72,7 +61,7 @@ int rtc_read (int fd, void* buf, int nbytes)
  * @param  nbytes [description]
  * @return        0 for success, -1 for frequency out of range
  */
-int rtc_write (int fd, const void* buf, int nbytes)
+int32_t rtc_write (void* fd, const uint8_t *buf, int32_t nbytes)
 {
     int freq = *(int *)buf;
     int rate = frequency_converter(freq);
@@ -86,7 +75,7 @@ int rtc_write (int fd, const void* buf, int nbytes)
  * @param  filename [description]
  * @return          return 0 always
  */
-int rtc_open (const uint8_t* filename)
+int32_t rtc_open (void *fd)
 {
     /* open would initialize rtc frequency to 2Hz */
     uint8_t rate = frequency_converter(2);
@@ -99,7 +88,7 @@ int rtc_open (const uint8_t* filename)
  * @param  fd [description]
  * @return    always return 0
  */
-int rtc_close (int fd)
+int32_t rtc_close (void *fd)
 {
     return 0;
 }
@@ -138,10 +127,33 @@ uint8_t frequency_converter(int freq)
 void rtc_change_frequency(uint8_t rate)
 {
     unsigned int flag;
-    spin_lock_irqsave(&lock, flag);
+    spin_lock_irqsave(&rtc_lock, flag);
     outb(RTC_STATUS_A_NMI, RTC_ADDRESS);
     uint8_t prev = inb(RTC_DATA);
     outb(RTC_STATUS_A_NMI, RTC_ADDRESS);
     outb((prev & HIGH_BIT_MASK) | rate, RTC_DATA);
-    spin_unlock_irqrestore(&lock, flag);
+    spin_unlock_irqrestore(&rtc_lock, flag);
 }
+
+
+FOpsTable fops_rtc = {
+    .open = rtc_open,
+    .close = rtc_close,
+    .write = rtc_write,
+    .read = rtc_read
+};
+
+DEFINE_DRIVER_INIT(rtc)
+{
+    bind_irq(RTC_IRQ, RTC_ID, rtc_handler, RTC_POLICY);
+    rtc_init();
+    register_devfs("rtc", fops_rtc);
+	return;
+}
+
+DEFINE_DRIVER_REMOVE(rtc)
+{
+    unbind_irq(RTC_IRQ, RTC_ID);
+    return;
+}
+

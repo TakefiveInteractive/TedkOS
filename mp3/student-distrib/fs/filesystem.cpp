@@ -13,6 +13,7 @@ KissFS kissFS;
 
 Dispatcher::Dispatcher()
 {
+    for (auto &x : fileOfFd) x = nullptr;
     this->_devFS = &devFS;
     this->_kissFS = &kissFS;
     numFds = 0;
@@ -34,7 +35,7 @@ void Dispatcher::mount(AbstractFS *fs, const char *path)
 
 int32_t Dispatcher::read(int32_t fd, void *buf, int32_t nbytes)
 {
-    if (fd >= numFds)
+    if (isInvalidFd(fd))
     {
         return -1;
     }
@@ -48,7 +49,7 @@ int32_t Dispatcher::read(int32_t fd, void *buf, int32_t nbytes)
 
 int32_t Dispatcher::write(int32_t fd, const void *buf, int32_t nbytes)
 {
-    if (fd >= numFds)
+    if (isInvalidFd(fd))
     {
         return -1;
     }
@@ -64,7 +65,7 @@ int32_t Dispatcher::open(const char *filename)
 {
     const char *fn = filename;
     // Patch: support accessing rtc without fs root
-    if (strncmp(fn, "rtc", strlen(fn)) == 0) fn = "/dev/rtc";
+    if (strncmp(fn, "rtc", 4) == 0) fn = "/dev/rtc";
     // Patch #2: append slash in front of raw path
     char goodName[70] = { '/', '\0' };
     if (fn[0] != '/')
@@ -99,12 +100,11 @@ int32_t Dispatcher::open(const char *filename)
 
 int32_t Dispatcher::close(int32_t fd)
 {
-    /* TODO: check invalid fd here 
-    if (fd >= numFds)
+    /* check invalid fd here */
+    if (isInvalidFd(fd))
     {
         return -1;
     }
-    */
     auto fdData = fileOfFd[fd];
     bool result = fdData->fs->close(&fdData->fsSpecificData);
     if (!result)
@@ -115,6 +115,13 @@ int32_t Dispatcher::close(int32_t fd)
     numFds--;
     fileOfFd[fd] = nullptr;
     return 0;
+}
+
+bool Dispatcher::isInvalidFd(int32_t fd)
+{
+    auto fdData = fileOfFd[fd];
+    if (fdData == nullptr) return true;
+    return false;
 }
 
 void Dispatcher::register_devfs(const char* path, const FOpsTable& jtable)
