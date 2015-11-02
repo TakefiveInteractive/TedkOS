@@ -1,5 +1,5 @@
-#ifndef _DEV_H_
-#define _DEV_H_
+#ifndef _FS_DEV_H_
+#define _FS_DEV_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -7,12 +7,10 @@
 #include <inc/lphashtable.h>
 
 /* Read a single character from the device */
-typedef char (*readFunc) ();
+typedef int32_t (*readFunc) (uint8_t *buf, int32_t bytes);
 
-/* Write a single 32-bit integer to device
- * Return value: 0 = success, -1 = failure
- */
-typedef uint32_t (*writeFunc) (uint32_t data);
+/* Write a single character to device */
+typedef int32_t (*writeFunc) (const uint8_t *buf, int32_t bytes);
 
 #ifdef __cplusplus
 namespace filesystem {
