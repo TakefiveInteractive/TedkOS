@@ -7,12 +7,12 @@
 #include <inc/lphashtable.h>
 
 /* Read a single character from the device */
-char (*readFunc) ();
+typedef char (*readFunc) ();
 
 /* Write a single 32-bit integer to device
  * Return value: 0 = success, -1 = failure
  */
-uint32_t (*writeFunc) (uint32_t data);
+typedef uint32_t (*writeFunc) (uint32_t data);
 
 #ifdef __cplusplus
 namespace filesystem {
@@ -20,7 +20,7 @@ namespace filesystem {
 struct JumpTable {
     readFunc read;
     writeFunc write;
-}
+};
 
 class DevFS : public AbstractFS {
 private:
