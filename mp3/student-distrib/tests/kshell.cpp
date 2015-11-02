@@ -90,12 +90,18 @@ int kshell_main ()
         if (iscmd(buf, "help"))
         {
             termputarr(term, "Available commands:\n");
-            termputarr(term, "help, files, hello\n");
+            termputarr(term, "help, files, hello, rtc\n");
         }
         else if (iscmd(buf, "files"))
         {
             termputarr(term, "Calling ... \n");
             if(exec(kreader_main) < 0)
+                return -1;
+        }
+        else if (iscmd(buf, "rtc"))
+        {
+            termputarr(term, "Calling ... \n");
+            if(exec(krtc_main) < 0)
                 return -1;
         }
         else if (iscmd(buf, "hello"))
