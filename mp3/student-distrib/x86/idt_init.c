@@ -7,7 +7,7 @@
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 
-void interrupt_handler_with_number (size_t index, uint32_t code)
+void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index, uint32_t code)
 {
     if(index >= NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
     {
