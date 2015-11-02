@@ -56,7 +56,7 @@ int rtc_handler(int irq, unsigned int saved_reg)
  * @param  nbytes [description]
  * @return        [description]
  */
-int read (int fd, void* buf, int nbytes)
+int rtc_read (int fd, void* buf, int nbytes)
 {
     // wait until interrupt_flag sets to 1
     while (interrupt_flag == 0) {;}
@@ -72,7 +72,7 @@ int read (int fd, void* buf, int nbytes)
  * @param  nbytes [description]
  * @return        0 for success, -1 for frequency out of range
  */
-int write (int fd, const void* buf, int nbytes)
+int rtc_write (int fd, const void* buf, int nbytes)
 {
     int freq = *(int *)buf;
     int rate = frequency_converter(freq);
@@ -86,7 +86,7 @@ int write (int fd, const void* buf, int nbytes)
  * @param  filename [description]
  * @return          return 0 always
  */
-int open (const uint8_t* filename)
+int rtc_open (const uint8_t* filename)
 {
     /* open would initialize rtc frequency to 2Hz */
     uint8_t rate = frequency_converter(2);
@@ -99,7 +99,7 @@ int open (const uint8_t* filename)
  * @param  fd [description]
  * @return    always return 0
  */
-int close (int fd)
+int rtc_close (int fd)
 {
     return 0;
 }

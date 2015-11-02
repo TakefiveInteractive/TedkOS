@@ -5,15 +5,15 @@
 OUTDIR = output/
 
 # Flags to use when compiling, preprocessing, assembling, and linking
-CFLAGS 	+= -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
+CFLAGS 	+= -g -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
 ASFLAGS +=
-LDFLAGS += -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -nostdlib -static
+LDFLAGS += -g -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -nostdlib -static
 CC=`./detect-gcc.sh`
 CXX=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS += -I. -g
-CXXFLAGS += -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -std=c++11 -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
+CXXFLAGS += -g -ffat-lto-objects -flto -fno-use-linker-plugin -O2 -Wall -std=c++11 -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
 
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)

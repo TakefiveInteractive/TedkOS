@@ -72,7 +72,7 @@ public:
         size_t level;
         size_t length = strlen(key);
         int index;
-        size_t lastLevel;
+        size_t lastLevel = 0;
 
         auto pCrawl = root;
         auto lastVal = T();
@@ -95,7 +95,7 @@ public:
             }
         }
 
-        return { .val = lastVal, .len = lastLevel };
+        return { .val = lastVal, .len = lastLevel + 1 };
     }
 };
 
