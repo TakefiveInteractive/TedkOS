@@ -89,6 +89,7 @@ private:
     int numFds;
 
     void mount(AbstractFS *fs, const char *path);
+    bool isInvalidFd(int32_t fd);
 
 public:
     AbstractFS *_kissFS;  // this is public for cp2 cuz TAs have to test it
