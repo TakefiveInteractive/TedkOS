@@ -1,12 +1,81 @@
-#include <inc/x86/filesystem.h>
+#include <inc/fs/kiss.h>
+#include <inc/mbi_info.h>
 
 namespace filesystem {
+
+static const int SPECIAL_DEVICE = 0;
+static const int DIRECTORY = 1;
+static const int NORMAL_FILE = 2;
 
 uint32_t fsceil(uint32_t len, uint32_t blkSize)
 {
     uint32_t remainder = len % blkSize;
     if (remainder > 0) return len / blkSize + 1;
     return len / blkSize;
+}
+
+void KissFS::init()
+{
+    module_t* mod = (module_t*) MultiBootInfoAddress->mods_addr;
+    initFromMemoryAddress((uint8_t *) mod->mod_start, (uint8_t *) mod->mod_end);
+}
+
+bool KissFS::open(const char* filename, FsSpecificData *data)
+{
+    Filename fn((const char*)filename);
+    bool found;
+    uint32_t dentryIdx = dentryIndexOfFilename.get(fn, found);
+    if (!found)
+    {
+        return false;
+    }
+    else
+    {
+        data->filetype = dentries[dentryIdx].filetype;
+        if (dentries[dentryIdx].filetype == DIRECTORY)
+        {
+            // Dir
+            data->dentryData.base = reinterpret_cast<uint8_t *>(&dentries[0]);
+            data->dentryData.idx = 0;
+            data->dentryData.max = numDentries;
+        }
+        else
+        {
+            // File
+            data->inode = dentries[dentryIdx].inode;
+        }
+        return true;
+    }
+}
+
+int32_t KissFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
+{
+    if (data->filetype == DIRECTORY)
+    {
+        // Read directory
+        dentry_t *dentries = reinterpret_cast<dentry_t *>(data->dentryData.base);
+        if (data->dentryData.idx >= data->dentryData.max)
+        {
+            return -1;
+        }
+        else
+        {
+            strncpy(reinterpret_cast<char *>(buf), dentries[data->dentryData.idx].filename, len);
+            data->dentryData.idx++;
+            if (data->dentryData.idx == data->dentryData.max - 1) return 0;
+            return len;
+        }
+    }
+    else
+    {
+        return readData(data->inode, offset, buf, len);
+    }
+}
+
+int32_t KissFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)
+{
+    // Read-only
+    return -1;
 }
 
 struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
@@ -34,7 +103,7 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
         inodes[i].numDataBlocks = fsceil(inodes[i].size, BlockSize);
         for (size_t j = 0; j < inodes[i].numDataBlocks; j++)
         {
-             reader >> inodes[i].datablocks[j];
+            reader >> inodes[i].datablocks[j];
         }
     }
 
@@ -122,7 +191,5 @@ bool KissFS::readBlock(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint
     memcpy(buf, imageStartingAddress + rawBlockId * BlockSize + offset, len);
     return true;
 }
-
-KissFS kissFS;
 
 }

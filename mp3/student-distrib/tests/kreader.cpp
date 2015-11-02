@@ -3,7 +3,7 @@
 
 #include <inc/fops_kb.h>
 #include <inc/fops_term.h>
-#include <inc/x86/filesystem_wrapper.h>
+#include <inc/fs/kiss_wrapper.h>
 
 
 // keyboard buffer size
