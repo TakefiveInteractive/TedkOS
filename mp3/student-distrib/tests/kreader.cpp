@@ -70,7 +70,7 @@ int kreader_main (int32_t term, int32_t kb)
                 fs_write(term, (const void*)filebuf, len);
                 if (len > 0)
                 {
-                    termputarr(term, "\npress enter to read next block...");
+                    termputarr(term, "\n\npress enter to read next block...\n");
                     fs_read (kb, (void*)buf, 1);
                 }
             } while (len > 0);
