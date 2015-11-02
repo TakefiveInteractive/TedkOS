@@ -78,6 +78,12 @@ int32_t KissFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf,
     return -1;
 }
 
+bool KissFS::close(const char* filename, FsSpecificData *fdData)
+{
+    //TODO: clean up memory
+    return true;
+}
+
 struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
 
 void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)

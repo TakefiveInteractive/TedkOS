@@ -102,5 +102,10 @@ int32_t Dispatcher::close(int32_t fd)
     return 0;
 }
 
+void Dispatcher::register_devfs(const char* path, const FOpsTable& jtable)
+{
+   static_cast<DevFS *>(_devFS)->registerDevice(path, jtable);
+}
+
 }
 

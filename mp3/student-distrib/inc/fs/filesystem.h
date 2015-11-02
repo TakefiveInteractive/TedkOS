@@ -4,14 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <inc/fs/fops.h>
 #include <inc/prefix_tree.h>
 #include <inc/fixedmemorypool.h>
-
-/* Read a single character from the device */
-typedef int32_t (*readFunc) (uint8_t *buf, int32_t bytes);
-
-/* Write a single character to device */
-typedef int32_t (*writeFunc) (const uint8_t *buf, int32_t bytes);
 
 #ifdef __cplusplus
 namespace filesystem {
@@ -55,11 +50,6 @@ struct HashFunc {
 
 class AbstractFS;
 
-struct JumpTable {
-    readFunc read;
-    writeFunc write;
-};
-
 struct FsSpecificData {
     uint8_t filetype;
     union {
@@ -69,7 +59,7 @@ struct FsSpecificData {
             uint32_t idx;
             uint32_t max;
         } dentryData;
-        JumpTable jtable;
+        FOpsTable jtable;
     };
 };      // Broken abstraction here... fix after kmalloc
 
@@ -83,6 +73,7 @@ class AbstractFS {
 public:
     virtual void init() = 0;
     virtual bool open(const char* filename, FsSpecificData *fdData) = 0;
+    virtual bool close(const char* filename, FsSpecificData *fdData) = 0;
     virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len) = 0;
     virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len) = 0;
 };
@@ -110,6 +101,7 @@ public:
     int32_t write(int32_t fd, const void *buf, int32_t nbytes);
     int32_t open(const char *filename);
     int32_t close(int32_t fd);
+    void register_devfs(const char* path, const FOpsTable& jtable);
 };
 
 extern Dispatcher dispatcher;
