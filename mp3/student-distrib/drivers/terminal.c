@@ -366,7 +366,10 @@ void term_putc(uint8_t c)
     // Re-Initialize the DELETE buffer. (Things printed from screens are not deletable)
     RINGBUF_INIT(&term_delete_buf);
 
-    if(c == '\n' || c == '\r') {
+    if(c == '\0') {
+        // We should not print spaces for any trailing null characters
+        ;
+    } else if(c == '\n' || c == '\r') {
         if(next_char_y < SCREEN_HEIGHT - 1)
         {
             next_char_y++;
