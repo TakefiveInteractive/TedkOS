@@ -45,18 +45,8 @@ int kreader_main ()
         if ('\0' == buf[0])
             continue;
 
-        if (cnt == 1 && buf[0] == '.')
+        if (cnt == 2 && buf[0] == '/' && buf[1] == '.')
         {
-            /*int i;
-            for(i = 0; 0 == 0; i++)
-            {
-                rval = read_dentry_by_index(i, &dentry);
-                if(rval)
-                    break;
-                termputarr(term, "File: ");
-                termputarr(term, dentry.filename);
-                termputarr(term, "\n");
-            }*/
             int32_t fd, cnt;
 
             if (-1 == (fd = fs_open("/."))) {
@@ -64,37 +54,36 @@ int kreader_main ()
                 continue;
             }
 
-            while (0 != (cnt = fs_read(fd, buf, sizeof(filebuf) - 1))) {
+            while (0 != (cnt = fs_read(fd, filebuf, sizeof(filebuf) - 1))) {
                 if (-1 == cnt) {
                     termputarr(term, "directory entry read failed\n");
                     continue;
                 }
-                buf[cnt] = '\n';
-                buf[cnt + 1] = '\0';
-                printf("%s", buf);
+                filebuf[cnt] = '\n';
+                filebuf[cnt + 1] = '\0';
+                printf("%s", filebuf);
             }
 
             continue;
         }
-        rval = read_dentry_by_name(buf, &dentry);
-        if (-1 == rval)
+        int fd = fs_open((const char *)buf);
+        if (-1 == fd)
         {
             termputarr (term, "no such file\n");
         }
         else
         {
-            size_t offset = 0;
-            while(1)
+            int len = 0;
+            do
             {
-                size_t len = read_data(dentry.inode, offset, filebuf, sizeof(filebuf));
-                if(len <= 0)
-                    break;
-                offset += len;
+                len = fs_read(fd, filebuf, sizeof(filebuf) - 1);
                 fs_write(term, (const void*)filebuf, len);
-                termputarr(term, "\npress enter to read next block...");
-                fs_read (kb, (void*)buf, 1);
-            }
+                if (len > 0)
+                {
+                    termputarr(term, "\npress enter to read next block...");
+                    fs_read (kb, (void*)buf, 1);
+                }
+            } while (len > 0);
         }
     }
 }
-
