@@ -18,7 +18,7 @@ public:
 
     virtual void init();
     virtual bool open(const char* filename, FsSpecificData *fdData);
-    virtual bool close(const char* filename, FsSpecificData *fdData);
+    virtual bool close(FsSpecificData *fdData);
     virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len);
     virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len);
 

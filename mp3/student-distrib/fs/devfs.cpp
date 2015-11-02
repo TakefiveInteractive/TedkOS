@@ -44,7 +44,7 @@ int32_t DevFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, 
     return data->jtable.write(NULL, buf, len);
 }
 
-bool DevFS::close(const char* filename, FsSpecificData *data)
+bool DevFS::close(FsSpecificData *data)
 {
     // TODO: deallocate FsSpecificData, if possible.
     return data->jtable.close(NULL) == 0;

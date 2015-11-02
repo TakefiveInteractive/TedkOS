@@ -12,23 +12,11 @@
 
 #define termputarr(FD, ARR) {fs_write((FD), (const void*)(ARR), sizeof(ARR)/sizeof(char));}
 
-int kreader_main ()
+// Currently new "instance" only needs stdin and stdout
+int kreader_main (int32_t term, int32_t kb)
 {
     int32_t cnt, rval;
-    int32_t term, kb;
     uint8_t buf[BUFSIZE];
-
-    printf("Open terminal\n");
-    rval = fs_open("/dev/term");
-    if(rval == -1)
-        return -1;
-    term = rval;
-
-    printf("Open keyboard\n");
-    rval = fs_open("/dev/keyb");
-    if(rval == -1)
-        return -1;
-    kb = rval;
 
     termputarr (term, "Starting Kernel CMD: File Reader\n");
 

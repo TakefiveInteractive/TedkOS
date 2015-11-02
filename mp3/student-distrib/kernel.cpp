@@ -130,7 +130,7 @@ _entry (unsigned long magic, unsigned long addr)
     {
         int rval;
         printf("trying to start test programs... ");
-        rval = kreader_main();
+        rval = kshell_main();
         if(rval)
             printf("FAILED.\n");
     }
