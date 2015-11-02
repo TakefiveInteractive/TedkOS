@@ -18,13 +18,15 @@ int kreader_main ()
     int32_t term, kb;
     uint8_t buf[BUFSIZE];
 
-    rval = fs_open((char*)"/dev/term");
-    if(rval)
+    printf("Open terminal\n");
+    rval = fs_open("/dev/term");
+    if(rval == -1)
         return -1;
     term = rval;
 
-    rval = fs_open((char*)"/dev/kb");
-    if(rval)
+    printf("Open keyboard\n");
+    rval = fs_open("/dev/keyb");
+    if(rval == -1)
         return -1;
     kb = rval;
 
@@ -86,4 +88,5 @@ int kreader_main ()
             } while (len > 0);
         }
     }
+    return 0;
 }

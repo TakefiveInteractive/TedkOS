@@ -126,7 +126,7 @@ _entry (unsigned long magic, unsigned long addr)
     printf("Loading frame1.txt, size = %d\n", len1);
     puts((const char *)buf1);
 
-    while(1)
+    //while(1)
     {
         int rval;
         printf("trying to start test programs... ");
