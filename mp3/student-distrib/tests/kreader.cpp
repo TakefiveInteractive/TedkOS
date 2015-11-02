@@ -15,7 +15,7 @@
 // Currently new "instance" only needs stdin and stdout
 int kreader_main (int32_t term, int32_t kb)
 {
-    int32_t cnt, rval;
+    int32_t cnt;
     uint8_t buf[BUFSIZE];
 
     termputarr (term, "Starting Kernel CMD: File Reader\n");
