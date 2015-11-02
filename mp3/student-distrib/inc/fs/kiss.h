@@ -23,43 +23,8 @@ struct inode_t {
 #ifdef __cplusplus
 namespace filesystem {
 
-    static const uint32_t MaxFilenameLength = 32;
     static const uint32_t MaxNumFiles = 64;
     static const uint32_t BlockSize = 4096;
-
-    /* Class holding a filename that implements a proper equal operator */
-    class Filename {
-        private:
-            const char *str;
-        public:
-            Filename(const char *s) { this->str = s; }
-
-            Filename() { this->str = nullptr; }
-
-            bool operator == (const Filename& rhs) const {
-                return strncmp(str, rhs.str, MaxFilenameLength) == 0;
-            }
-
-            bool operator != (const Filename& rhs) const {
-                return !(*this == rhs);
-            }
-
-            const char operator [] (size_t idx) const { return str[idx]; };
-    };
-
-    struct HashFunc {
-        static uint32_t hash(const Filename& s)
-        {
-            uint32_t hash = 0;
-            uint32_t used = 0;
-            while (s[used] && used < MaxFilenameLength)
-            {
-                hash = hash * 101 + s[used];
-                used++;
-            }
-            return hash;
-        }
-    };
 
     template<size_t num>
     struct __attribute__ ((__packed__)) SkipStruct {
@@ -128,7 +93,11 @@ namespace filesystem {
         void initFromMemoryAddress(uint8_t *mem, uint8_t *end);
 
     public:
-        void init();
+        virtual void init();
+        virtual bool open(const char* filename, FsSpecificData *fdData);
+        virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len);
+        virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len);
+
         int32_t readDentry(const uint8_t* fname, dentry_t* dentry);
         int32_t readDentry(uint32_t index, dentry_t* dentry);
         int32_t readData(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length);
