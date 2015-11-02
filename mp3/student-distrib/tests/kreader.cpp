@@ -9,6 +9,9 @@
 // keyboard buffer size
 #define BUFSIZE 128
 
+// approximately one page of screen can have 256 chars
+#define APPROX_PAGE_SIZE   256
+
 #define termputarr(FD, ARR) {term_write((void*)(FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
 
 int kreader_main ()
@@ -25,7 +28,7 @@ int kreader_main ()
 
     while (1) {
         struct dentry_t dentry;
-        uint8_t filebuf[10000] = {};
+        uint8_t filebuf[APPROX_PAGE_SIZE] = {};
 
         termputarr (1, "read file> ");
         if (-1 == (cnt = kb_read (0, buf, BUFSIZE-1))) {
