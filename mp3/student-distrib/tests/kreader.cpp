@@ -59,8 +59,17 @@ int kreader_main ()
         }
         else
         {
-            size_t len = read_data(dentry.inode, 0, filebuf, sizeof(filebuf));
-            term_write(1, filebuf, len);
+            size_t offset = 0;
+            while(1)
+            {
+                size_t len = read_data(dentry.inode, offset, filebuf, sizeof(filebuf));
+                if(len <= 0)
+                    break;
+                offset += len;
+                term_write(1, filebuf, len);
+                termputarr(1, "\npress enter to read next block...");
+                kb_read (0, buf, 1);
+            }
         }
     }
 }
