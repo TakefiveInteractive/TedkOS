@@ -101,8 +101,8 @@ DEFINE_DRIVER_INIT(term)
     RINGBUF_INIT(&term_delete_buf);
     RINGBUF_INIT(&term_read_buf);
 
-    register_devfs("/dev/term", fops_term);
-    register_devfs("/dev/keyb", fops_kb);
+    register_devfs("term", fops_term);
+    register_devfs("keyb", fops_kb);
 
     spin_unlock_irqrestore(&term_lock, flag);
 }
