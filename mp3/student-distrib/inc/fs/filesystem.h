@@ -7,6 +7,12 @@
 #include <inc/prefix_tree.h>
 #include <inc/fixedmemorypool.h>
 
+/* Read a single character from the device */
+typedef int32_t (*readFunc) (uint8_t *buf, int32_t bytes);
+
+/* Write a single character to device */
+typedef int32_t (*writeFunc) (const uint8_t *buf, int32_t bytes);
+
 #ifdef __cplusplus
 namespace filesystem {
 
@@ -48,7 +54,11 @@ struct HashFunc {
 };
 
 class AbstractFS;
-struct JumpTable;
+
+struct JumpTable {
+    readFunc read;
+    writeFunc write;
+};
 
 struct FsSpecificData {
     uint8_t filetype;
