@@ -6,7 +6,7 @@
 
 namespace util {
 
-template <typename T, unsigned int capacity>
+template <typename T, size_t capacity>
 class MemoryPool
 {
 private:
@@ -19,13 +19,13 @@ public:
     {
         unusedIndex = capacity - 1;
 
-        for (int i = 0; i < capacity; i++)
+        for (size_t i = 0; i < capacity; i++)
         {
             unusedMemory[i] = &memory[i];
         }
     }
 
-    T* get(size_t size)
+    T* get()
     {
         if (unusedIndex < 0) return nullptr;
         return unusedMemory[unusedIndex--];
