@@ -114,7 +114,7 @@ int32_t kb_close(void* fdEntity)
     spin_lock_irqsave(& term_lock, flag);
     isThisTerminalInUse[0] = 0;
     isThisTerminalWaitingForEnter[0] = 0;
-    
+
     // This is required by handout. But actually clear at OPEN is enough.
     RINGBUF_INIT(&term_read_buf);
     spin_unlock_irqrestore(&term_lock, flag);
