@@ -12,7 +12,7 @@
 // approximately one page of screen can have 256 chars
 #define APPROX_PAGE_SIZE   256
 
-#define termputarr(FD, ARR) {term_write((void*)(FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
+#define termputarr(FD, ARR) {term_write((FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t)-1);}
 
 int kreader_main ()
 {
@@ -83,4 +83,3 @@ int kreader_main ()
         }
     }
 }
-
