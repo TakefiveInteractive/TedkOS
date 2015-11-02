@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <inc/fops_kb.h>
-#include <inc/fops_term.h>
 #include <inc/fs/filesystem_wrapper.h>
 #include <inc/fs/kiss_wrapper.h>
 
@@ -12,27 +10,33 @@
 // approximately one page of screen can have 256 chars
 #define APPROX_PAGE_SIZE   256
 
-#define termputarr(FD, ARR) {term_write((void*)(FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
+#define termputarr(FD, ARR) {fs_write((FD), (const void*)(ARR), sizeof(ARR)/sizeof(char));}
 
 int kreader_main ()
 {
     int32_t cnt, rval;
+    int32_t term, kb;
     uint8_t buf[BUFSIZE];
-    rval = term_open((uint8_t*)"/dev/term");
+
+    rval = fs_open((char*)"/dev/term");
     if(rval)
         return -1;
-    rval = kb_open((uint8_t*)"/dev/kb");
+    term = rval;
+
+    rval = fs_open((char*)"/dev/kb");
     if(rval)
         return -1;
-    termputarr (1, "Starting Kernel CMD: File Reader\n");
+    kb = rval;
+
+    termputarr (term, "Starting Kernel CMD: File Reader\n");
 
     while (1) {
         struct dentry_t dentry;
         uint8_t filebuf[APPROX_PAGE_SIZE] = {};
 
-        termputarr (1, "read file> ");
-        if (-1 == (cnt = kb_read (0, buf, BUFSIZE-1))) {
-            termputarr (1, "read from keyboard failed\n");
+        termputarr (term, "read file> ");
+        if (-1 == (cnt = fs_read (kb, (void*)buf, BUFSIZE-1))) {
+            termputarr (term, "read from keyboard failed\n");
             return 3;
         }
         if (cnt > 0 && '\n' == buf[cnt - 1])
@@ -49,20 +53,20 @@ int kreader_main ()
                 rval = read_dentry_by_index(i, &dentry);
                 if(rval)
                     break;
-                termputarr(1, "File: ");
-                termputarr(1, dentry.filename);
-                termputarr(1, "\n");
+                termputarr(term, "File: ");
+                termputarr(term, dentry.filename);
+                termputarr(term, "\n");
             }*/
             int32_t fd, cnt;
 
             if (-1 == (fd = fs_open("/."))) {
-                termputarr(1, "directory open failed\n");
+                termputarr(term, "directory open failed\n");
                 continue;
             }
 
             while (0 != (cnt = fs_read(fd, buf, sizeof(filebuf) - 1))) {
                 if (-1 == cnt) {
-                    termputarr(1, "directory entry read failed\n");
+                    termputarr(term, "directory entry read failed\n");
                     continue;
                 }
                 buf[cnt] = '\n';
@@ -75,7 +79,7 @@ int kreader_main ()
         rval = read_dentry_by_name(buf, &dentry);
         if (-1 == rval)
         {
-            termputarr (1, "no such file\n");
+            termputarr (term, "no such file\n");
         }
         else
         {
@@ -86,9 +90,9 @@ int kreader_main ()
                 if(len <= 0)
                     break;
                 offset += len;
-                term_write(NULL, filebuf, len);
-                termputarr(1, "\npress enter to read next block...");
-                kb_read (0, buf, 1);
+                fs_write(term, (const void*)filebuf, len);
+                termputarr(term, "\npress enter to read next block...");
+                fs_read (kb, (void*)buf, 1);
             }
         }
     }
