@@ -10,7 +10,7 @@ namespace filesystem {
 }
 
 // C functions
-void register_devfs(const char* path, const FOpsTable& jtable)
+void register_devfs(const char* path, FOpsTable jtable)
 {
     filesystem::dispatcher.register_devfs(path, jtable);
 }

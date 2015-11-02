@@ -34,12 +34,14 @@ bool DevFS::open(const char* filename, FsSpecificData *data)
 
 int32_t DevFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
 {
-    return data->jtable.read(buf, len);
+    // Call FOpsReadImpl, currently we do not have fdEntry structure (=NULL)
+    return data->jtable.read(NULL, buf, len);
 }
 
 int32_t DevFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)
 {
-    return data->jtable.write(buf, len);
+    // Call FOpsWriteImpl currently we do not have fdEntry structure (=NULL)
+    return data->jtable.write(NULL, buf, len);
 }
 
 bool DevFS::close(const char* filename, FsSpecificData *data)

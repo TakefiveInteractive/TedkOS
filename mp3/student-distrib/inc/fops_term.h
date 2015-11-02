@@ -7,10 +7,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-int32_t term_write(int32_t fd, const void* buf, int32_t nbytes);
-int32_t term_read(int32_t fd, void* buf, int32_t nbytes);
-int32_t term_open(const uint8_t* filename);
-int32_t term_close(int32_t fd);
+int32_t term_write(void* fdEntity, const uint8_t* buf, int32_t nbytes);
+int32_t term_read(void* fdEntity, uint8_t* buf, int32_t nbytes);
+int32_t term_open(void* fdEntity);
+int32_t term_close(void* fdEntity);
 #ifdef __cplusplus
 }
 #endif
