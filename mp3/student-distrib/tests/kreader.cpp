@@ -43,16 +43,6 @@ int kreader_main ()
 
         if (cnt == 2 && buf[0] == '/' && buf[1] == '.')
         {
-            /*int i;
-            for(i = 0; 0 == 0; i++)
-            {
-                rval = read_dentry_by_index(i, &dentry);
-                if(rval)
-                    break;
-                termputarr(1, "File: ");
-                termputarr(1, dentry.filename);
-                termputarr(1, "\n");
-            }*/
             int32_t fd, cnt;
 
             if (-1 == (fd = fs_open("/."))) {
