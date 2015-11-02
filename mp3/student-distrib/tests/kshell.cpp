@@ -3,14 +3,13 @@
 
 #include <inc/fops_kb.h>
 #include <inc/fops_term.h>
-#include <inc/tests.h>
 #include <inc/fs/kiss_wrapper.h>
 
 
 // keyboard buffer size
 #define BUFSIZE 128
 
-#define termputarr(FD, ARR) {term_write((FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
+#define termputarr(FD, ARR) {term_write((void*)(FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
 
 int kshell_main ()
 {
@@ -22,7 +21,7 @@ int kshell_main ()
     rval = kb_open((uint8_t*)"/dev/kb");
     if(rval)
         return -1;
-    termputarr (1, "Welcome to Kernel Commander:\n");
+    termputarr (1, "Starting Kernel CMD: File Reader\n");
 
     while (1) {
         struct dentry_t dentry;
@@ -67,7 +66,7 @@ int kshell_main ()
                 if(len <= 0)
                     break;
                 offset += len;
-                term_write(1, filebuf, len);
+                term_write(NULL, filebuf, len);
                 termputarr(1, "\npress enter to read next block...");
                 kb_read (0, buf, 1);
             }

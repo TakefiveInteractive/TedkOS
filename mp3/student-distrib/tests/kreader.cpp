@@ -9,7 +9,7 @@
 // keyboard buffer size
 #define BUFSIZE 128
 
-#define termputarr(FD, ARR) {term_write((FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
+#define termputarr(FD, ARR) {term_write((void*)(FD), (uint8_t*)(ARR), sizeof(ARR)/sizeof(uint8_t));}
 
 int kreader_main ()
 {
@@ -66,7 +66,7 @@ int kreader_main ()
                 if(len <= 0)
                     break;
                 offset += len;
-                term_write(1, filebuf, len);
+                term_write(NULL, filebuf, len);
                 termputarr(1, "\npress enter to read next block...");
                 kb_read (0, buf, 1);
             }

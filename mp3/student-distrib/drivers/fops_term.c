@@ -11,7 +11,7 @@
 //      2-2. Thus every terminal has its own read buffer.
 //      2-3. Also: thus: Open keyboard <=> scanf <=> only 1 program can open it in same terminal at one time.
 
-int32_t term_write(int32_t fd, const void* buf, int32_t nbytes)
+int32_t term_write(void* fdEntity, const uint8_t* buf, int32_t nbytes)
 {
     int32_t i;
     const char* cbuf = (const char*) buf;
@@ -20,18 +20,18 @@ int32_t term_write(int32_t fd, const void* buf, int32_t nbytes)
     return nbytes;
 }
 
-int32_t term_read(int32_t fd, void* buf, int32_t nbytes)
+int32_t term_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
 {
     return -EFOPS;
 }
 
-int32_t term_open(const uint8_t* filename)
+int32_t term_open(void* fdEntity)
 {
     // Do some initializatio here !
     return 0;
 }
 
-int32_t term_close(int32_t fd)
+int32_t term_close(void* fdEntity)
 {
     // Do some destruction here !
     // Warning: clear term_read_buffer is NOT here, but in FOPS_KB

@@ -7,6 +7,9 @@
 #include <inc/d2d/to_kb.h>
 #include <inc/d2d/to_term.h>
 
+#include <inc/fops_kb.h>
+#include <inc/fops_term.h>
+
 // The width must be an even number so that
 //      scroll_down_nolock can use rep movsd.
 #define TAB_WIDTH       4
@@ -69,6 +72,24 @@ static inline void show_char_at_nolock(uint32_t x, uint32_t y, uint8_t c)
     *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1) + 1) = TEXT_STYLE;
 }
 
+/********** FOpsTable values ***********/
+#include <inc/fs/fops.h>
+#include <inc/fs/dev_wrapper.h>
+
+FOpsTable fops_term = {
+    .open = term_open,
+    .close = term_close,
+    .write = term_write,
+    .read = term_read
+};
+
+FOpsTable fops_kb = {
+    .open = kb_open,
+    .close = kb_close,
+    .write = kb_write,
+    .read = kb_read
+};
+
 /********** Public functions ***********/
 
 DEFINE_DRIVER_INIT(term)
@@ -79,6 +100,9 @@ DEFINE_DRIVER_INIT(term)
     // Initialize the buffer.
     RINGBUF_INIT(&term_delete_buf);
     RINGBUF_INIT(&term_read_buf);
+
+    register_devfs("/dev/term", fops_term);
+    register_devfs("/dev/keyb", fops_kb);
 
     spin_unlock_irqrestore(&term_lock, flag);
 }

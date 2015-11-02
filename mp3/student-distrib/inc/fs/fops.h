@@ -15,10 +15,10 @@ extern "C" {
 */
 
 /* Read from the device */
-typedef int32_t (*FOpsReadImpl) (uint8_t *buf, int32_t bytes);
+typedef int32_t (*FOpsReadImpl) (void* fdEntity, uint8_t *buf, int32_t bytes);
 
 /* Write to device */
-typedef int32_t (*FOpsWriteImpl) (const uint8_t *buf, int32_t bytes);
+typedef int32_t (*FOpsWriteImpl) (void* fdEntity, const uint8_t *buf, int32_t bytes);
 
 /* initialize the device */
 // fdEntity is pointer to the structure at fd index.
