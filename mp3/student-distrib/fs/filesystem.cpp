@@ -66,8 +66,12 @@ int32_t Dispatcher::open(const char *filename)
     // Patch: support accessing rtc without fs root
     if (strncmp(fn, "rtc", strlen(fn)) == 0) fn = "/dev/rtc";
     // Patch #2: append slash in front of raw path
-    const char goodName[70] = { '/', '\0' };
-
+    char goodName[70] = { '/', '\0' };
+    if (fn[0] != '/')
+    {
+        strncpy(&goodName[1], fn, 69);
+        fn = goodName;
+    }
 
     auto x = lookup.search(fn);
     if (x.val == nullptr)
@@ -82,7 +86,7 @@ int32_t Dispatcher::open(const char *filename)
         fileOfFd[fd] = fdData;
         *fdData = { .offset = 0, .fs = _fs };
         // Skip over x.len characters, trimming the mount point from fs
-        bool result = _fs->open(filename + x.len, &fdData->fsSpecificData);
+        bool result = _fs->open(fn + x.len, &fdData->fsSpecificData);
         if (!result)
         {
             pool.release(fdData);
