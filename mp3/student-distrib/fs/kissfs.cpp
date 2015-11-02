@@ -63,7 +63,7 @@ int32_t KissFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32
             strncpy(reinterpret_cast<char *>(buf), dentries[data->dentryData.idx].filename, len);
             data->dentryData.idx++;
             if (data->dentryData.idx == data->dentryData.max - 1) return 0;
-            return len;
+            return strlen(reinterpret_cast<char *>(buf));
         }
     }
     else
