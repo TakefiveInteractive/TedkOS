@@ -18,7 +18,7 @@ case "$(uname -s)" in
         if [[ -z $? ]]; then
             echo 'i686-elf-gcc'
         else
-            if [[ ! -a gcc-strip.tar.gz ]]; then
+            if [[ ! -a gcc-strip-nolink.tar.gz ]]; then
                 wget --no-check-certificate https://github.com/TakefiveInteractive/ece391ForMac/releases/download/0.1/gcc-strip-nolink.tar.gz &> /dev/null
             fi
             if [[ ! -a cross/bin/i686-elf-gcc ]] || [[ ! -a cross/bin/i686-elf-ld ]]; then
