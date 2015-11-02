@@ -161,7 +161,7 @@ int32_t KissFS::readData(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t
                 // read stuff
                 uint32_t len = length;
                 if (len > bytesRemaining) len = bytesRemaining;
-                if (length > BlockSize) len = BlockSize;
+                if (len > BlockSize) len = BlockSize;
                 if (!readBlock(datablockId, realOffset, buf + read, len)) return -1;
                 length -= len;
                 bytesRemaining -= len;
