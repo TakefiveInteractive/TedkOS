@@ -12,18 +12,21 @@ void DevFS::init()
 
 }
 
-void DevFS::registerDevice(const char* path, readFunc reader, writeFunc writer)
+void DevFS::registerDevice(const char* path, const FOpsTable& jtable)
 {
     Filename fn(path);
-    JumpTable jtable = { .read = reader, .write = writer };
     deviceOfFilename.put(fn, jtable);
 }
 
 bool DevFS::open(const char* filename, FsSpecificData *data)
 {
     bool found;
-    JumpTable jtable = deviceOfFilename.get(Filename(filename), found);
+    FOpsTable jtable = deviceOfFilename.get(Filename(filename), found);
     if (!found) return false;
+
+    // Call FOpsOpenImpl, currently we do not have fdEntry structure (=NULL)
+    if (jtable.open(NULL) != 0)
+        return false;
 
     data->jtable = jtable;
     return true;
@@ -37,6 +40,12 @@ int32_t DevFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_
 int32_t DevFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)
 {
     return data->jtable.write(buf, len);
+}
+
+bool DevFS::close(const char* filename, FsSpecificData *data)
+{
+    // TODO: deallocate FsSpecificData, if possible.
+    return data->jtable.close(NULL) == 0;
 }
 
 }
