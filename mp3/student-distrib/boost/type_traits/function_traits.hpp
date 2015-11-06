@@ -10,8 +10,6 @@
 #define BOOST_TT_FUNCTION_TRAITS_HPP_INCLUDED
 
 #include <boost/config.hpp>
-//#include <boost/type_traits/is_function.hpp>
-#include <boost/type_traits/add_pointer.hpp>
 
 namespace boost {
 
