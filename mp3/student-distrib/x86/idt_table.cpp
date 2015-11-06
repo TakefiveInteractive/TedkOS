@@ -2,6 +2,7 @@
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
+#include <inc/syscalls/syscalls.h>
 
 extern "C" void interrupt_handler_with_number (size_t index, unsigned long int code);
 
@@ -58,6 +59,15 @@ class Loop {
     static inline void exec() {
         raw_interrupt_handlers[i] = VectorExtractingMetaFunc<i>::value;
         Loop<i - 1>::exec();
+    }
+};
+
+template<>
+class Loop<0x80> {
+  public:
+    static inline void exec() {
+        raw_interrupt_handlers[0x80] = systemCallHandler;
+        Loop<0x80 - 1>::exec();
     }
 };
 
