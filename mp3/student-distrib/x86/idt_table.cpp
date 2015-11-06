@@ -2,6 +2,7 @@
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
+#include <boost/type_traits/function_traits.hpp>
 
 extern "C" void interrupt_handler_with_number (size_t index, unsigned long int code);
 
