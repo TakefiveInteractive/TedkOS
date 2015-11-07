@@ -1,0 +1,761 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+ASM	/Users/wangyu/ece391_common/mp3/student-distrib/boot.S	/^#define ASM     1$/;"	define	line:4
+start	/Users/wangyu/ece391_common/mp3/student-distrib/boot.S	/^start:$/;"	label	line:20
+_start	/Users/wangyu/ece391_common/mp3/student-distrib/boot.S	/^_start:$/;"	label	line:21
+continue	/Users/wangyu/ece391_common/mp3/student-distrib/boot.S	/^continue:$/;"	label	line:26
+keep_going	/Users/wangyu/ece391_common/mp3/student-distrib/boot.S	/^keep_going:$/;"	label	line:33
+halt	/Users/wangyu/ece391_common/mp3/student-distrib/boot.S	/^halt:$/;"	label	line:55
+_init	/Users/wangyu/ece391_common/mp3/student-distrib/crti.S	/^_init:$/;"	label	line:4
+_fini	/Users/wangyu/ece391_common/mp3/student-distrib/crti.S	/^_fini:$/;"	label	line:12
+isThisTerminalInUse	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_kb.c	/^int8_t isThisTerminalInUse[NUM_TERMINALS] = {0};$/;"	variable	line:7
+isThisTerminalWaitingForEnter	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_kb.c	/^int8_t isThisTerminalWaitingForEnter[NUM_TERMINALS] = {0};$/;"	variable	line:8
+kb_write	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_kb.c	/^int32_t kb_write(void* fdEntity, const uint8_t* buf, int32_t nbytes)$/;"	function	line:19	signature:(void* fdEntity, const uint8_t* buf, int32_t nbytes)
+kb_read	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_kb.c	/^int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)$/;"	function	line:24	signature:(void* fdEntity, uint8_t* buf, int32_t nbytes)
+kb_open	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_kb.c	/^int32_t kb_open(void* fdEntity)$/;"	function	line:86	signature:(void* fdEntity)
+kb_close	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_kb.c	/^int32_t kb_close(void* fdEntity)$/;"	function	line:109	signature:(void* fdEntity)
+term2kb_readover	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_kb.c	/^void term2kb_readover(int terminal_id)$/;"	function	line:125	signature:(int terminal_id)
+term_write	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_term.c	/^int32_t term_write(void* fdEntity, const uint8_t* buf, int32_t nbytes)$/;"	function	line:14	signature:(void* fdEntity, const uint8_t* buf, int32_t nbytes)
+term_read	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_term.c	/^int32_t term_read(void* fdEntity, uint8_t* buf, int32_t nbytes)$/;"	function	line:27	signature:(void* fdEntity, uint8_t* buf, int32_t nbytes)
+term_open	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_term.c	/^int32_t term_open(void* fdEntity)$/;"	function	line:32	signature:(void* fdEntity)
+term_close	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/fops_term.c	/^int32_t term_close(void* fdEntity)$/;"	function	line:38	signature:(void* fdEntity)
+KB_PORT	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^#define KB_PORT /;"	macro	line:7	file:
+KB_INT_NUM	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^#define KB_INT_NUM /;"	macro	line:8	file:
+KB_IRQ_NUM	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^#define KB_IRQ_NUM /;"	macro	line:9	file:
+KB_ID	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^#define KB_ID /;"	macro	line:10	file:
+KD_POLICY	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^#define KD_POLICY /;"	macro	line:11	file:
+KBascii	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^uint32_t KBascii[128] =$/;"	variable	line:17
+SPECIAL_PREFIX	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^#define SPECIAL_PREFIX /;"	macro	line:62	file:
+pending_special	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^int8_t  pending_special = 0;$/;"	variable	line:63
+keyboard_lock	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;$/;"	variable	line:64
+DEFINE_DRIVER_INIT	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^DEFINE_DRIVER_INIT(kb) {$/;"	function	line:68
+DEFINE_DRIVER_REMOVE	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^DEFINE_DRIVER_REMOVE(kb) {$/;"	function	line:79
+kb_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/keyboard.c	/^int kb_handler(int irq, unsigned int saved_reg){$/;"	function	line:103	signature:(int irq, unsigned int saved_reg)
+interrupt_flag	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^volatile int interrupt_flag = 0;$/;"	variable	line:8
+rtc_lock	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^spinlock_t rtc_lock = SPINLOCK_UNLOCKED;$/;"	variable	line:9
+rtc_init	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^void rtc_init()$/;"	function	line:14
+rtc_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^int rtc_handler(int irq, unsigned int saved_reg)$/;"	function	line:28	signature:(int irq, unsigned int saved_reg)
+rtc_read	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^int32_t rtc_read (void* fd, uint8_t* buf, int32_t nbytes)$/;"	function	line:48	signature:(void* fd, uint8_t* buf, int32_t nbytes)
+rtc_write	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^int32_t rtc_write (void* fd, const uint8_t *buf, int32_t nbytes)$/;"	function	line:64	signature:(void* fd, const uint8_t *buf, int32_t nbytes)
+rtc_open	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^int32_t rtc_open (void *fd)$/;"	function	line:78	signature:(void *fd)
+rtc_close	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^int32_t rtc_close (void *fd)$/;"	function	line:91	signature:(void *fd)
+frequency_converter	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^uint8_t frequency_converter(int freq)$/;"	function	line:101	signature:(int freq)
+rtc_change_frequency	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^void rtc_change_frequency(uint8_t rate)$/;"	function	line:127	signature:(uint8_t rate)
+fops_rtc	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^FOpsTable fops_rtc = {$/;"	variable	line:139
+DEFINE_DRIVER_INIT	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^DEFINE_DRIVER_INIT(rtc)$/;"	function	line:146
+DEFINE_DRIVER_REMOVE	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/rtc.c	/^DEFINE_DRIVER_REMOVE(rtc)$/;"	function	line:154
+sp_kkc_handler_table	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal-asm.S	/^sp_kkc_handler_table:$/;"	label	line:8
+ascii_shift_table	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal-asm.S	/^ascii_shift_table:$/;"	label	line:32
+TAB_WIDTH	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define TAB_WIDTH /;"	macro	line:15	file:
+SCREEN_WIDTH	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define SCREEN_WIDTH /;"	macro	line:16	file:
+SCREEN_HEIGHT	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define SCREEN_HEIGHT /;"	macro	line:17	file:
+TEXT_STYLE	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define TEXT_STYLE /;"	macro	line:18	file:
+VMEM_HEAD	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define VMEM_HEAD /;"	macro	line:19	file:
+pending_kc	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^static uint32_t pending_kc = 0;$/;"	variable	line:24	file:
+caps_locked	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^static uint8_t caps_locked = 0;$/;"	variable	line:26	file:
+next_char_x	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^static uint32_t next_char_x = 0;$/;"	variable	line:29	file:
+next_char_y	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^static uint32_t next_char_y = 0;$/;"	variable	line:30	file:
+video_mem	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^static char* video_mem = VMEM_HEAD;$/;"	variable	line:34	file:
+term_lock	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^spinlock_t term_lock = SPINLOCK_UNLOCKED;$/;"	variable	line:37
+RINGBUF_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define RINGBUF_SIZE /;"	macro	line:39	file:
+RINGBUF_TYPE	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define RINGBUF_TYPE /;"	macro	line:40	file:
+term_delete_buf	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^ringbuf_t term_delete_buf;$/;"	variable	line:48
+term_read_buf	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^ringbuf_t term_read_buf;$/;"	variable	line:51
+show_char_at_nolock	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^static inline void show_char_at_nolock(uint32_t x, uint32_t y, uint8_t c)$/;"	function	line:69	file:	signature:(uint32_t x, uint32_t y, uint8_t c)
+fops_term	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^FOpsTable fops_term = {$/;"	variable	line:79
+fops_kb	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^FOpsTable fops_kb = {$/;"	variable	line:86
+DEFINE_DRIVER_INIT	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^DEFINE_DRIVER_INIT(term)$/;"	function	line:95
+DEFINE_DRIVER_REMOVE	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^DEFINE_DRIVER_REMOVE(term)$/;"	function	line:110
+sp_kkc_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^typedef void (*sp_kkc_handler)(uint32_t kernelKeycode);$/;"	typedef	line:135	file:
+kb_to_term	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void kb_to_term(uint32_t kernelKeycode)$/;"	function	line:146	signature:(uint32_t kernelKeycode)
+term_enter_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_enter_handler(uint32_t keycode)$/;"	function	line:240	signature:(uint32_t keycode)
+term_backspace_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_backspace_handler(uint32_t keycode)$/;"	function	line:263	signature:(uint32_t keycode)
+term_capslock_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_capslock_handler(uint32_t keycode)$/;"	function	line:309	signature:(uint32_t keycode)
+term_delete_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_delete_handler(uint32_t keycode)$/;"	function	line:314	signature:(uint32_t keycode)
+term_tab_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_tab_handler(uint32_t keycode)$/;"	function	line:319	signature:(uint32_t keycode)
+term_none_handler	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_none_handler(uint32_t keycode)$/;"	function	line:347	signature:(uint32_t keycode)
+clear_screen_nolock	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void clear_screen_nolock(void)$/;"	function	line:355	signature:(void)
+term_cls	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_cls(void)$/;"	function	line:376	signature:(void)
+term_putc	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void term_putc(uint8_t c)$/;"	function	line:385	signature:(uint8_t c)
+CURSOR_LOC_HIGH_REG	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define CURSOR_LOC_HIGH_REG /;"	macro	line:433	file:
+CURSOR_LOC_LOW_REG	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^#define CURSOR_LOC_LOW_REG /;"	macro	line:434	file:
+set_cursor_nolock	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void set_cursor_nolock(uint32_t x, uint32_t y)$/;"	function	line:445	signature:(uint32_t x, uint32_t y)
+scroll_down_nolock	/Users/wangyu/ece391_common/mp3/student-distrib/drivers/terminal.c	/^void scroll_down_nolock(void)$/;"	function	line:478	signature:(void)
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/fs/dev_wrapper.cpp	/^namespace filesystem {$/;"	namespace	line:5	file:
+register_devfs	/Users/wangyu/ece391_common/mp3/student-distrib/fs/dev_wrapper.cpp	/^    void register_devfs(const char* path, const FOpsTable& jtable)$/;"	function	line:6	namespace:filesystem	signature:(const char* path, const FOpsTable& jtable)
+register_devfs	/Users/wangyu/ece391_common/mp3/student-distrib/fs/dev_wrapper.cpp	/^void register_devfs(const char* path, FOpsTable jtable)$/;"	function	line:13	signature:(const char* path, FOpsTable jtable)
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^namespace filesystem {$/;"	namespace	line:3	file:
+DevFS	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^DevFS::DevFS()$/;"	function	line:5	class:filesystem::DevFS	signature:()
+init	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^void DevFS::init()$/;"	function	line:10	class:filesystem::DevFS	signature:()
+registerDevice	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^void DevFS::registerDevice(const char* path, const FOpsTable& jtable)$/;"	function	line:15	class:filesystem::DevFS	signature:(const char* path, const FOpsTable& jtable)
+open	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^bool DevFS::open(const char* filename, FsSpecificData *data)$/;"	function	line:21	class:filesystem::DevFS	signature:(const char* filename, FsSpecificData *data)
+read	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^int32_t DevFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)$/;"	function	line:35	class:filesystem::DevFS	signature:(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
+write	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^int32_t DevFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)$/;"	function	line:41	class:filesystem::DevFS	signature:(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)
+close	/Users/wangyu/ece391_common/mp3/student-distrib/fs/devfs.cpp	/^bool DevFS::close(FsSpecificData *data)$/;"	function	line:47	class:filesystem::DevFS	signature:(FsSpecificData *data)
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^namespace filesystem {$/;"	namespace	line:5	file:
+MaxMountableFilesystems	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^const size_t MaxMountableFilesystems = 4;$/;"	member	line:7	namespace:filesystem	file:
+dispatcher	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^Dispatcher dispatcher;$/;"	member	line:10	namespace:filesystem	file:
+devFS	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^DevFS devFS;$/;"	member	line:11	namespace:filesystem	file:
+kissFS	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^KissFS kissFS;$/;"	member	line:12	namespace:filesystem	file:
+Dispatcher	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^Dispatcher::Dispatcher()$/;"	function	line:14	class:filesystem::Dispatcher	signature:()
+mountAll	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^void Dispatcher::mountAll()$/;"	function	line:22	class:filesystem::Dispatcher	signature:()
+mount	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^void Dispatcher::mount(AbstractFS *fs, const char *path)$/;"	function	line:31	class:filesystem::Dispatcher	signature:(AbstractFS *fs, const char *path)
+read	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^int32_t Dispatcher::read(int32_t fd, void *buf, int32_t nbytes)$/;"	function	line:36	class:filesystem::Dispatcher	signature:(int32_t fd, void *buf, int32_t nbytes)
+write	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^int32_t Dispatcher::write(int32_t fd, const void *buf, int32_t nbytes)$/;"	function	line:50	class:filesystem::Dispatcher	signature:(int32_t fd, const void *buf, int32_t nbytes)
+open	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^int32_t Dispatcher::open(const char *filename)$/;"	function	line:64	class:filesystem::Dispatcher	signature:(const char *filename)
+close	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^int32_t Dispatcher::close(int32_t fd)$/;"	function	line:101	class:filesystem::Dispatcher	signature:(int32_t fd)
+isInvalidFd	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^bool Dispatcher::isInvalidFd(int32_t fd)$/;"	function	line:120	class:filesystem::Dispatcher	signature:(int32_t fd)
+register_devfs	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem.cpp	/^void Dispatcher::register_devfs(const char* path, const FOpsTable& jtable)$/;"	function	line:127	class:filesystem::Dispatcher	signature:(const char* path, const FOpsTable& jtable)
+fs_read	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem_wrapper.cpp	/^int32_t fs_read(int32_t fd, void *buf, int32_t nbytes)$/;"	function	line:6	signature:(int32_t fd, void *buf, int32_t nbytes)
+fs_write	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem_wrapper.cpp	/^int32_t fs_write(int32_t fd, const void *buf, int32_t nbytes)$/;"	function	line:11	signature:(int32_t fd, const void *buf, int32_t nbytes)
+fs_open	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem_wrapper.cpp	/^int32_t fs_open(const char *filename)$/;"	function	line:16	signature:(const char *filename)
+fs_close	/Users/wangyu/ece391_common/mp3/student-distrib/fs/filesystem_wrapper.cpp	/^int32_t fs_close(int32_t fd)$/;"	function	line:21	signature:(int32_t fd)
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^namespace filesystem {$/;"	namespace	line:4	file:
+SPECIAL_DEVICE	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^static const int SPECIAL_DEVICE = 0;$/;"	member	line:6	namespace:filesystem	file:
+DIRECTORY	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^static const int DIRECTORY = 1;$/;"	member	line:7	namespace:filesystem	file:
+NORMAL_FILE	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^static const int NORMAL_FILE = 2;$/;"	member	line:8	namespace:filesystem	file:
+fsceil	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^uint32_t fsceil(uint32_t len, uint32_t blkSize)$/;"	function	line:10	namespace:filesystem	signature:(uint32_t len, uint32_t blkSize)
+init	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^void KissFS::init()$/;"	function	line:17	class:filesystem::KissFS	signature:()
+open	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^bool KissFS::open(const char* filename, FsSpecificData *data)$/;"	function	line:23	class:filesystem::KissFS	signature:(const char* filename, FsSpecificData *data)
+read	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^int32_t KissFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)$/;"	function	line:51	class:filesystem::KissFS	signature:(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
+readDir	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^int32_t KissFS::readDir(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)$/;"	function	line:63	class:filesystem::KissFS	signature:(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
+write	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^int32_t KissFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)$/;"	function	line:80	class:filesystem::KissFS	signature:(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)
+close	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^bool KissFS::close(FsSpecificData *fdData)$/;"	function	line:86	class:filesystem::KissFS	signature:(FsSpecificData *fdData)
+name_tmp	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };$/;"	struct	line:92	namespace:filesystem	file:
+name	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };$/;"	member	line:92	struct:filesystem::name_tmp	file:
+initFromMemoryAddress	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)$/;"	function	line:94	class:filesystem::KissFS	signature:(uint8_t *startingAddr, uint8_t *endingAddr)
+readDentry	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^int32_t KissFS::readDentry(const uint8_t* fname, dentry_t* dentry)$/;"	function	line:130	class:filesystem::KissFS	signature:(const uint8_t* fname, dentry_t* dentry)
+readDentry	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^int32_t KissFS::readDentry(uint32_t index, dentry_t* dentry)$/;"	function	line:146	class:filesystem::KissFS	signature:(uint32_t index, dentry_t* dentry)
+readData	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^int32_t KissFS::readData(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length)$/;"	function	line:159	class:filesystem::KissFS	signature:(uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length)
+readBlock	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs.cpp	/^bool KissFS::readBlock(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint32_t len)$/;"	function	line:197	class:filesystem::KissFS	signature:(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint32_t len)
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^namespace filesystem {$/;"	namespace	line:3	file:
+init_from_multiboot	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^void init_from_multiboot()$/;"	function	line:5	namespace:filesystem	signature:()
+read_dentry	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^int32_t read_dentry(const uint8_t *fname, dentry_t *dentry)$/;"	function	line:10	namespace:filesystem	signature:(const uint8_t *fname, dentry_t *dentry)
+read_dentry	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^int32_t read_dentry(const uint32_t index, dentry_t* dentry)$/;"	function	line:15	namespace:filesystem	signature:(const uint32_t index, dentry_t* dentry)
+read_data	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^int32_t read_data(const uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length)$/;"	function	line:20	namespace:filesystem	signature:(const uint32_t inode, uint32_t offset, uint8_t *buf, uint32_t length)
+read_dentry_by_name	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)$/;"	function	line:29	signature:(const uint8_t* fname, dentry_t* dentry)
+read_dentry_by_index	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry)$/;"	function	line:34	signature:(uint32_t index, dentry_t* dentry)
+read_data	/Users/wangyu/ece391_common/mp3/student-distrib/fs/kissfs_wrapper.cpp	/^int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)$/;"	function	line:39	signature:(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
+d2d stands for "driver to driver"	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/README.md	/^## d2d stands for "driver to driver"$/;"	function	line:1
+Description	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/README.md	/^## Description$/;"	function	line:3
+For example	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/README.md	/^## For example$/;"	function	line:7
+_DRIVER_TO_KEYBOARD_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_kb.h	/^#define _DRIVER_TO_KEYBOARD_H$/;"	macro	line:2
+_DRIVER_TO_TERMINAL_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define _DRIVER_TO_TERMINAL_H$/;"	macro	line:2
+NUM_ASCII_KKC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define NUM_ASCII_KKC /;"	macro	line:25
+NUM_SPECIAL_KKC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define NUM_SPECIAL_KKC /;"	macro	line:26
+NUM_COMBINE_KKC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define NUM_COMBINE_KKC /;"	macro	line:27
+KKC_PRESS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_PRESS /;"	macro	line:40
+KKC_RELEASE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_RELEASE /;"	macro	line:41
+KKC_CTRL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_CTRL /;"	macro	line:44
+KKC_ALT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_ALT /;"	macro	line:45
+KKC_SHIFT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_SHIFT /;"	macro	line:46
+KKC_SUPER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_SUPER /;"	macro	line:47
+KKC_ENTER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_ENTER /;"	macro	line:50
+KKC_BACKSPACE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_BACKSPACE /;"	macro	line:51
+KKC_DELETE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_DELETE /;"	macro	line:52
+KKC_UP	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_UP /;"	macro	line:53
+KKC_DOWN	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_DOWN /;"	macro	line:54
+KKC_LEFT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_LEFT /;"	macro	line:55
+KKC_RIGHT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_RIGHT /;"	macro	line:56
+KKC_TAB	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_TAB /;"	macro	line:57
+KKC_CAPSLOCK	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_CAPSLOCK /;"	macro	line:58
+KKC_ESC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_ESC /;"	macro	line:59
+KKC_F1	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F1 /;"	macro	line:60
+KKC_F2	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F2 /;"	macro	line:61
+KKC_F3	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F3 /;"	macro	line:62
+KKC_F4	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F4 /;"	macro	line:63
+KKC_F5	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F5 /;"	macro	line:64
+KKC_F6	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F6 /;"	macro	line:65
+KKC_F7	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F7 /;"	macro	line:66
+KKC_F8	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F8 /;"	macro	line:67
+KKC_F9	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F9 /;"	macro	line:68
+KKC_F10	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F10 /;"	macro	line:69
+KKC_F11	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F11 /;"	macro	line:70
+KKC_F12	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_F12 /;"	macro	line:71
+KKC_INSERT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_INSERT /;"	macro	line:72
+KKC_PRSCR	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_PRSCR /;"	macro	line:73
+KKC_PSBRK	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_PSBRK /;"	macro	line:74
+KKC_HOME	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_HOME /;"	macro	line:75
+KKC_END	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_END /;"	macro	line:76
+KKC_PAGEUP	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_PAGEUP /;"	macro	line:77
+KKC_PAGEDOWN	/Users/wangyu/ece391_common/mp3/student-distrib/inc/d2d/to_term.h	/^#define KKC_PAGEDOWN /;"	macro	line:78
+_DEBUG_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/debug.h	/^#define _DEBUG_H$/;"	macro	line:6
+ASSERT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/debug.h	/^#define ASSERT(/;"	macro	line:12
+debugf	/Users/wangyu/ece391_common/mp3/student-distrib/inc/debug.h	/^#define debugf(/;"	macro	line:19
+ASSERT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/debug.h	/^#define ASSERT(/;"	macro	line:26
+debugf	/Users/wangyu/ece391_common/mp3/student-distrib/inc/debug.h	/^#define debugf(/;"	macro	line:28
+_INC_DRIVER_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^#define _INC_DRIVER_H$/;"	macro	line:2
+name	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^	const char* name;$/;"	member	line:5	struct:__anon1
+init	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^	void (*init)();$/;"	member	line:6	struct:__anon1
+remove	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^	void (*remove)();$/;"	member	line:7	struct:__anon1
+driver_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^} driver_t;$/;"	typedef	line:8	typeref:struct:__anon1
+DEFINE_DRIVER_INIT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^#define DEFINE_DRIVER_INIT(/;"	macro	line:11
+DEFINE_DRIVER_REMOVE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^#define DEFINE_DRIVER_REMOVE(/;"	macro	line:14
+DEFINE_DRIVER_INIT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^#define DEFINE_DRIVER_INIT(/;"	macro	line:17
+DEFINE_DRIVER_REMOVE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/driver.h	/^#define DEFINE_DRIVER_REMOVE(/;"	macro	line:20
+_KERNEL_ERRORS_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/error.h	/^#define _KERNEL_ERRORS_H$/;"	macro	line:2
+EFOPS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/error.h	/^#define EFOPS /;"	macro	line:8
+ENOMEM	/Users/wangyu/ece391_common/mp3/student-distrib/inc/error.h	/^#define ENOMEM /;"	macro	line:9
+EINVAL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/error.h	/^#define EINVAL /;"	macro	line:10
+_FIXEDMEMORYPOOL_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^#define _FIXEDMEMORYPOOL_H_$/;"	macro	line:2
+util	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^namespace util {$/;"	namespace	line:7
+MemoryPool	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^class MemoryPool$/;"	class	line:10	namespace:util
+unusedIndex	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^    int unusedIndex;$/;"	member	line:13	class:util::MemoryPool
+memory	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^    T memory[capacity];$/;"	member	line:14	class:util::MemoryPool
+unusedMemory	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^    T* unusedMemory[capacity];$/;"	member	line:15	class:util::MemoryPool
+MemoryPool	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^    MemoryPool()$/;"	function	line:18	class:util::MemoryPool	signature:()
+get	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^    T* get()$/;"	function	line:28	class:util::MemoryPool	signature:()
+release	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fixedmemorypool.h	/^    void release(T* ptr)$/;"	function	line:34	class:util::MemoryPool	signature:(T* ptr)
+_KEYBOARD_FOPS_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fops_kb.h	/^#define _KEYBOARD_FOPS_H$/;"	macro	line:2
+RINGBUF_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fops_kb.h	/^#define RINGBUF_SIZE /;"	macro	line:16
+RINGBUF_TYPE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fops_kb.h	/^#define RINGBUF_TYPE /;"	macro	line:17
+_TERMINAL_FOPS_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fops_term.h	/^#define _TERMINAL_FOPS_H$/;"	macro	line:2
+_FS_DEV_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/dev.h	/^#define _FS_DEV_H_$/;"	macro	line:2
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/dev.h	/^namespace filesystem {$/;"	namespace	line:10
+DevFS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/dev.h	/^class DevFS : public AbstractFS {$/;"	class	line:12	namespace:filesystem
+deviceOfFilename	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/dev.h	/^    util::LinearProbingHashTable<37, Filename, FOpsTable, HashFunc> deviceOfFilename;$/;"	member	line:14	class:filesystem::DevFS
+_DEVSIDE_WRAPPER_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/dev_wrapper.h	/^#define _DEVSIDE_WRAPPER_H_$/;"	macro	line:2
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/dev_wrapper.h	/^namespace filesystem {$/;"	namespace	line:10
+_FILESYSTEM_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^#define _FILESYSTEM_H_$/;"	macro	line:2
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^namespace filesystem {$/;"	namespace	line:12
+MaxFilenameLength	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^static const uint32_t MaxFilenameLength = 32;$/;"	member	line:16	namespace:filesystem
+Filename	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^class Filename {$/;"	class	line:18	namespace:filesystem
+str	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    const char *str;$/;"	member	line:20	class:filesystem::Filename
+Filename	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    Filename(const char *s) { this->str = s; }$/;"	function	line:22	class:filesystem::Filename	signature:(const char *s)
+Filename	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    Filename() { this->str = nullptr; }$/;"	function	line:24	class:filesystem::Filename	signature:()
+operator ==	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    bool operator == (const Filename& rhs) const {$/;"	function	line:26	class:filesystem::Filename	signature:(const Filename& rhs) const
+operator !=	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    bool operator != (const Filename& rhs) const {$/;"	function	line:30	class:filesystem::Filename	signature:(const Filename& rhs) const
+operator []	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    const char operator [] (size_t idx) const { return str[idx]; };$/;"	function	line:34	class:filesystem::Filename	signature:(size_t idx) const
+HashFunc	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^struct HashFunc {$/;"	struct	line:37	namespace:filesystem
+hash	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    static uint32_t hash(const Filename& s)$/;"	function	line:38	struct:filesystem::HashFunc	signature:(const Filename& s)
+FsSpecificData	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^struct FsSpecificData {$/;"	struct	line:53	namespace:filesystem
+filetype	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    uint8_t filetype;$/;"	member	line:54	struct:filesystem::FsSpecificData
+inode	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^        uint32_t inode;$/;"	member	line:56	union:filesystem::FsSpecificData::__anon2
+base	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^            uint8_t *base;$/;"	member	line:58	struct:filesystem::FsSpecificData::__anon2::__anon3
+idx	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^            uint32_t idx;$/;"	member	line:59	struct:filesystem::FsSpecificData::__anon2::__anon3
+max	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^            uint32_t max;$/;"	member	line:60	struct:filesystem::FsSpecificData::__anon2::__anon3
+dentryData	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^        } dentryData;$/;"	member	line:61	union:filesystem::FsSpecificData::__anon2	typeref:struct:filesystem::FsSpecificData::__anon2::__anon3
+jtable	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^        FOpsTable jtable;$/;"	member	line:62	union:filesystem::FsSpecificData::__anon2
+File	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^struct File {$/;"	struct	line:66	namespace:filesystem
+offset	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    size_t offset;$/;"	member	line:67	struct:filesystem::File
+fs	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    AbstractFS *fs;$/;"	member	line:68	struct:filesystem::File
+fsSpecificData	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    FsSpecificData fsSpecificData;$/;"	member	line:69	struct:filesystem::File
+AbstractFS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^class AbstractFS {$/;"	class	line:72	namespace:filesystem
+MaxSystemFds	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^static const int MaxSystemFds = 128;$/;"	member	line:81	namespace:filesystem
+Dispatcher	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^class Dispatcher {$/;"	class	line:83	namespace:filesystem
+lookup	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    util::PrefixTree<AbstractFS *> lookup;$/;"	member	line:85	class:filesystem::Dispatcher
+_devFS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    AbstractFS *_devFS;$/;"	member	line:86	class:filesystem::Dispatcher
+pool	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    util::MemoryPool<File, MaxSystemFds> pool;$/;"	member	line:87	class:filesystem::Dispatcher
+fileOfFd	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    File *fileOfFd[MaxSystemFds];$/;"	member	line:88	class:filesystem::Dispatcher
+numFds	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    int numFds;$/;"	member	line:89	class:filesystem::Dispatcher
+_kissFS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem.h	/^    AbstractFS *_kissFS;  \/\/ this is public for cp2 cuz TAs have to test it$/;"	member	line:95	class:filesystem::Dispatcher
+_FILESYSTEM_WRAPPER_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/filesystem_wrapper.h	/^#define _FILESYSTEM_WRAPPER_H_$/;"	macro	line:2
+_FOPS_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^#define _FOPS_H$/;"	macro	line:2
+FOpsReadImpl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^typedef int32_t (*FOpsReadImpl) (void* fdEntity, uint8_t *buf, int32_t bytes);$/;"	typedef	line:18
+FOpsWriteImpl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^typedef int32_t (*FOpsWriteImpl) (void* fdEntity, const uint8_t *buf, int32_t bytes);$/;"	typedef	line:21
+FOpsOpenImpl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^typedef int32_t (*FOpsOpenImpl) (void* fdEntity);$/;"	typedef	line:28
+FOpsCloseImpl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^typedef int32_t (*FOpsCloseImpl) (void* fdEntity);$/;"	typedef	line:35
+open	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^    FOpsOpenImpl open;$/;"	member	line:38	struct:__anon4
+close	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^    FOpsCloseImpl close;$/;"	member	line:39	struct:__anon4
+read	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^    FOpsReadImpl read;$/;"	member	line:40	struct:__anon4
+write	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^    FOpsWriteImpl write;$/;"	member	line:41	struct:__anon4
+FOpsTable	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/fops.h	/^} FOpsTable;$/;"	typedef	line:42	typeref:struct:__anon4
+_FS_KISS_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^#define _FS_KISS_H_$/;"	macro	line:2
+dentry_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^struct dentry_t {$/;"	struct	line:11
+filename	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    char filename[33] = {};$/;"	member	line:12	struct:dentry_t
+filetype	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    uint32_t filetype;$/;"	member	line:13	struct:dentry_t
+inode	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    uint32_t inode;$/;"	member	line:14	struct:dentry_t
+inode_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^struct inode_t {$/;"	struct	line:17
+size	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    uint32_t size;$/;"	member	line:18	struct:inode_t
+datablocks	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    uint32_t datablocks[4096 \/ sizeof(uint32_t) - 1];$/;"	member	line:19	struct:inode_t
+numDataBlocks	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    uint32_t numDataBlocks;$/;"	member	line:20	struct:inode_t
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^namespace filesystem {$/;"	namespace	line:24
+MaxNumFiles	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    static const uint32_t MaxNumFiles = 64;$/;"	member	line:26	namespace:filesystem
+BlockSize	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    static const uint32_t BlockSize = 4096;$/;"	member	line:27	namespace:filesystem
+SkipStruct	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    struct __attribute__ ((__packed__)) SkipStruct {$/;"	struct	line:30	namespace:filesystem
+members	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        uint8_t members[num];$/;"	member	line:31	struct:filesystem::SkipStruct
+operator =	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        const SkipStruct& operator= (const SkipStruct &source) const$/;"	function	line:33	struct:filesystem::SkipStruct	signature:(const SkipStruct &source) const
+Reader	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    class Reader {$/;"	class	line:39	namespace:filesystem
+startingAddr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^            uint8_t *startingAddr;$/;"	member	line:41	class:filesystem::Reader
+read	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^            size_t read;$/;"	member	line:42	class:filesystem::Reader
+Reader	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^            Reader(uint8_t *startingAddr)$/;"	function	line:46	class:filesystem::Reader	signature:(uint8_t *startingAddr)
+operator >>	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^            Reader& operator >> (T& val)$/;"	function	line:53	class:filesystem::Reader	signature:(T& val)
+skip	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^            static const SkipStruct<num> skip()$/;"	function	line:68	class:filesystem::Reader	signature:()
+reposition	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^            void reposition(size_t offset)$/;"	function	line:73	class:filesystem::Reader	signature:(size_t offset)
+KissFS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^    class KissFS : public AbstractFS {$/;"	class	line:79	namespace:filesystem
+dentryIndexOfFilename	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        util::LinearProbingHashTable<133, Filename, uint32_t, HashFunc> dentryIndexOfFilename;$/;"	member	line:82	class:filesystem::KissFS
+dentries	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        dentry_t dentries[MaxNumFiles];$/;"	member	line:83	class:filesystem::KissFS
+inodes	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        inode_t inodes[MaxNumFiles];$/;"	member	line:84	class:filesystem::KissFS
+numDentries	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        uint32_t numDentries;$/;"	member	line:85	class:filesystem::KissFS
+numInodes	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        uint32_t numInodes;$/;"	member	line:86	class:filesystem::KissFS
+numTotalDataBlocks	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        uint32_t numTotalDataBlocks;$/;"	member	line:87	class:filesystem::KissFS
+imageStartingAddress	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        uint8_t *imageStartingAddress;$/;"	member	line:88	class:filesystem::KissFS
+imageLength	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        uint8_t imageLength;$/;"	member	line:89	class:filesystem::KissFS
+numBlocks	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss.h	/^        uint32_t numBlocks;$/;"	member	line:90	class:filesystem::KissFS
+_KISS_WRAPPER_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss_wrapper.h	/^#define _KISS_WRAPPER_H_$/;"	macro	line:2
+filesystem	/Users/wangyu/ece391_common/mp3/student-distrib/inc/fs/kiss_wrapper.h	/^namespace filesystem {$/;"	namespace	line:13
+_I8259_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define _I8259_H$/;"	macro	line:7
+MASTER_8259_PORT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define MASTER_8259_PORT /;"	macro	line:15
+SLAVE_8259_PORT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define SLAVE_8259_PORT /;"	macro	line:16
+ICW1	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define ICW1 /;"	macro	line:21
+ICW2_MASTER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define ICW2_MASTER /;"	macro	line:22
+ICW2_SLAVE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define ICW2_SLAVE /;"	macro	line:23
+ICW3_MASTER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define ICW3_MASTER /;"	macro	line:24
+ICW3_SLAVE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define ICW3_SLAVE /;"	macro	line:25
+ICW4	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define ICW4 /;"	macro	line:26
+PIC_SPEC_EOI	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define PIC_SPEC_EOI /;"	macro	line:31
+NR_IRQS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define NR_IRQS /;"	macro	line:32
+MAX_DEPTH	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^#define MAX_DEPTH /;"	macro	line:33
+status	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^    unsigned int status;            \/* IRQ status, currently NOT used *\/$/;"	member	line:43	struct:__anon5
+depth	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^    unsigned int depth;             \/* nested irq disables *\/$/;"	member	line:44	struct:__anon5
+actions	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^    irqaction_list actions;$/;"	member	line:45	struct:__anon5
+lock	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^    spinlock_t lock;                \/* lock for the eoi signal, and anything other than actions list *\/$/;"	member	line:47	struct:__anon5
+actionsLock	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^    spinlock_t actionsLock;         \/* lock for the actions list *\/$/;"	member	line:48	struct:__anon5
+irq_desc_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259.h	/^} irq_desc_t;$/;"	typedef	line:49	typeref:struct:__anon5
+_I8259_EXTRA_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^#define _I8259_EXTRA_H_$/;"	macro	line:2
+irq_good_handler_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^typedef int (*irq_good_handler_t)(int irq, unsigned int dev_id);$/;"	typedef	line:7
+irqaction_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^typedef struct irqaction_t {$/;"	struct	line:9
+handler	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^    irq_good_handler_t handler;$/;"	member	line:10	struct:irqaction_t
+policy_flags	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^    unsigned int policy_flags;$/;"	member	line:11	struct:irqaction_t
+mask	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^    unsigned int mask;$/;"	member	line:12	struct:irqaction_t
+dev_id	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^    unsigned int dev_id;     \/* A interger to differentiate different devices *\/$/;"	member	line:13	struct:irqaction_t
+next	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^    struct irqaction_t *next, *prev; \/* not used for now *\/$/;"	member	line:14	struct:irqaction_t	typeref:struct:irqaction_t::irqaction_t
+prev	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^    struct irqaction_t *next, *prev; \/* not used for now *\/$/;"	member	line:14	struct:irqaction_t	typeref:struct:irqaction_t::
+irqaction	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^} irqaction;$/;"	typedef	line:15	typeref:struct:irqaction_t
+irqaction_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/i8259_extra.h	/^typedef irqaction irqaction_t;$/;"	typedef	line:16
+_KB_DRIVER_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/keyboard.h	/^#define _KB_DRIVER_H$/;"	macro	line:2
+kb	/Users/wangyu/ece391_common/mp3/student-distrib/inc/keyboard.h	/^DEFINE_DRIVER_INIT(kb);$/;"	variable	line:9
+kb	/Users/wangyu/ece391_common/mp3/student-distrib/inc/keyboard.h	/^DEFINE_DRIVER_REMOVE(kb);$/;"	variable	line:10
+_CPPLIB_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/cpplib.h	/^#define _CPPLIB_H_$/;"	macro	line:2
+_LIB_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define _LIB_H$/;"	macro	line:6
+inb	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^static inline uint32_t inb(uint16_t port)$/;"	function	line:48	signature:(uint16_t port)
+inw	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^static inline uint32_t inw(uint16_t port)$/;"	function	line:62	signature:(uint16_t port)
+inl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^static inline uint32_t inl(uint16_t port)$/;"	function	line:75	signature:(uint16_t port)
+nop	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define nop(/;"	macro	line:87
+outb	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define outb(/;"	macro	line:91
+outw	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define outw(/;"	macro	line:100
+outl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define outl(/;"	macro	line:109
+cli	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define cli(/;"	macro	line:118
+cli_and_save	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define cli_and_save(/;"	macro	line:130
+sti	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define sti(/;"	macro	line:142
+restore_flags	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/lib.h	/^#define restore_flags(/;"	macro	line:154
+_KLIBS_RINGBUF_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^#define _KLIBS_RINGBUF_H$/;"	macro	line:2
+RINGBUF_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^#define RINGBUF_SIZE /;"	macro	line:6
+_macro_ringbuf_size	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^    int32_t _macro_ringbuf_size;$/;"	member	line:35	struct:__anon6
+_macro_ringbuf_type_size	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^    int32_t _macro_ringbuf_type_size;$/;"	member	line:38	struct:__anon6
+head	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^    int32_t head;$/;"	member	line:42	struct:__anon6
+tail	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^    int32_t tail;$/;"	member	line:45	struct:__anon6
+len	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^    int32_t len;$/;"	member	line:48	struct:__anon6
+data	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^    RINGBUF_TYPE data[RINGBUF_SIZE];$/;"	member	line:51	struct:__anon6
+ringbuf_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^} ringbuf_t;$/;"	typedef	line:52	typeref:struct:__anon6
+RINGBUF_INIT	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/ringbuf.h	/^#define RINGBUF_INIT(/;"	macro	line:55
+_SPINLOCK_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/spinlock.h	/^#define _SPINLOCK_H_$/;"	macro	line:2
+SPINLOCK_LOCKED	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/spinlock.h	/^#define SPINLOCK_LOCKED /;"	macro	line:4
+SPINLOCK_UNLOCKED	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/spinlock.h	/^#define SPINLOCK_UNLOCKED /;"	macro	line:5
+spinlock_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/spinlock.h	/^typedef uint32_t spinlock_t;$/;"	typedef	line:10
+spin_lock_irqsave	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/spinlock.h	/^#define spin_lock_irqsave(/;"	macro	line:18
+spin_unlock_irqrestore	/Users/wangyu/ece391_common/mp3/student-distrib/inc/klibs/spinlock.h	/^#define spin_unlock_irqrestore(/;"	macro	line:27
+ADD_DRIVER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/known_drivers.h	/^#define ADD_DRIVER(/;"	macro	line:9
+known_drivers	/Users/wangyu/ece391_common/mp3/student-distrib/inc/known_drivers.h	/^driver_t known_drivers[] = {$/;"	variable	line:16
+num_known_drivers	/Users/wangyu/ece391_common/mp3/student-distrib/inc/known_drivers.h	/^const int num_known_drivers = sizeof(known_drivers) \/ sizeof(driver_t);$/;"	variable	line:23
+_LPHASHTABLE_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^#define _LPHASHTABLE_H_$/;"	macro	line:2
+util	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^namespace util {$/;"	namespace	line:7
+HashEntry	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^class HashEntry {$/;"	class	line:10	namespace:util
+key	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        From key;$/;"	member	line:12	class:util::HashEntry
+value	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        To value;$/;"	member	line:13	class:util::HashEntry
+_isSet	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        bool _isSet;$/;"	member	line:14	class:util::HashEntry
+HashEntry	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        HashEntry()$/;"	function	line:17	class:util::HashEntry	signature:()
+getKey	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        From getKey()$/;"	function	line:24	class:util::HashEntry	signature:()
+getValue	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        To getValue()$/;"	function	line:29	class:util::HashEntry	signature:()
+isSet	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        bool isSet()$/;"	function	line:34	class:util::HashEntry	signature:()
+set	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        void set(From key, To val)$/;"	function	line:39	class:util::HashEntry	signature:(From key, To val)
+LinearProbingHashTable	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^class LinearProbingHashTable {$/;"	class	line:48	namespace:util
+table	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        HashEntry<From, To> table[size] = {};$/;"	member	line:50	class:util::LinearProbingHashTable
+LinearProbingHashTable	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        LinearProbingHashTable() {}$/;"	function	line:52	class:util::LinearProbingHashTable	signature:()
+get	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        To get(From key, bool& found)$/;"	function	line:54	class:util::LinearProbingHashTable	signature:(From key, bool& found)
+put	/Users/wangyu/ece391_common/mp3/student-distrib/inc/lphashtable.h	/^        void put(From key, To value)$/;"	function	line:71	class:util::LinearProbingHashTable	signature:(From key, To value)
+_MBI_INFO_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/mbi_info.h	/^#define _MBI_INFO_H_$/;"	macro	line:2
+_MULTIBOOT_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^#define _MULTIBOOT_H$/;"	macro	line:7
+MULTIBOOT_HEADER_FLAGS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^#define MULTIBOOT_HEADER_FLAGS /;"	macro	line:9
+MULTIBOOT_HEADER_MAGIC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^#define MULTIBOOT_HEADER_MAGIC /;"	macro	line:10
+MULTIBOOT_BOOTLOADER_MAGIC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^#define MULTIBOOT_BOOTLOADER_MAGIC /;"	macro	line:11
+multiboot_header	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^typedef struct multiboot_header$/;"	struct	line:19
+magic	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t magic;$/;"	member	line:21	struct:multiboot_header
+flags	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t flags;$/;"	member	line:22	struct:multiboot_header
+checksum	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t checksum;$/;"	member	line:23	struct:multiboot_header
+header_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t header_addr;$/;"	member	line:24	struct:multiboot_header
+load_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t load_addr;$/;"	member	line:25	struct:multiboot_header
+load_end_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t load_end_addr;$/;"	member	line:26	struct:multiboot_header
+bss_end_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t bss_end_addr;$/;"	member	line:27	struct:multiboot_header
+entry_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t entry_addr;$/;"	member	line:28	struct:multiboot_header
+multiboot_header_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^} multiboot_header_t;$/;"	typedef	line:29	typeref:struct:multiboot_header
+elf_section_header_table	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^typedef struct elf_section_header_table$/;"	struct	line:32
+num	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t num;$/;"	member	line:34	struct:elf_section_header_table
+size	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t size;$/;"	member	line:35	struct:elf_section_header_table
+addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t addr;$/;"	member	line:36	struct:elf_section_header_table
+shndx	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t shndx;$/;"	member	line:37	struct:elf_section_header_table
+elf_section_header_table_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^} elf_section_header_table_t;$/;"	typedef	line:38	typeref:struct:elf_section_header_table
+multiboot_info	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^typedef struct multiboot_info$/;"	struct	line:41
+flags	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t flags;$/;"	member	line:43	struct:multiboot_info
+mem_lower	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mem_lower;$/;"	member	line:44	struct:multiboot_info
+mem_upper	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mem_upper;$/;"	member	line:45	struct:multiboot_info
+boot_device	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t boot_device;$/;"	member	line:46	struct:multiboot_info
+cmdline	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t cmdline;$/;"	member	line:47	struct:multiboot_info
+mods_count	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mods_count;$/;"	member	line:48	struct:multiboot_info
+mods_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mods_addr;$/;"	member	line:49	struct:multiboot_info
+elf_sec	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	elf_section_header_table_t elf_sec;$/;"	member	line:50	struct:multiboot_info
+mmap_length	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mmap_length;$/;"	member	line:51	struct:multiboot_info
+mmap_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mmap_addr;$/;"	member	line:52	struct:multiboot_info
+multiboot_info_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^} multiboot_info_t;$/;"	typedef	line:53	typeref:struct:multiboot_info
+module	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^typedef struct module {$/;"	struct	line:55
+mod_start	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mod_start;$/;"	member	line:56	struct:module
+mod_end	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t mod_end;$/;"	member	line:57	struct:module
+string	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t string;$/;"	member	line:58	struct:module
+reserved	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t reserved;$/;"	member	line:59	struct:module
+module_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^} module_t;$/;"	typedef	line:60	typeref:struct:module
+memory_map	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^typedef struct memory_map$/;"	struct	line:64
+size	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t size;$/;"	member	line:66	struct:memory_map
+base_addr_low	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t base_addr_low;$/;"	member	line:67	struct:memory_map
+base_addr_high	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t base_addr_high;$/;"	member	line:68	struct:memory_map
+length_low	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t length_low;$/;"	member	line:69	struct:memory_map
+length_high	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t length_high;$/;"	member	line:70	struct:memory_map
+type	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^	uint32_t type;$/;"	member	line:71	struct:memory_map
+memory_map_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/multiboot.h	/^} memory_map_t;$/;"	typedef	line:72	typeref:struct:memory_map
+_UTIL_PREFIX_TREE_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^#define _UTIL_PREFIX_TREE_H_$/;"	macro	line:2
+util	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^namespace util {$/;"	namespace	line:10
+PrefixTreeNode	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^class PrefixTreeNode {$/;"	class	line:13	namespace:util
+value	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    T value = T();$/;"	member	line:15	class:util::PrefixTreeNode
+children	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    PrefixTreeNode<T> *children[256] = {};$/;"	member	line:16	class:util::PrefixTreeNode
+hasValue	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    bool hasValue = false;$/;"	member	line:17	class:util::PrefixTreeNode
+operator new	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    void *operator new(size_t s, MemoryPool<PrefixTreeNode<T>, 100>& hp)   { return hp.get(); }$/;"	function	line:20	class:util::PrefixTreeNode	signature:(size_t s, MemoryPool<PrefixTreeNode<T>, 100>& hp)
+operator delete	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    void operator delete(void *dp, MemoryPool<PrefixTreeNode<T>, 100>& hp)    { hp.release(dp); }$/;"	function	line:21	class:util::PrefixTreeNode	signature:(void *dp, MemoryPool<PrefixTreeNode<T>, 100>& hp)
+operator new[]	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    void *operator new[](size_t s, MemoryPool<PrefixTreeNode<T>, 100>& hp) { return hp.get(); }$/;"	function	line:23	class:util::PrefixTreeNode	signature:(size_t s, MemoryPool<PrefixTreeNode<T>, 100>& hp)
+operator delete[]	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    void operator delete[](void *dp, MemoryPool<PrefixTreeNode<T>, 100>& hp)  { hp.release(dp); }$/;"	function	line:24	class:util::PrefixTreeNode	signature:(void *dp, MemoryPool<PrefixTreeNode<T>, 100>& hp)
+ValAndLength	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^struct ValAndLength {$/;"	struct	line:29	namespace:util
+val	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    T val;$/;"	member	line:30	struct:util::ValAndLength
+len	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    size_t len;$/;"	member	line:31	struct:util::ValAndLength
+PrefixTree	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^class PrefixTree {$/;"	class	line:35	namespace:util
+count	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    size_t count;$/;"	member	line:37	class:util::PrefixTree
+root	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    PrefixTreeNode<T> *root;$/;"	member	line:38	class:util::PrefixTree
+pool	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    MemoryPool<PrefixTreeNode<T>, 100> pool;$/;"	member	line:39	class:util::PrefixTree
+PrefixTree	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    PrefixTree()$/;"	function	line:41	class:util::PrefixTree	signature:()
+insert	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    void insert(const char *key, T val)$/;"	function	line:47	class:util::PrefixTree	signature:(const char *key, T val)
+search	/Users/wangyu/ece391_common/mp3/student-distrib/inc/prefix_tree.h	/^    ValAndLength<T> search(const char *key)$/;"	function	line:70	class:util::PrefixTree	signature:(const char *key)
+_RTC_DRIVER_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define _RTC_DRIVER_H$/;"	macro	line:2
+RTC_IRQ	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_IRQ /;"	macro	line:11
+RTC_ID	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_ID /;"	macro	line:13
+RTC_POLICY	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_POLICY /;"	macro	line:15
+RTC_ADDRESS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_ADDRESS /;"	macro	line:17
+RTC_DATA	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_DATA /;"	macro	line:19
+RTC_STATUS_A	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_A /;"	macro	line:21
+RTC_STATUS_B	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_B /;"	macro	line:23
+RTC_STATUS_C	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_C /;"	macro	line:25
+RTC_STATUS_D	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_D /;"	macro	line:27
+RTC_STATUS_A_NMI	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_A_NMI /;"	macro	line:29
+RTC_STATUS_B_NMI	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_B_NMI /;"	macro	line:31
+RTC_STATUS_C_NMI	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_C_NMI /;"	macro	line:33
+RTC_STATUS_D_NMI	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_D_NMI /;"	macro	line:35
+RTC_STATUS_B_EN	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define RTC_STATUS_B_EN /;"	macro	line:37
+HIGH_BIT_MASK	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^#define HIGH_BIT_MASK /;"	macro	line:39
+rtc	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^DEFINE_DRIVER_INIT(rtc);$/;"	variable	line:41
+rtc	/Users/wangyu/ece391_common/mp3/student-distrib/inc/rtc.h	/^DEFINE_DRIVER_REMOVE(rtc);$/;"	variable	line:42
+_TERMINAL_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^#define _TERMINAL_H$/;"	macro	line:2
+NUM_TERMINALS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^#define NUM_TERMINALS /;"	macro	line:10
+TERM_BUFFER_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^#define TERM_BUFFER_SIZE /;"	macro	line:11
+displayed_char	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^    char displayed_char;$/;"	member	line:15	struct:__anon7
+x_offset	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^    uint32_t x_offset;$/;"	member	line:22	struct:__anon7
+y_offset	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^    uint8_t y_offset;$/;"	member	line:26	struct:__anon7
+term_buf_item	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^} term_buf_item;$/;"	typedef	line:27	typeref:struct:__anon7
+term	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^DEFINE_DRIVER_INIT(term);$/;"	variable	line:36
+term	/Users/wangyu/ece391_common/mp3/student-distrib/inc/terminal.h	/^DEFINE_DRIVER_REMOVE(term);$/;"	variable	line:37
+_X86_DESC_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define _X86_DESC_H$/;"	macro	line:7
+KERNEL_CS_SEL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define KERNEL_CS_SEL /;"	macro	line:19
+KERNEL_DS_SEL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define KERNEL_DS_SEL /;"	macro	line:20
+USER_CS_SEL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define USER_CS_SEL /;"	macro	line:21
+USER_DS_SEL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define USER_DS_SEL /;"	macro	line:22
+KERNEL_TSS_SEL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define KERNEL_TSS_SEL /;"	macro	line:23
+KERNEL_LDT_SEL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define KERNEL_LDT_SEL /;"	macro	line:24
+TSS_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define TSS_SIZE /;"	macro	line:27
+padding	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t padding;$/;"	member	line:44	struct:__anon8
+size	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t size;$/;"	member	line:45	struct:__anon8
+addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t addr;$/;"	member	line:46	struct:__anon8
+gdtr_val_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^} gdtr_val_t;$/;"	typedef	line:47	typeref:struct:__anon8
+idtr_val_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^typedef gdtr_val_t idtr_val_t;$/;"	typedef	line:48
+seg_desc	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^typedef struct seg_desc {$/;"	struct	line:51
+val	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t val;$/;"	member	line:53	union:seg_desc::__anon9
+seg_lim_15_00	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint16_t seg_lim_15_00;$/;"	member	line:55	struct:seg_desc::__anon9::__anon10
+base_15_00	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint16_t base_15_00;$/;"	member	line:56	struct:seg_desc::__anon9::__anon10
+base_23_16	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint8_t base_23_16;$/;"	member	line:57	struct:seg_desc::__anon9::__anon10
+type	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t type : 4;$/;"	member	line:58	struct:seg_desc::__anon9::__anon10
+sys	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t sys : 1;$/;"	member	line:59	struct:seg_desc::__anon9::__anon10
+dpl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t dpl : 2;$/;"	member	line:60	struct:seg_desc::__anon9::__anon10
+present	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t present : 1;$/;"	member	line:61	struct:seg_desc::__anon9::__anon10
+seg_lim_19_16	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t seg_lim_19_16 : 4;$/;"	member	line:62	struct:seg_desc::__anon9::__anon10
+avail	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t avail : 1;$/;"	member	line:63	struct:seg_desc::__anon9::__anon10
+reserved	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t reserved : 1;$/;"	member	line:64	struct:seg_desc::__anon9::__anon10
+opsize	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t opsize : 1;$/;"	member	line:65	struct:seg_desc::__anon9::__anon10
+granularity	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint32_t granularity : 1;$/;"	member	line:66	struct:seg_desc::__anon9::__anon10
+base_31_24	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^			uint8_t base_31_24;$/;"	member	line:67	struct:seg_desc::__anon9::__anon10
+seg_desc_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^} seg_desc_t;$/;"	typedef	line:70	typeref:struct:seg_desc
+tss_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^typedef struct __attribute__((packed)) tss_t {$/;"	struct	line:73
+prev_task_link	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t prev_task_link;$/;"	member	line:74	struct:tss_t
+prev_task_link_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t prev_task_link_pad;$/;"	member	line:75	struct:tss_t
+esp0	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t esp0;$/;"	member	line:77	struct:tss_t
+ss0	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss0;$/;"	member	line:78	struct:tss_t
+ss0_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss0_pad;$/;"	member	line:79	struct:tss_t
+esp1	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t esp1;$/;"	member	line:81	struct:tss_t
+ss1	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss1;$/;"	member	line:82	struct:tss_t
+ss1_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss1_pad;$/;"	member	line:83	struct:tss_t
+esp2	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t esp2;$/;"	member	line:85	struct:tss_t
+ss2	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss2;$/;"	member	line:86	struct:tss_t
+ss2_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss2_pad;$/;"	member	line:87	struct:tss_t
+cr3	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t cr3;$/;"	member	line:89	struct:tss_t
+eip	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t eip;$/;"	member	line:91	struct:tss_t
+eflags	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t eflags;$/;"	member	line:92	struct:tss_t
+eax	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t eax;$/;"	member	line:94	struct:tss_t
+ecx	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t ecx;$/;"	member	line:95	struct:tss_t
+edx	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t edx;$/;"	member	line:96	struct:tss_t
+ebx	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t ebx;$/;"	member	line:97	struct:tss_t
+esp	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t esp;$/;"	member	line:98	struct:tss_t
+ebp	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t ebp;$/;"	member	line:99	struct:tss_t
+esi	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t esi;$/;"	member	line:100	struct:tss_t
+edi	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t edi;$/;"	member	line:101	struct:tss_t
+es	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t es;$/;"	member	line:103	struct:tss_t
+es_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t es_pad;$/;"	member	line:104	struct:tss_t
+cs	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t cs;$/;"	member	line:106	struct:tss_t
+cs_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t cs_pad;$/;"	member	line:107	struct:tss_t
+ss	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss;$/;"	member	line:109	struct:tss_t
+ss_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ss_pad;$/;"	member	line:110	struct:tss_t
+ds	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ds;$/;"	member	line:112	struct:tss_t
+ds_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ds_pad;$/;"	member	line:113	struct:tss_t
+fs	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t fs;$/;"	member	line:115	struct:tss_t
+fs_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t fs_pad;$/;"	member	line:116	struct:tss_t
+gs	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t gs;$/;"	member	line:118	struct:tss_t
+gs_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t gs_pad;$/;"	member	line:119	struct:tss_t
+ldt_segment_selector	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ldt_segment_selector;$/;"	member	line:121	struct:tss_t
+ldt_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t ldt_pad;$/;"	member	line:122	struct:tss_t
+debug_trap	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t debug_trap : 1;$/;"	member	line:124	struct:tss_t
+io_pad	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t io_pad : 15;$/;"	member	line:125	struct:tss_t
+io_base_addr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint16_t io_base_addr;$/;"	member	line:126	struct:tss_t
+tss_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^} tss_t;$/;"	typedef	line:127	typeref:struct:tss_t
+SET_LDT_PARAMS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define SET_LDT_PARAMS(/;"	macro	line:145
+SET_TSS_PARAMS	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define SET_TSS_PARAMS(/;"	macro	line:155
+idt_desc_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^typedef union idt_desc_t {$/;"	union	line:166
+val	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^	uint32_t val;                    \/\/ ACTUALLY this UNION is 64-bits long !$/;"	member	line:167	union:idt_desc_t
+offset_15_00	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint16_t offset_15_00;$/;"	member	line:169	struct:idt_desc_t::__anon11
+seg_selector	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint16_t seg_selector;$/;"	member	line:170	struct:idt_desc_t::__anon11
+reserved4	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint8_t reserved4;           \/\/ This value MUST be initialized to 0$/;"	member	line:171	struct:idt_desc_t::__anon11
+reserved3	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t reserved3 : 1;      \/\/ Interrupt Gate=0. Trap Gate=1$/;"	member	line:172	struct:idt_desc_t::__anon11
+reserved2	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t reserved2 : 1;      \/\/ MUST be initialized to 1$/;"	member	line:173	struct:idt_desc_t::__anon11
+reserved1	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t reserved1 : 1;      \/\/ MUST be initialized to 1$/;"	member	line:174	struct:idt_desc_t::__anon11
+size	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t size : 1;           \/\/ Corresponds to "D" on IA-32 manual.$/;"	member	line:175	struct:idt_desc_t::__anon11
+reserved0	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t reserved0 : 1;      \/\/ MUST be initialized to 0$/;"	member	line:176	struct:idt_desc_t::__anon11
+dpl	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t dpl : 2;$/;"	member	line:177	struct:idt_desc_t::__anon11
+present	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint32_t present : 1;$/;"	member	line:178	struct:idt_desc_t::__anon11
+offset_31_16	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^		uint16_t offset_31_16;$/;"	member	line:179	struct:idt_desc_t::__anon11
+idt_desc_t	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^} idt_desc_t;$/;"	typedef	line:181	typeref:union:idt_desc_t
+INIT_TRAP_DESC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define INIT_TRAP_DESC(/;"	macro	line:202
+INIT_INT_DESC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define INIT_INT_DESC(/;"	macro	line:218
+SET_IDT_DESC_OFFSET	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define SET_IDT_DESC_OFFSET(/;"	macro	line:229
+ltr	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define ltr(/;"	macro	line:239
+lidt	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define lidt(/;"	macro	line:252
+lldt	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc.h	/^#define lldt(/;"	macro	line:264
+NUM_VEC	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/desc_interrupts.h	/^#define NUM_VEC /;"	macro	line:3
+_ERR_HANDLER_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/err_handler.h	/^#define _ERR_HANDLER_H_$/;"	macro	line:2
+_X86_IDT_INIT_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/idt_init.h	/^#define _X86_IDT_INIT_H$/;"	macro	line:2
+_IDT_TABLE_H_	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/idt_table.h	/^#define _IDT_TABLE_H_$/;"	macro	line:2
+vector_extracting_handler	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/idt_table.h	/^typedef void (*vector_extracting_handler)(void);$/;"	typedef	line:4
+_X86_PAGING_H	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define _X86_PAGING_H$/;"	macro	line:2
+ALIGN_4KB_ADDR	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define ALIGN_4KB_ADDR /;"	macro	line:14
+ALIGN_4MB_ADDR	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define ALIGN_4MB_ADDR /;"	macro	line:15
+PG_4MB_BASE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_4MB_BASE /;"	macro	line:22
+PG_4KB_BASE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_4KB_BASE /;"	macro	line:23
+PG_GLOABL	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_GLOABL /;"	macro	line:24
+PG_NOT_DIRTY	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_NOT_DIRTY /;"	macro	line:25
+PG_NOT_ACCESSED	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_NOT_ACCESSED /;"	macro	line:26
+PG_DISABLE_CACHE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_DISABLE_CACHE /;"	macro	line:27
+PG_WRITE_THROUGH	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_WRITE_THROUGH /;"	macro	line:28
+PG_USER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_USER /;"	macro	line:29
+PG_NOT_USER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_NOT_USER /;"	macro	line:30
+PG_WRITABLE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_WRITABLE /;"	macro	line:31
+PG_READONLY	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PG_READONLY /;"	macro	line:32
+PT_BASE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_BASE /;"	macro	line:36
+PT_NOT_ACCESSED	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_NOT_ACCESSED /;"	macro	line:37
+PT_DISABLE_CACHE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_DISABLE_CACHE /;"	macro	line:38
+PT_WRITE_THROUGH	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_WRITE_THROUGH /;"	macro	line:39
+PT_USER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_USER /;"	macro	line:40
+PT_NOT_USER	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_NOT_USER /;"	macro	line:41
+PT_WRITABLE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_WRITABLE /;"	macro	line:42
+PT_READONLY	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_READONLY /;"	macro	line:43
+PD_BASE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PD_BASE /;"	macro	line:50
+PD_DISABLE_CACHE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PD_DISABLE_CACHE /;"	macro	line:51
+PD_WRITE_THROUGH	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PD_WRITE_THROUGH /;"	macro	line:52
+PD_NUM_ENTRIES	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PD_NUM_ENTRIES /;"	macro	line:56
+PD_ARR_ALGIN	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PD_ARR_ALGIN /;"	macro	line:57
+PT_NUM_ENTRIES	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_NUM_ENTRIES /;"	macro	line:58
+PT_ARR_ALGIN	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define PT_ARR_ALGIN /;"	macro	line:59
+LOAD_4KB_PAGE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define LOAD_4KB_PAGE(/;"	macro	line:89
+LOAD_4MB_PAGE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define LOAD_4MB_PAGE(/;"	macro	line:101
+LOAD_PAGE_TABLE	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define LOAD_PAGE_TABLE(/;"	macro	line:113
+REDIRECT_PAGE_DIR	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define REDIRECT_PAGE_DIR(/;"	macro	line:127
+RELOAD_CR3	/Users/wangyu/ece391_common/mp3/student-distrib/inc/x86/paging.h	/^#define RELOAD_CR3 /;"	macro	line:143
+basicPageDir	/Users/wangyu/ece391_common/mp3/student-distrib/kernel.cpp	/^uint32_t basicPageDir[1024] __attribute__((aligned (4096)));$/;"	variable	line:27
+basicPageTable0	/Users/wangyu/ece391_common/mp3/student-distrib/kernel.cpp	/^uint32_t basicPageTable0[1024] __attribute__((aligned (4096)));$/;"	variable	line:28
+_entry	/Users/wangyu/ece391_common/mp3/student-distrib/kernel.cpp	/^_entry (unsigned long magic, unsigned long addr)$/;"	function	line:33	signature:(unsigned long magic, unsigned long addr)
+kernel_enable_basic_paging	/Users/wangyu/ece391_common/mp3/student-distrib/kernel.cpp	/^void kernel_enable_basic_paging()$/;"	function	line:142	signature:()
+entry	/Users/wangyu/ece391_common/mp3/student-distrib/kernel.cpp	/^entry (unsigned long magic, unsigned long addr)$/;"	function	line:162	signature:(unsigned long magic, unsigned long addr)
+__cxa_pure_virtual	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/cpplib.cpp	/^void __cxa_pure_virtual ()$/;"	function	line:3	signature:()
+VIDEO	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^#define VIDEO /;"	macro	line:6	file:
+NUM_COLS	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^#define NUM_COLS /;"	macro	line:7	file:
+NUM_ROWS	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^#define NUM_ROWS /;"	macro	line:8	file:
+ATTRIB	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^#define ATTRIB /;"	macro	line:9	file:
+screen_x	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^static int screen_x;$/;"	variable	line:11	file:
+screen_y	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^static int screen_y;$/;"	variable	line:12	file:
+video_mem	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^static char* video_mem = (char *)VIDEO;$/;"	variable	line:13	file:
+clear	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^void clear(void)$/;"	function	line:22	signature:(void)
+putc	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^void putc(uint8_t c)$/;"	function	line:31	signature:(uint8_t c)
+orig_clear	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^orig_clear(void)$/;"	function	line:48	signature:(void)
+printf	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^printf(const char *format, ...)$/;"	function	line:76	signature:(const char *format, ...)
+puts	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^puts(const char* s)$/;"	function	line:194	signature:(const char* s)
+orig_putc	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^orig_putc(uint8_t c)$/;"	function	line:213	signature:(uint8_t c)
+itoa	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^itoa(uint32_t value, char* buf, int32_t radix)$/;"	function	line:237	signature:(uint32_t value, char* buf, int32_t radix)
+strrev	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^strrev(char* s)$/;"	function	line:279	signature:(char* s)
+strlen	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^strlen(const char* s)$/;"	function	line:304	signature:(const char* s)
+memset	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^memset(void* s, int32_t c, uint32_t n)$/;"	function	line:323	signature:(void* s, int32_t c, uint32_t n)
+memset_word	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^memset_word(void* s, int32_t c, uint32_t n)$/;"	function	line:372	signature:(void* s, int32_t c, uint32_t n)
+memset_dword	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^memset_dword(void* s, int32_t c, uint32_t n)$/;"	function	line:398	signature:(void* s, int32_t c, uint32_t n)
+memcpy	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^memcpy(void* dest, const void* src, uint32_t n)$/;"	function	line:424	signature:(void* dest, const void* src, uint32_t n)
+memmove	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^memmove(void* dest, const void* src, uint32_t n)$/;"	function	line:476	signature:(void* dest, const void* src, uint32_t n)
+strncmp	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^strncmp(const char* s1, const char* s2, uint32_t n)$/;"	function	line:513	signature:(const char* s1, const char* s2, uint32_t n)
+strcpy	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^strcpy(char* dest, const char* src)$/;"	function	line:541	signature:(char* dest, const char* src)
+strncpy	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^strncpy(char* dest, const char* src, uint32_t n)$/;"	function	line:563	signature:(char* dest, const char* src, uint32_t n)
+test_interrupts	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/lib.c	/^test_interrupts(void)$/;"	function	line:587	signature:(void)
+RINGBUF_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^#define RINGBUF_SIZE /;"	macro	line:1	file:
+RINGBUF_TYPE	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^#define RINGBUF_TYPE /;"	macro	line:2	file:
+ringbuf_length	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^int32_t ringbuf_length(ringbuf_t* buf)$/;"	function	line:20	signature:(ringbuf_t* buf)
+ringbuf_is_empty	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^int ringbuf_is_empty(ringbuf_t* buf)$/;"	function	line:25	signature:(ringbuf_t* buf)
+ringbuf_push	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^void ringbuf_push(ringbuf_t* buf, void* item)$/;"	function	line:30	signature:(ringbuf_t* buf, void* item)
+ringbuf_front	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^int ringbuf_front(ringbuf_t* buf, void* result)$/;"	function	line:48	signature:(ringbuf_t* buf, void* result)
+ringbuf_front_nocp	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^void* ringbuf_front_nocp(ringbuf_t* buf)$/;"	function	line:62	signature:(ringbuf_t* buf)
+ringbuf_pop_front	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^void ringbuf_pop_front(ringbuf_t* buf)$/;"	function	line:70	signature:(ringbuf_t* buf)
+ringbuf_back	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^int ringbuf_back(ringbuf_t* buf, void* result)$/;"	function	line:83	signature:(ringbuf_t* buf, void* result)
+ringbuf_back_nocp	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^void* ringbuf_back_nocp(ringbuf_t* buf)$/;"	function	line:98	signature:(ringbuf_t* buf)
+ringbuf_pop_back	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/ringbuf.c	/^void ringbuf_pop_back(ringbuf_t* buf)$/;"	function	line:109	signature:(ringbuf_t* buf)
+spin_lock_init	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/spinlock.c	/^void spin_lock_init(spinlock_t* lock)$/;"	function	line:4	signature:(spinlock_t* lock)
+spin_lock	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/spinlock.c	/^void spin_lock(spinlock_t* lock)$/;"	function	line:9	signature:(spinlock_t* lock)
+spin_unlock	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/spinlock.c	/^void spin_unlock(spinlock_t* lock)$/;"	function	line:21	signature:(spinlock_t* lock)
+spin_trylock	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/spinlock.c	/^uint32_t spin_trylock(spinlock_t* lock)$/;"	function	line:27	signature:(spinlock_t* lock)
+spin_is_locked	/Users/wangyu/ece391_common/mp3/student-distrib/klibs/spinlock.c	/^uint32_t spin_is_locked(spinlock_t* lock)$/;"	function	line:44	signature:(spinlock_t* lock)
+OUTDIR	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^OUTDIR = output\/$/;"	macro	line:5
+CFLAGS_EXTRA	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^release: CFLAGS_EXTRA = -ffat-lto-objects -flto -fno-use-linker-plugin -O2$/;"	macro	line:7
+CC	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^CC=`.\/detect-gcc.sh`$/;"	macro	line:14
+CXX	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^CXX=`.\/detect-gcc.sh`$/;"	macro	line:15
+CRTBEGIN_OBJ	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)$/;"	macro	line:21
+CRTEND_OBJ	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)$/;"	macro	line:22
+CRTI_OBJ	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^CRTI_OBJ=crti.o$/;"	macro	line:23
+CRTN_OBJ	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^CRTN_OBJ=crtn.o$/;"	macro	line:24
+SRC	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^SRC =  $(wildcard **\/*.S) $(wildcard **\/*.c) $(wildcard *.S) $(wildcard *.c)$/;"	macro	line:27
+SRC_CPP	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^SRC_CPP =  $(wildcard **\/*.cpp) $(wildcard *.cpp)$/;"	macro	line:28
+OBJS	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^OBJS     = $(filter-out crtn.o, $(filter-out crti.o, $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))))$/;"	macro	line:31
+INTERNAL_OBJS	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^INTERNAL_OBJS:=boot.o $(CRTI_OBJ) $(OBJS) $(CRTN_OBJ)$/;"	macro	line:35
+ALL_OBJS	/Users/wangyu/ece391_common/mp3/student-distrib/Makefile	/^ALL_OBJS:=boot.o $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)$/;"	macro	line:36
+CHECK_FLAG	/Users/wangyu/ece391_common/mp3/student-distrib/mbi_info.cpp	/^#define CHECK_FLAG(/;"	macro	line:10	file:
+MultiBootInfoAddress	/Users/wangyu/ece391_common/mp3/student-distrib/mbi_info.cpp	/^multiboot_info_t *MultiBootInfoAddress = NULL;$/;"	variable	line:12
+mbi_info	/Users/wangyu/ece391_common/mp3/student-distrib/mbi_info.cpp	/^void mbi_info (unsigned long magic, unsigned long addr)$/;"	function	line:14	signature:(unsigned long magic, unsigned long addr)
+SLAVE_PIN	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^#define SLAVE_PIN /;"	macro	line:10	file:
+irq_descs	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^irq_desc_t irq_descs [NR_IRQS];$/;"	variable	line:21
+i8259_init	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^void i8259_init(void)$/;"	function	line:26	signature:(void)
+enable_irq	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^void enable_irq(uint32_t irq_num)$/;"	function	line:65	signature:(uint32_t irq_num)
+enable_irq_nolock	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^static void enable_irq_nolock(uint32_t irq_num)$/;"	function	line:73	file:	signature:(uint32_t irq_num)
+disable_irq	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^void disable_irq(uint32_t irq_num)$/;"	function	line:93	signature:(uint32_t irq_num)
+disable_irq_nolock	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^static void disable_irq_nolock(uint32_t irq_num)$/;"	function	line:101	file:	signature:(uint32_t irq_num)
+send_eoi	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^void send_eoi(uint32_t irq_num)$/;"	function	line:121	signature:(uint32_t irq_num)
+send_eoi_nolock	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^static void send_eoi_nolock(uint32_t irq_num)$/;"	function	line:135	file:	signature:(uint32_t irq_num)
+irq_int_entry	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^int irq_int_entry (int irq)$/;"	function	line:147	signature:(int irq)
+bind_irq	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^int bind_irq(unsigned int irq, unsigned int device_id,$/;"	function	line:166	signature:(unsigned int irq, unsigned int device_id, irq_good_handler_t handler, unsigned int policy_flags)
+unbind_irq	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^void unbind_irq(unsigned int irq, unsigned int device_id)$/;"	function	line:175	signature:(unsigned int irq, unsigned int device_id)
+handle_level_irq	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^static void handle_level_irq(unsigned int irq, irq_desc_t* desc)$/;"	function	line:201	file:	signature:(unsigned int irq, irq_desc_t* desc)
+setup_irq	/Users/wangyu/ece391_common/mp3/student-distrib/pic/i8259.c	/^static int setup_irq(unsigned int irq, unsigned int device_id,$/;"	function	line:238	file:	signature:(unsigned int irq, unsigned int device_id, irq_good_handler_t handler, unsigned int policy_flags)
+init_list	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.c	/^void init_list(irqaction_list* list)$/;"	function	line:11	signature:(irqaction_list* list)
+add_action	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.c	/^int add_action(irqaction_list* list, irq_good_handler_t handler, unsigned int policy_flags, unsigned int mask, unsigned int dev_id)$/;"	function	line:17	signature:(irqaction_list* list, irq_good_handler_t handler, unsigned int policy_flags, unsigned int mask, unsigned int dev_id)
+first_action	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.c	/^irqaction* first_action(irqaction_list* list)$/;"	function	line:44	signature:(irqaction_list* list)
+find_action	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.c	/^irqaction* find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find)$/;"	function	line:49	signature:(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find)
+remove_action	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.c	/^void remove_action(irqaction_list* list, irqaction* item)$/;"	function	line:60	signature:(irqaction_list* list, irqaction* item)
+_PIC_PRIV_LIST_H	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.h	/^#define _PIC_PRIV_LIST_H$/;"	macro	line:2
+_PIC_ACTION_LIST_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.h	/^#define _PIC_ACTION_LIST_SIZE /;"	macro	line:6
+size	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.h	/^    int size;           \/\/ How many data are actually stored$/;"	member	line:9	struct:__anon12
+data	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.h	/^	irqaction_t data[_PIC_ACTION_LIST_SIZE];$/;"	member	line:10	struct:__anon12
+head	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.h	/^    irqaction_t *head, *tail;$/;"	member	line:11	struct:__anon12
+tail	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.h	/^    irqaction_t *head, *tail;$/;"	member	line:11	struct:__anon12
+irqaction_list	/Users/wangyu/ece391_common/mp3/student-distrib/pic/list.h	/^} irqaction_list;$/;"	typedef	line:14	typeref:struct:__anon12
+BUFSIZE	/Users/wangyu/ece391_common/mp3/student-distrib/tests/khello.cpp	/^#define BUFSIZE /;"	macro	line:7	file:
+APPROX_PAGE_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/tests/khello.cpp	/^#define APPROX_PAGE_SIZE /;"	macro	line:10	file:
+termputarr	/Users/wangyu/ece391_common/mp3/student-distrib/tests/khello.cpp	/^#define termputarr(/;"	macro	line:12	file:
+khello_main	/Users/wangyu/ece391_common/mp3/student-distrib/tests/khello.cpp	/^int khello_main (int32_t term, int32_t kb)$/;"	function	line:15	signature:(int32_t term, int32_t kb)
+BUFSIZE	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kreader.cpp	/^#define BUFSIZE /;"	macro	line:8	file:
+APPROX_PAGE_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kreader.cpp	/^#define APPROX_PAGE_SIZE /;"	macro	line:11	file:
+termputarr	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kreader.cpp	/^#define termputarr(/;"	macro	line:13	file:
+kreader_main	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kreader.cpp	/^int kreader_main (int32_t term, int32_t kb)$/;"	function	line:16	signature:(int32_t term, int32_t kb)
+BUFSIZE	/Users/wangyu/ece391_common/mp3/student-distrib/tests/krtc.cpp	/^#define BUFSIZE /;"	macro	line:7	file:
+APPROX_PAGE_SIZE	/Users/wangyu/ece391_common/mp3/student-distrib/tests/krtc.cpp	/^#define APPROX_PAGE_SIZE /;"	macro	line:10	file:
+termputarr	/Users/wangyu/ece391_common/mp3/student-distrib/tests/krtc.cpp	/^#define termputarr(/;"	macro	line:12	file:
+krtc_main	/Users/wangyu/ece391_common/mp3/student-distrib/tests/krtc.cpp	/^int krtc_main (int32_t term, int32_t kb)$/;"	function	line:15	signature:(int32_t term, int32_t kb)
+BUFSIZE	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kshell.cpp	/^#define BUFSIZE /;"	macro	line:14	file:
+termputarr	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kshell.cpp	/^#define termputarr(/;"	macro	line:16	file:
+iscmd	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kshell.cpp	/^#define iscmd(/;"	macro	line:17	file:
+term	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kshell.cpp	/^int32_t term, kb;$/;"	variable	line:20
+kb	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kshell.cpp	/^int32_t term, kb;$/;"	variable	line:20
+exec	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kshell.cpp	/^int exec(int (*_main)(int32_t term, int32_t kb))$/;"	function	line:22	signature:(int (*_main)(int32_t term, int32_t kb))
+kshell_main	/Users/wangyu/ece391_common/mp3/student-distrib/tests/kshell.cpp	/^int kshell_main ()$/;"	function	line:60	signature:()
+ASM	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^#define ASM     1$/;"	define	line:4
+tss_size	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^tss_size:$/;"	label	line:19
+ldt_size	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^ldt_size:$/;"	label	line:22
+ldt_selector	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^ldt_selector:$/;"	label	line:26
+gdt	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^gdt:$/;"	label	line:35
+_gdt	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^_gdt:$/;"	label	line:36
+gdt_ptr	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^gdt_ptr:$/;"	label	line:61
+tss_desc	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^tss_desc:$/;"	label	line:75
+ldt_desc	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^ldt_desc:$/;"	label	line:79
+gdt_bottom	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^gdt_bottom:$/;"	label	line:82
+ldt	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^ldt:$/;"	label	line:88
+ldt_bottom	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^ldt_bottom:$/;"	label	line:92
+idt	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^idt:$/;"	label	line:98
+_idt	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^_idt:$/;"	label	line:99
+idt_bottom	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^idt_bottom:$/;"	label	line:104
+tss	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^tss:$/;"	label	line:108
+_tss	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^_tss:$/;"	label	line:109
+tss_bottom	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^tss_bottom:$/;"	label	line:113
+idtr_val	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^idtr_val:$/;"	label	line:120
+gdtr_val	/Users/wangyu/ece391_common/mp3/student-distrib/x86/desc.S	/^gdtr_val:$/;"	label	line:127
+exception_type	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^enum exception_type {$/;"	enum	line:6	file:
+Fault	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^    Fault,$/;"	enumerator	line:7	enum:exception_type	file:
+Trap	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^    Trap,$/;"	enumerator	line:8	enum:exception_type	file:
+Interrupt	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^    Interrupt,$/;"	enumerator	line:9	enum:exception_type	file:
+Abort	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^    Abort$/;"	enumerator	line:10	enum:exception_type	file:
+x86_exception_metadata_t	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^struct x86_exception_metadata_t {$/;"	struct	line:13	file:
+name	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^    char * name;$/;"	member	line:14	struct:x86_exception_metadata_t	file:
+type	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^    enum exception_type type;$/;"	member	line:15	struct:x86_exception_metadata_t	typeref:enum:x86_exception_metadata_t::exception_type	file:
+exception_metadata	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^static const struct x86_exception_metadata_t exception_metadata[0x21] = {$/;"	variable	line:18	typeref:struct:x86_exception_metadata_t	file:
+exception_handler	/Users/wangyu/ece391_common/mp3/student-distrib/x86/err_handler.c	/^void exception_handler(size_t vec, unsigned long int code)$/;"	function	line:54	signature:(size_t vec, unsigned long int code)
+interrupt_handler_with_number	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_init.c	/^void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index, uint32_t code)$/;"	function	line:10	signature:(size_t index, uint32_t code)
+init_idt	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_init.c	/^void init_idt(void)$/;"	function	line:35	signature:(void)
+ErrorCodeInExceptionBitField	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^const unsigned long int ErrorCodeInExceptionBitField = 0x40047D00;$/;"	variable	line:9
+VectorExtractingMetaFunc	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^template<size_t index> struct VectorExtractingMetaFunc {$/;"	struct	line:11	file:
+value	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^    static void __attribute__((optimize("O0"))) value(void) {   \/\/ Make sure the compiler doesn't try to be too clever$/;"	function	line:12	struct:VectorExtractingMetaFunc	signature:(void)
+raw_interrupt_handlers	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^vector_extracting_handler raw_interrupt_handlers[NUM_VEC];$/;"	variable	line:53
+Loop	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^class Loop {$/;"	class	line:56	file:
+exec	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^    static inline void exec() {$/;"	function	line:58	class:Loop	signature:()
+Loop	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^class Loop<0> {$/;"	class	line:65	file:
+exec	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^    static inline void exec() {$/;"	function	line:67	class:Loop	signature:()
+init_idt_table	/Users/wangyu/ece391_common/mp3/student-distrib/x86/idt_table.cpp	/^void init_idt_table()$/;"	function	line:72	signature:()
+ASM	/Users/wangyu/ece391_common/mp3/student-distrib/x86/paging.S	/^#define ASM$/;"	define	line:3
+ENABLE_4MB_PAGE	/Users/wangyu/ece391_common/mp3/student-distrib/x86/paging.S	/^ENABLE_4MB_PAGE =   0x00000010      # Use in CR4$/;"	define	line:7
+CLEAR_PAE	/Users/wangyu/ece391_common/mp3/student-distrib/x86/paging.S	/^CLEAR_PAE       =   0xFFFFFFDF      # Use in CR4$/;"	define	line:8
+SET_PG	/Users/wangyu/ece391_common/mp3/student-distrib/x86/paging.S	/^SET_PG          =   0x80000000      # Use in CR0$/;"	define	line:9
+enable_paging	/Users/wangyu/ece391_common/mp3/student-distrib/x86/paging.S	/^enable_paging:$/;"	label	line:32
+global_cr3val	/Users/wangyu/ece391_common/mp3/student-distrib/x86/paging.S	/^global_cr3val:$/;"	label	line:61
+kiss_loader	/Users/wangyu/ece391_common/mp3/student-distrib/syscalls/exec_loader.cpp	/^int32_t kiss_loader(const uint8_t* file)$/;"	function	line:10	signature:(const uint8_t* file)
