@@ -117,6 +117,7 @@ int32_t systemCallDispatcher(uint32_t idx, uint32_t p1, uint32_t p2, uint32_t p3
  *          1. Maintain PCB.next and PCB.prev
  *          2. Return the correct switch_to_esp0 by reading from the TARGET thread's PCB
  *          3. !! If target thread is BRAND NEW, it must INITIALIZE esp0 correctly !!
+ *          4. ******* IT MUST CHECK can_switch_task() BEFORE STARTING A SWITCH ************
  *
  */
 void __attribute__((optimize("O0"))) systemCallHandler(void)
@@ -142,6 +143,11 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "movl (%%esp), %%eax       ;\n"
         "testl %%eax, %%eax        ;\n"
         "jz 1f                     ;\n"         // Jump if no kernel stack switching.
+        "call can_switch_task      ;\n"
+        "testl %%eax, %%eax        ;\n"
+        "jnz 2f                    ;\n"
+        "call alert_sw_tsk_ban     ;\n"         // If not allowd to switch task, alert, BUT STILL SWITCHES!!!
+        "2:                         \n"
         "call getCurrentThreadInfo ;\n"
         "movl %%esp, (%%eax)       ;\n"         // Save the stack state where switch_to_esp0 has just been allocated.
 
