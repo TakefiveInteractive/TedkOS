@@ -24,10 +24,12 @@ void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index
         // PIC
         irq_int_entry(index - 0x20);
     }
+    /*
     else if (index == 0x80)
     {
-        // Syscall
+        // See idt_table.cpp for syscall handler.
     }
+    */
 }
 
 // This function initializes IDT table,
