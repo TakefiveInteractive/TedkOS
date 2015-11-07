@@ -1,6 +1,5 @@
 # vim:ts=4 expandtab
 
-#define ASM
 #include <inc/x86/paging.h>
 
 # Constant Immidiate Values only used by enable_paging:

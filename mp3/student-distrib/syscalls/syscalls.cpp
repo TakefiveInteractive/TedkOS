@@ -43,7 +43,7 @@ public:
     {
         return fptr(
                     reinterpret_cast<typename function_traits<F>::arg1_type>(p1),
-                    reinterpret_cast<typename function_traits<F>::arg2_type>(p2),
+                    reinterpret_cast<typename function_traits<F>::arg2_type>(p2)
                  );
     }
 };
@@ -57,7 +57,7 @@ public:
         return fptr(
                     reinterpret_cast<typename function_traits<F>::arg1_type>(p1),
                     reinterpret_cast<typename function_traits<F>::arg2_type>(p2),
-                    reinterpret_cast<typename function_traits<F>::arg3_type>(p3),
+                    reinterpret_cast<typename function_traits<F>::arg3_type>(p3)
                  );
     }
 };

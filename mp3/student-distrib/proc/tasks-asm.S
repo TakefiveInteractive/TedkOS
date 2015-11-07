@@ -1,3 +1,5 @@
+#include <inc/proc/tasks.h>
+
 .global getCurrentThreadInfo
 .text
 
