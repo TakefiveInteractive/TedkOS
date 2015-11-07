@@ -12,6 +12,10 @@ mp3/student-distrib/cross
 # If using osx-safe building, this file should be ignored
 tedkos.img
 
+# Ignore CTags files created by Atom
+tags
+.tags*
+
 adventure
 
 # Object files
