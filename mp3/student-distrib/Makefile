@@ -9,7 +9,7 @@ release: bootimg
 
 # Flags to use when compiling, preprocessing, assembling, and linking
 CFLAGS 	+= -g $(CFLAGS_EXTRA) -Wall -fno-stack-protector -nostdlib -fno-exceptions -ffreestanding
-ASFLAGS +=
+ASFLAGS += -DASM
 LDFLAGS += -g $(CFLAGS_EXTRA) -nostdlib -static -Wno-attributes
 CC=`./detect-gcc.sh`
 CXX=`./detect-gcc.sh`
