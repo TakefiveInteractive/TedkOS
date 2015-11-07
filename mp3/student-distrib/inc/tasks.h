@@ -13,7 +13,7 @@ typedef struct
 typedef struct _thread_pcb_t
 {
     // Kernel stack state of current thread.
-    uint32* esp0;
+    uint32_t* esp0;
     process_pd* to_process;
     
     // Following is a simple list used by "scheduling"
@@ -39,6 +39,8 @@ typedef union
 #ifdef __cplusplus
 extern "C" {
 #endif
+    int8_t can_switch_task();
+    void alert_sw_tsk_ban();
     void task_push(thread_kinfo* child);
     void task_pop();
     thread_kinfo* getCurrentThreadInfo();
