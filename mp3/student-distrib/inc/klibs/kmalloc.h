@@ -24,6 +24,8 @@ class ObjectPool {
         Maybe<void*> get();
         bool empty() const;
         bool release(void* addr);
+
+        void* operator new(size_t s, void* addr) { return addr; }
 };
 
 constexpr size_t operator "" _KB(unsigned long long len) { return len * 1024; }

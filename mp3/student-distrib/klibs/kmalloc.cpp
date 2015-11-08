@@ -113,8 +113,10 @@ Maybe<void *> paraAllocate()
         else
         {
             // TODO: move this to a new page!
-            ObjectPool<ElementSize, PageSizeOf<ElementSize>> newPool;
-            return newPool.get();
+            auto addr = pageManager.getFreePage();
+            auto newPool = new (addr) ObjectPool<16, PageSizeOf<16>>();
+            pools.push(newPool);
+            return newPool->get();
         }
     }
 }
@@ -133,6 +135,7 @@ bool paraFree(void *addr)
             auto addr = pools.drop(idx);
             addr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
             // TODO: free from pages
+            pageManager.freePage(addr);
         }
     }
     return success;
