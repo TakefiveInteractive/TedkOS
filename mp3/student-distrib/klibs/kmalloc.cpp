@@ -61,5 +61,26 @@ ObjectPool::ObjectPool()
     }
 }
 
+template<typename T>
+T* KMemory::alloc()
+{
+    return reinterpret_cast<T*>(allocImpl(sizeof(T)));
+}
+
+template<typename T>
+void KMemory::free(T* addr)
+{
+    freeImpl(reinterpret_cast<void *>(addr));
+}
+
+
+void* KMemory::allocImpl()
+{
+}
+
+void KMemory::freeImpl(void *addr)
+{
+}
+
 };
 

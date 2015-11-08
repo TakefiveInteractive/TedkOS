@@ -17,6 +17,11 @@ class Stack {
             return (idx == 0);
         }
 
+        bool full()
+        {
+            return (idx == Num);
+        }
+
         T pop()
         {
             if (idx == 0)
@@ -32,7 +37,7 @@ class Stack {
 
         void push(T val)
         {
-            if (idx >= Num - 1)
+            if (idx >= Num)
             {
                 return;
             }
