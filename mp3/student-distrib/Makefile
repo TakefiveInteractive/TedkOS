@@ -33,7 +33,7 @@ OBJS     += $(patsubst %.c,%.o,$(filter %.c,$(SRC)))
 OBJS     += $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRC_CPP)))
 
 INTERNAL_OBJS:=boot.o $(CRTI_OBJ) $(OBJS) $(CRTN_OBJ)
-ALL_OBJS:=boot.o $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
+ALL_OBJS:= $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ) boot.o
 
 
 bootimg: Makefile $(ALL_OBJS)
