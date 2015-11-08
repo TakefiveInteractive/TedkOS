@@ -16,7 +16,7 @@ CXX=`./detect-gcc.sh`
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS += -I. -g
-CXXFLAGS += -g $(CFLAGS_EXTRA) -Wall -std=c++11 -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
+CXXFLAGS += -g $(CFLAGS_EXTRA) -Wall -std=c++1y -nostdlib -fno-exceptions -ffreestanding -ftemplate-depth=4096 -fno-rtti -I.
 
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
