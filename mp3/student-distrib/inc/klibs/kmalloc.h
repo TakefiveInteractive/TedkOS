@@ -22,6 +22,22 @@ class ObjectPool {
         Maybe<void*> get();
         void release(void* addr);
 };
+
+constexpr size_t operator "" KB(size_t len) { return len * 1024; }
+constexpr size_t operator "" MB(size_t len) { return len * 1024 * 1024; }
+
+class KMemory {
+    private:
+        static constexpr MaxPoolNum = 8;
+        util::Stack<ObjectPool<16, 4KB> *, MaxPoolNum> pool16;
+        util::Stack<ObjectPool<256, 4KB> *, MaxPoolNum> pool256;
+        util::Stack<ObjectPool<8KB, 4MB> *, MaxPoolNum> pool8K;
+    public:
+        template<typename T> T* alloc();
+        template<typename T> void free(T* addr);
+        void* allocImpl();
+        void freeImpl(void *addr);
+};
 #endif
 
 }
