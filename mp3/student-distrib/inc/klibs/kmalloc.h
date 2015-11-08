@@ -17,10 +17,12 @@ class ObjectPool {
         util::BitSet<MaxNumElements> freeMap;
         util::Stack<void *, MaxNumElements> freeStack;
         size_t toMapIndex(void *addr);
+        size_t numValidElements;
 
     public:
         ObjectPool();
         Maybe<void*> get();
+        bool empty() const;
         bool release(void* addr);
 };
 
@@ -31,16 +33,12 @@ template<size_t ElementSize>
 constexpr size_t PageSizeOf =
     ([]() { static_assert(ElementSize == 16 || ElementSize == 256 || ElementSize == 8_KB, "Invalid page size"); })();
 template<>
-constexpr size_t PageSizeOf<16> = 4_KB;
+constexpr size_t PageSizeOf<16> = 4_MB;
 template<>
-constexpr size_t PageSizeOf<256> = 4_KB;
+constexpr size_t PageSizeOf<256> = 4_MB;
 template<>
 constexpr size_t PageSizeOf<8_KB> = 4_MB;
 
-namespace KMemory {
-    template<typename T> T* alloc();
-    template<typename T> void free(T* addr);
-};
 #endif
 
 }
