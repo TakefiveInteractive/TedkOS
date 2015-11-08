@@ -13,9 +13,10 @@ namespace memory {
 template<size_t ElementSize, size_t PoolSize>
 class ObjectPool {
     private:
-        static constexpr MaxNumElements = PoolSize / ElementSize;
+        static constexpr size_t MaxNumElements = PoolSize / ElementSize;
         util::BitSet<MaxNumElements> freeMap;
         util::Stack<void *, MaxNumElements> freeStack;
+        size_t toMapIndex(void *addr);
 
     public:
         ObjectPool();
@@ -23,19 +24,19 @@ class ObjectPool {
         void release(void* addr);
 };
 
-constexpr size_t operator "" KB(size_t len) { return len * 1024; }
-constexpr size_t operator "" MB(size_t len) { return len * 1024 * 1024; }
+constexpr size_t operator "" _KB(unsigned long long len) { return len * 1024; }
+constexpr size_t operator "" _MB(unsigned long long len) { return len * 1024 * 1024; }
 
 class KMemory {
     private:
-        static constexpr MaxPoolNum = 8;
-        util::Stack<ObjectPool<16, 4KB> *, MaxPoolNum> pool16;
-        util::Stack<ObjectPool<256, 4KB> *, MaxPoolNum> pool256;
-        util::Stack<ObjectPool<8KB, 4MB> *, MaxPoolNum> pool8K;
+        static constexpr size_t MaxPoolNum = 8;
+        util::Stack<ObjectPool<16, 4_KB> *, MaxPoolNum> pool16;
+        util::Stack<ObjectPool<256, 4_KB> *, MaxPoolNum> pool256;
+        util::Stack<ObjectPool<8_KB, 4_MB> *, MaxPoolNum> pool8K;
     public:
         template<typename T> T* alloc();
         template<typename T> void free(T* addr);
-        void* allocImpl();
+        void* allocImpl(size_t size);
         void freeImpl(void *addr);
 };
 #endif

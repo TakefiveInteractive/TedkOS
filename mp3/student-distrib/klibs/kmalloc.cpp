@@ -12,7 +12,7 @@ template<size_t N, size_t x>
 constexpr size_t align = ~(N - 1) & (x - 1 + N);
 
 template<size_t ElementSize, size_t PoolSize>
-Maybe<void *> ObjectPool::get()
+Maybe<void *> ObjectPool<ElementSize, PoolSize>::get()
 {
     if (freeStack.empty())
     {
@@ -27,14 +27,14 @@ Maybe<void *> ObjectPool::get()
 }
 
 template<size_t ElementSize, size_t PoolSize>
-size_t ObjectPool::toMapIndex(void *addr)
+size_t ObjectPool<ElementSize, PoolSize>::toMapIndex(void *addr)
 {
     const size_t offset = reinterpret_cast<uint8_t *>(addr) - reinterpret_cast<uint8_t *>(this);
     return offset / ElementSize;
 }
 
 template<size_t ElementSize, size_t PoolSize>
-void ObjectPool::release(void *addr)
+void ObjectPool<ElementSize, PoolSize>::release(void *addr)
 {
     auto idx = toMapIndex(addr);
     if (freeMap.test(idx))
@@ -45,7 +45,7 @@ void ObjectPool::release(void *addr)
 }
 
 template<size_t ElementSize, size_t PoolSize>
-ObjectPool::ObjectPool()
+ObjectPool<ElementSize, PoolSize>::ObjectPool()
 {
     constexpr size_t ourSize = align<ElementSize, sizeof(ObjectPool)>;
     constexpr size_t ourNumElements = ourSize / ElementSize;
@@ -74,7 +74,7 @@ void KMemory::free(T* addr)
 }
 
 
-void* KMemory::allocImpl()
+void* KMemory::allocImpl(size_t size)
 {
 }
 
