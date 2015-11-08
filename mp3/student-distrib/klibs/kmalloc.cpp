@@ -219,3 +219,11 @@ void operator delete[](void *p) {
     memory::KMemory::freeImpl(p);
 }
 
+void operator delete(void *p, size_t sz) {
+    memory::KMemory::freeImpl(p);
+}
+
+void operator delete[](void *p, size_t sz) {
+    memory::KMemory::freeImpl(p);
+}
+
