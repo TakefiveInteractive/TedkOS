@@ -126,9 +126,6 @@ _entry (unsigned long magic, unsigned long addr)
     printf("Loading frame1.txt, size = %d\n", len1);
     puts((const char *)buf1);
 
-    // Test system call
-    __asm__ __volatile__("push %%eax; push %%ebx; mov $3, %%eax; mov $5, %%ebx; int $0x80; pop %%ebx; pop %%eax; \n" : :);
-
     //while(1)
     {
         int rval;
