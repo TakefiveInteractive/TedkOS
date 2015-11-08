@@ -21,7 +21,7 @@ int32_t num_hard_int()
 
 void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index, uint32_t code)
 {
-    unsigned uint32_t flag;
+    uint32_t flag;
     if(index >= NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
     {
         printf("UNSUPPORTED INTERRUPT!");

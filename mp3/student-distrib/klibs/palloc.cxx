@@ -1,6 +1,5 @@
-#include <inc/klibs/palloc.h>
 
-using namespace palloc;
+namespace palloc {
 
 template <size_t MaxMemory>
 PhysPageManager<MaxMemory>::PhysPageManager()
@@ -48,7 +47,7 @@ template <size_t startAddr, size_t MaxSize>
 void* VirtualMemRegion<startAddr,MaxSize>::allocPage(int8_t isCommonPage)
 {
     if(freeVirtAddr.empty())
-        return 0xffff;
+        return (void*)0xffff;
     uint16_t top = freeVirtAddr.pop();
     isVirtAddrUsed.set(top);
     if(isCommonPage)
@@ -66,5 +65,7 @@ void VirtualMemRegion<startAddr,MaxSize>::freePage(void* virtAddr)
     isCommonPage.clear(pageIndex);
     freeVirtAddr.push(pageIndex);
     return;
+}
+
 }
 

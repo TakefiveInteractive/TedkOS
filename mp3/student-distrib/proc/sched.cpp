@@ -1,6 +1,8 @@
 #include <inc/proc/sched.h>
 #include <inc/proc/tasks.h>
 #include <inc/klibs/lib.h>
+#include <inc/x86/desc_interrupts.h>
+#include <inc/x86/idt_init.h>
 
 // Smaller than zero <=> No switch.
 int32_t wantToSwitchTo = -1;

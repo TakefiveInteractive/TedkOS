@@ -2,7 +2,7 @@
 #include <inc/error.h>
 #include <inc/fs/kiss_wrapper.h>
 
-using namespace syscall_exec;
+namespace syscall_exec {
 
 //   Load "file", an executable, to "program_image_addr"
 //   You can assume that CR3 already points the page table of this process.
@@ -22,4 +22,6 @@ void* kiss_loader(const uint8_t* file)
             return NULL;
 
     return *(uint32_t**)(program_image_addr + 24);
+}
+
 }

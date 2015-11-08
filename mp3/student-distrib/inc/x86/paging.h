@@ -144,7 +144,7 @@ void* enable_paging();
 //      2. reload global_cr3val to CR3
 //     WARNING:
 //        DISABLE INTERRUPT WHILE CALLING THIS FUNCTION!
-#define RELOAD_CR3 {            \
+#define RELOAD_CR3() {            \
     asm volatile (                  \
         "movl %0, %%cr3"            \
         : : "r"(global_cr3val));    \

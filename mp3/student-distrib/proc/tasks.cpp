@@ -1,9 +1,13 @@
 #include <inc/proc/tasks.h>
 #include <inc/klibs/lib.h>
+#include <inc/klibs/new.h>
+
+size_t ProcessDesc::nextNewProcess = 0;
+ProcessDesc *ProcessDesc::all_processes = NULL;
 
 ProcessDesc::ProcessDesc()
 {
-    memset(fileDescs, 0, sizeof(threadPCBs));
+    memset(fileDescs, 0, sizeof(fileDescs));
     mainThreadInfo = new thread_kinfo;
 
     mainThreadInfo->pcb.esp0 = NULL;
@@ -41,6 +45,6 @@ int32_t ProcessDesc::getUniqPid()
 size_t ProcessDesc::newProcess()
 {
     init();
-    return all_processes[nextNewProcess++];
+    return nextNewProcess++;
 }
 

@@ -19,11 +19,13 @@
 #define FD_ARRAY_LENGTH             128
 #define MAX_NUM_THREADS             128
 
+class File;
+
 class ProcessDesc
 {
 private:
-    static size_t nextNewProcess = 0;
-    static ProcessDesc* all_processes = NULL;
+    static size_t nextNewProcess;
+    static ProcessDesc* all_processes;
     static void init();
 public:
     static ProcessDesc* all();
@@ -43,7 +45,7 @@ typedef struct _thread_pcb_t
 {
     // Kernel stack state of current thread.
     target_esp0 esp0;
-    process_pd* to_process;
+    ProcessDesc* to_process;
     
     // Following is a simple list used by "scheduling"
     //    Simplest scheduling: process is paused and the next process

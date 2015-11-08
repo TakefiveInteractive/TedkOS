@@ -9,11 +9,19 @@
 
 typedef uint32_t spinlock_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void spin_lock_init(spinlock_t* lock);
 extern void spin_unlock(spinlock_t* lock);
 extern void spin_lock(spinlock_t* lock);
 extern uint32_t spin_trylock(spinlock_t* lock);
 extern uint32_t spin_is_locked(spinlock_t* lock);
+
+#ifdef __cplusplus
+}
+#endif
 
 #define spin_lock_irqsave(lock, flags) {    \
     asm volatile (                          \
