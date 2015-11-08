@@ -8,7 +8,7 @@ PhysPageManager<MaxMemory>::PhysPageManager()
     isPhysAddrUsed.set(0);
     isPhysAddrUsed.set(1);
 
-    for(uint16_t i=2; i < 0xffff; i++)
+    for(uint16_t i = 30; i < 0x3f; i++)
         freePhysAddr.push(i);
 }
 
