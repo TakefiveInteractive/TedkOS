@@ -35,7 +35,7 @@ constexpr size_t PageSizeOf<16> = 4_KB;
 template<>
 constexpr size_t PageSizeOf<256> = 4_KB;
 template<>
-constexpr size_t PageSizeOf<8_KB> = 4_MB;
+constexpr size_t PageSizeOf<8_KB> = 128_KB;
 
 namespace KMemory {
     template<typename T> T* alloc();

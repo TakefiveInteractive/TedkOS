@@ -97,7 +97,7 @@ template<size_t ElementSize>
 Maybe<void *> paraAllocate()
 {
     auto pools = PoolGetter<ElementSize>::val();
-    auto x = pools.first([](auto pool) { return pool->get(); });
+    auto x = pools.template first<void *>([](auto pool) { return pool->get(); });
     if (x)
     {
         return x;
