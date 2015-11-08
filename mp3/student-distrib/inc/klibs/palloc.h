@@ -40,7 +40,7 @@ namespace palloc
         void freePage(uint16_t pageIndex);       
     };
 
-    PhysPageManager<0xff000000> physPages;
+    extern PhysPageManager<0xff000000> physPages;
 
     // MaxSize and startAddr must be divisible by 4MB
     //   It allocates one 4MB virtual mem at a time.
@@ -63,6 +63,10 @@ namespace palloc
         // if this page is NOT in use, do nothing.
         void freePage(void* virtAddr);       
     };
+
+    extern VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
 }
+
+#include <klibs/palloc.cxx>
 
 #endif /* _KLIBS_PALLOC_H */

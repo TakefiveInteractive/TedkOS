@@ -2,6 +2,11 @@
 #include <inc/error.h>
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
+#include <inc/klibs/kmalloc.h>
+#include <inc/klibs/palloc.h>
+#include <inc/x86/paging.h>
+#include <stdint.h>
+#include <stddef.h>
 
 using namespace syscall_exec;
 
@@ -13,6 +18,7 @@ int32_t do_exec(const uint8_t* file)
     int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
 
     // Load PAGE TABLEs
+    /*
     uint32_t flag;
     uint32_t* pageDir = new uint32_t[0x400];
     spin_lock_irqsave(&cpu0_paging_lock, flag);
@@ -24,6 +30,7 @@ int32_t do_exec(const uint8_t* file)
     new4MBPage(code_page_vaddr_base >> 22, PG_USER | PG_WRITABLE, 0);
     
     spin_unlock_irqrestore(&cpu0_paging_lock, flag);
+    */
 
     // Initialize stack and ESP
 

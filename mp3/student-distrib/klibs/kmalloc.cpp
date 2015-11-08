@@ -1,4 +1,10 @@
 #include <inc/klibs/kmalloc.h>
+#include <inc/klibs/palloc.h>
+#include <inc/x86/paging.h>
+#include <stdint.h>
+#include <stddef.h>
+
+using namespace palloc;
 
 namespace memory {
 
@@ -113,8 +119,11 @@ Maybe<void *> paraAllocate()
         else
         {
             // TODO: move this to a new page!
-            auto addr = pageManager.getFreePage();
-            auto newPool = new (addr) ObjectPool<16, PageSizeOf<16>>();
+            auto physAddr = physPages.allocPage(1);
+            void* addr = virtLast1G.allocPage(1);
+            LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
+            RELOAD_CR3();
+            auto newPool = new (addr) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
             pools.push(newPool);
             return newPool->get();
         }
@@ -132,10 +141,12 @@ bool paraFree(void *addr)
         // See if we can drop this block
         if (pools.get(idx)->empty())
         {
-            auto addr = pools.drop(idx);
-            addr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+            auto poolAddr = pools.drop(idx);
+            uint32_t physAddr = global_cr3val[((uint32_t)poolAddr >> 22)] & 0xffc00000;
+            poolAddr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
             // TODO: free from pages
-            pageManager.freePage(addr);
+            physPages.freePage(physAddr >> 22);
+            virtLast1G.freePage(poolAddr);
         }
     }
     return success;
@@ -174,7 +185,7 @@ void freeImpl(void *addr)
 
 };
 
-inline void* operator new(size_t s) {
+void* operator new(size_t s) {
     auto x = memory::KMemory::allocImpl(s);
     if (x)
     {
@@ -187,7 +198,24 @@ inline void* operator new(size_t s) {
     }
 }
 
-inline void operator delete(void *p) {
+void* operator new[](size_t s) {
+    auto x = memory::KMemory::allocImpl(s);
+    if (x)
+    {
+        return !x;
+    }
+    else
+    {
+        // Trigger an exception
+        __asm__ __volatile__("int $24;" : : );
+    }
+}
+
+void operator delete(void *p) {
+    memory::KMemory::freeImpl(p);
+}
+
+void operator delete[](void *p) {
     memory::KMemory::freeImpl(p);
 }
 

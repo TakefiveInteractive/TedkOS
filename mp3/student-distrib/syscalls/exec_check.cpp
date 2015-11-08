@@ -2,7 +2,7 @@
 #include <inc/fs/kiss.h>
 #include <inc/fs/kiss_wrapper.h>
 
-using namespace syscall_exec;
+namespace syscall_exec {
 
 static const int NORMAL_FILE = 2;
 /*
@@ -31,4 +31,6 @@ int8_t is_kiss_executable(const uint8_t* file)//filename
         return 1;
     else
         return 0;
+}
+
 }
