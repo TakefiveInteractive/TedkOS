@@ -27,6 +27,12 @@ Maybe<void *> ObjectPool<ElementSize, PoolSize>::get()
 }
 
 template<size_t ElementSize, size_t PoolSize>
+bool ObjectPool<ElementSize, PoolSize>::empty() const
+{
+    return freeStack.size() == numValidElements;
+}
+
+template<size_t ElementSize, size_t PoolSize>
 size_t ObjectPool<ElementSize, PoolSize>::toMapIndex(void *addr)
 {
     auto addrval = reinterpret_cast<uint32_t>(addr);
@@ -65,6 +71,7 @@ ObjectPool<ElementSize, PoolSize>::ObjectPool()
         freeMap.set(i);
         freeStack.push(reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(this) + ElementSize * i));
     }
+    numValidElements = MaxNumElements - ourNumElements;
 }
 
 namespace KMemory {
@@ -87,17 +94,11 @@ template<> class PoolGetter<16> { public: static const auto val() { return pools
 template<> class PoolGetter<256> { public: static const auto val() { return pools256; } };
 template<> class PoolGetter<8_KB> { public: static const auto val() { return pools8K; } };
 
-template<size_t ElementSize> Maybe<void *> paraAllocate();
-template<size_t ElementSize> void paraFree(void *addr);
-
-Maybe<void *> allocImpl(size_t size);
-void freeImpl(void *addr, size_t size);
-
 template<size_t ElementSize>
 Maybe<void *> paraAllocate()
 {
     auto pools = PoolGetter<ElementSize>::val();
-    auto x = pools.first([](auto pool) { return pool->get(); });
+    auto x = pools.template first<void *>([](auto pool) { return pool->get(); });
     if (x)
     {
         return x;
@@ -119,10 +120,22 @@ Maybe<void *> paraAllocate()
 }
 
 template<size_t ElementSize>
-void paraFree(void *addr)
+bool paraFree(void *addr)
 {
     auto pools = PoolGetter<ElementSize>::val();
-    pools.firstTrue(addr, [](auto pool, void* addr) { return pool->release(addr); });
+    size_t idx;
+    bool success = pools.firstTrue(addr, idx, [](auto pool, void* addr) { return pool->release(addr); });
+    if (success)
+    {
+        // See if we can drop this block
+        if (pools.get(idx)->empty())
+        {
+            auto addr = pools.drop(idx);
+            addr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+            // TODO: free from pages
+        }
+    }
+    return success;
 }
 
 Maybe<void *> allocImpl(size_t size)
@@ -145,41 +158,33 @@ Maybe<void *> allocImpl(size_t size)
     }
 }
 
-void freeImpl(void *addr, size_t size)
+void freeImpl(void *addr)
 {
-    if (size <= 16)
-    {
-        paraFree<16>(addr);
-    }
-    else if (size <= 256)
-    {
-        paraFree<256>(addr);
-    }
-    else if (size <= 8_KB)
-    {
-        paraFree<8_KB>(addr);
-    }
-    else
+    if (!paraFree<16>(addr) && !paraFree<256>(addr) && !paraFree<8_KB>(addr))
     {
         // Trigger an exception
         __asm__ __volatile__("int $25;" : : );
     }
-
-}
-
-template<typename T>
-T* alloc()
-{
-    return reinterpret_cast<T*>(KMemory::allocImpl(sizeof(T)));
-}
-
-template<typename T>
-void free(T* addr)
-{
-    KMemory::freeImpl(reinterpret_cast<void *>(addr), sizeof(T));
 }
 
 }
 
 };
+
+inline void* operator new(size_t s) {
+    auto x = memory::KMemory::allocImpl(s);
+    if (x)
+    {
+        return !x;
+    }
+    else
+    {
+        // Trigger an exception
+        __asm__ __volatile__("int $24;" : : );
+    }
+}
+
+inline void operator delete(void *p) {
+    memory::KMemory::freeImpl(p);
+}
 
