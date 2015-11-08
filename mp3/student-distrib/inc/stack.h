@@ -14,14 +14,19 @@ class Stack {
     public:
         Stack() : arr(), idx(0) { }
 
-        bool empty()
+        bool empty() const
         {
             return (idx == 0);
         }
 
-        bool full()
+        bool full() const
         {
             return (idx == Num);
+        }
+
+        size_t size() const
+        {
+            return idx;
         }
 
         T pop()
@@ -50,14 +55,32 @@ class Stack {
             }
         }
 
+        T drop(size_t killIdx)
+        {
+            T mem = arr[killIdx];
+            // Copy everything over
+            for (size_t i = killIdx; i < idx - 1; i++)
+            {
+                arr[i] = arr[i + 1];
+            }
+            idx--;
+            return mem;
+        }
+
+        T get(size_t x) const { return arr[x]; }
+
         template<typename R> Maybe<R> first(Maybe<R> (*fn) (T));
 
-        bool firstTrue(void *a, bool (*fn) (T, void*))
+        bool firstTrue(void *a, size_t &in_idx, bool (*fn) (T, void*))
         {
             for (size_t i = 0; i < idx; i++)
             {
                 auto x = fn(arr[idx], a);
-                if (x) return x;
+                if (x)
+                {
+                    in_idx = i;
+                    return x;
+                }
             }
             return false;
         }
