@@ -6,7 +6,7 @@
 #include <inc/multiboot.h>
 #include <inc/x86/desc.h>
 
-.text
+.section .init
 
 	# Multiboot header (required for GRUB to boot us)
 	.long MULTIBOOT_HEADER_MAGIC

@@ -37,7 +37,7 @@ ALL_OBJS:=boot.o $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
 
 
 bootimg: Makefile $(ALL_OBJS)
-	$(CC) $(LDFLAGS) $(ALL_OBJS) -Wl,--section-start=.init=400000 -Ttext=0x400010 -o $(OUTDIR)/bootimg
+	$(CC) $(LDFLAGS) $(ALL_OBJS) -Wl,--section-start=.init=400000 -o $(OUTDIR)/bootimg
 	(cd $(OUTDIR); ./debug.sh)
 
 debug: bootimg
