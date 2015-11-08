@@ -1,5 +1,5 @@
 #ifndef _INC_MAYBE_H_
-#define _INC_MAYBE_H
+#define _INC_MAYBE_H_
 
 #include <stddef.h>
 #include <stdint.h>

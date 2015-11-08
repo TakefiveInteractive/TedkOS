@@ -21,23 +21,25 @@ class ObjectPool {
     public:
         ObjectPool();
         Maybe<void*> get();
-        void release(void* addr);
+        bool release(void* addr);
 };
 
 constexpr size_t operator "" _KB(unsigned long long len) { return len * 1024; }
 constexpr size_t operator "" _MB(unsigned long long len) { return len * 1024 * 1024; }
 
-class KMemory {
-    private:
-        static constexpr size_t MaxPoolNum = 8;
-        util::Stack<ObjectPool<16, 4_KB> *, MaxPoolNum> pool16;
-        util::Stack<ObjectPool<256, 4_KB> *, MaxPoolNum> pool256;
-        util::Stack<ObjectPool<8_KB, 4_MB> *, MaxPoolNum> pool8K;
-    public:
-        template<typename T> T* alloc();
-        template<typename T> void free(T* addr);
-        void* allocImpl(size_t size);
-        void freeImpl(void *addr);
+template<size_t ElementSize>
+constexpr size_t PageSizeOf =
+    ([]() { static_assert(ElementSize == 16 || ElementSize == 256 || ElementSize == 8_KB, "Invalid page size"); })();
+template<>
+constexpr size_t PageSizeOf<16> = 4_KB;
+template<>
+constexpr size_t PageSizeOf<256> = 4_KB;
+template<>
+constexpr size_t PageSizeOf<8_KB> = 4_MB;
+
+namespace KMemory {
+    template<typename T> T* alloc();
+    template<typename T> void free(T* addr);
 };
 #endif
 
