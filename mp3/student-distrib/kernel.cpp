@@ -88,7 +88,7 @@ _entry (unsigned long magic, unsigned long addr)
     /* Init the PIC */
     i8259_init();
 
-    /* Init the interuupts */
+    /* Init the interrupts */
     init_idt();
 
     /* Initialize runtime library */

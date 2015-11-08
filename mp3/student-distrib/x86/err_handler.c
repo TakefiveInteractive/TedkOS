@@ -42,7 +42,7 @@ static const struct x86_exception_metadata_t exception_metadata[0x21] = {
     { "Meltdown in progress", Abort },
     { "Did not have breakfast", Abort },
     { "Cannot reverse binary tree", Abort },
-    { "Too cool to not fault", Abort },
+    { "Unwrapping maybe type", Abort },
     { "I like monkeys", Abort },
     { "CPU on fire", Abort },
     { "CPU froze to death", Abort },
