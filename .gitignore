@@ -9,6 +9,8 @@ gcc-strip.tar.gz
 gcc-strip-nolink.tar.gz
 mp3/student-distrib/cross
 
+.vimrc
+
 # If using osx-safe building, this file should be ignored
 tedkos.img
 

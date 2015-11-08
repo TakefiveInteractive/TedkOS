@@ -12,6 +12,11 @@ class Stack {
     public:
         Stack() : arr(), idx(0) { }
 
+        bool empty()
+        {
+            return (idx == 0);
+        }
+
         T pop()
         {
             if (idx == 0)

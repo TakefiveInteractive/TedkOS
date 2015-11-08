@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <inc/bitset.h>
 #include <inc/stack.h>
+#include <inc/maybe.h>
 
 #ifdef __cplusplus
 namespace memory {
@@ -14,7 +15,12 @@ class ObjectPool {
     private:
         static constexpr MaxNumElements = PoolSize / ElementSize;
         util::BitSet<MaxNumElements> freeMap;
-        util::Stack<uint32_t, MaxNumElements> freeStack;
+        util::Stack<void *, MaxNumElements> freeStack;
+
+    public:
+        ObjectPool();
+        Maybe<void*> get();
+        void release(void* addr);
 };
 #endif
 
