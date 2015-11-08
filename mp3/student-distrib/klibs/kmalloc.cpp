@@ -93,18 +93,6 @@ template<size_t ElementSize> void paraFree(void *addr);
 Maybe<void *> allocImpl(size_t size);
 void freeImpl(void *addr, size_t size);
 
-template<typename T>
-T* alloc()
-{
-    return reinterpret_cast<T*>(allocImpl(sizeof(T)));
-}
-
-template<typename T>
-void free(T* addr)
-{
-    freeImpl(reinterpret_cast<void *>(addr), sizeof(T));
-}
-
 template<size_t ElementSize>
 Maybe<void *> paraAllocate()
 {
@@ -179,6 +167,18 @@ void freeImpl(void *addr, size_t size)
 
 }
 
+}
+
+template<typename T>
+T* alloc()
+{
+    return reinterpret_cast<T*>(KMemory::allocImpl(sizeof(T)));
+}
+
+template<typename T>
+void free(T* addr)
+{
+    KMemory::freeImpl(reinterpret_cast<void *>(addr), sizeof(T));
 }
 
 };
