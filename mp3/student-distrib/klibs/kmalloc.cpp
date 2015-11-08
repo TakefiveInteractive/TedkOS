@@ -167,8 +167,6 @@ void freeImpl(void *addr, size_t size)
 
 }
 
-}
-
 template<typename T>
 T* alloc()
 {
@@ -179,6 +177,8 @@ template<typename T>
 void free(T* addr)
 {
     KMemory::freeImpl(reinterpret_cast<void *>(addr), sizeof(T));
+}
+
 }
 
 };
