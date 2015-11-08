@@ -60,9 +60,13 @@
 
 #ifndef ASM
 
+#include <inc/klibs/spinlock.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern spinlock_t cpu0_paging_lock;
 
 /*************** IN CP1 we use static Page Tables ********/
 /*********** Later we change by modifying pointer ********/
