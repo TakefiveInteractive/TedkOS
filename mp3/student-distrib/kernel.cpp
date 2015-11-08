@@ -147,6 +147,8 @@ void kernel_enable_basic_paging()
     int32_t i;
     uint32_t* pageDir   = basicPageDir;
     uint32_t* pageTable = basicPageTable0;
+    uint32_t flag;
+    spin_lock_irqsave(&cpu0_paging_lock, flag);
     memset(pageDir  , 0, 0x1000);
     memset(pageTable, 0, 0x1000);
     REDIRECT_PAGE_DIR(pageDir, 0);
@@ -159,6 +161,7 @@ void kernel_enable_basic_paging()
         LOAD_4KB_PAGE(0, i, i << 12, PG_WRITABLE);
     }
     enable_paging();
+    spin_unlock_irqrestore(&cpu0_paging_lock, flag);
 }
 
 extern "C" void

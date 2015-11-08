@@ -11,7 +11,17 @@ typedef void* target_esp0;
 #ifdef __cplusplus
 extern "C" {
 #endif
-     target_esp0 schedDispatchDecision();
+    //      This will create a Process with:
+    //          valid PCB ( NO esp (=> iret, pushal, eax))
+    //                    ( prev = next = NULL )
+    //          valid PD  (thus FD)
+    //          No executable in memory
+    //          No PAGE TABLEs
+    int32_t newPausedProcess(int32_t parentPID);
+    // Currently all switches are blocking:
+    //      Parent process will wait for child to finish
+    void prepareSwitchTo(int32_t pid);
+    target_esp0 schedDispatchDecision();
 #ifdef __cplusplus
 }
 #endif

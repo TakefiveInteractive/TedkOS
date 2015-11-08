@@ -11,6 +11,12 @@ extern "C" {
 //		And loads the table to IDTR
 extern void init_idt();
 
+// Get the number of non-syscall interrupt
+//      that has NOT 'iret' yet.
+// Useful for scheduler to determine:
+//      whether it's at outmost interrupt.
+extern int32_t num_hard_int();
+
 #ifdef __cplusplus
 }
 #endif

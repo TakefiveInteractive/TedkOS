@@ -11,26 +11,47 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/proc/sched.h>
+#include <inc/fs/filesystem.h>
 
-typedef struct
+#define MAX_NUM_PROCESS             1024
+
+#define FD_ARRAY_LENGTH             128
+#define MAX_NUM_THREADS             128
+
+class ProcessDesc
 {
-} process_pd;
+private:
+    static size_t nextNewProcess = 0;
+    static ProcessDesc* all_processes = NULL;
+    static void init();
+public:
+    static ProcessDesc* all();
+    static ProcessDesc& get(size_t uniq_pid);
+    static size_t newProcess();
+    ProcessDesc();
+    int32_t getUniqPid();
+    File *fileDescs[FD_ARRAY_LENGTH];
+    // Currently no multithread
+    union _thread_kinfo * mainThreadInfo;
+    uint32_t* pageDir;
+};
 
 // because we saves all register states in kernel stack,
 //   here we do not repeat those states.
 typedef struct _thread_pcb_t
 {
     // Kernel stack state of current thread.
-    uint32_t* esp0;
+    target_esp0 esp0;
     process_pd* to_process;
     
     // Following is a simple list used by "scheduling"
     //    Simplest scheduling: process is paused and the next process
     //    to be executed is stored as current pcb->next.
-    struct _thread_pcb_t *next, *prev;
+    union _thread_kinfo *next, *prev;
 } thread_pcb;
 
-typedef union
+typedef union _thread_kinfo
 {
     thread_pcb pcb;
     uint8_t kstack[THREAD_KSTACK_SIZE];

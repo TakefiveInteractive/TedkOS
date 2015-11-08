@@ -1,19 +1,37 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inc/klibs/lib.h>
+#include <inc/klibs/spinlock.h>
 #include <inc/i8259.h>
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_init.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 
+spinlock_t num_hard_int_lock = SPINLOCK_UNLOCKED;
+int32_t num_hard_int_val = 0;
+
+// Call this only when the interrupt is TURNED OFF!
+//      (Not for atomic operation...)
+//      (Just to avoid race condition...)
+int32_t num_hard_int()
+{
+    return num_hard_int_val;
+}
+
 void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index, uint32_t code)
 {
+    unsigned uint32_t flag;
     if(index >= NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
     {
         printf("UNSUPPORTED INTERRUPT!");
         return;
     }
+    
+    spin_lock_irqsave(&num_hard_int_lock, flag);
+    num_hard_int_val++;
+    spin_unlock_irqrestore(&num_hard_int_lock, flag);
+
     if (index <= 0x1f)
     {
         // Exception
@@ -24,12 +42,11 @@ void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index
         // PIC
         irq_int_entry(index - 0x20);
     }
-    /*
-    else if (index == 0x80)
-    {
-        // See idt_table.cpp for syscall handler.
-    }
-    */
+    // See idt_table.cpp for SYSCALL handler.
+
+    spin_lock_irqsave(&num_hard_int_lock, flag);
+    num_hard_int_val--;
+    spin_unlock_irqrestore(&num_hard_int_lock, flag);
 }
 
 // This function initializes IDT table,
