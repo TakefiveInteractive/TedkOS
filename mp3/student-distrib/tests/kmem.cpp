@@ -11,8 +11,8 @@
 int kmem_main (int32_t term, int32_t kb)
 {
 
-    termputarr (term, "allocating and deallocating 4K char array for 12M times ...\n");
-    for(int32_t i = 0; i < 1; i++)
+    termputarr (term, "allocating and deallocating 4K char array for 128K times ...\n");
+    for(int32_t i = 0; i < 128 * 1024; i++)
     {
         char** a = new char*[4*1024];
         termputarr (term, "Success!\n");

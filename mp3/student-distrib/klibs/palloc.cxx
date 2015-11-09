@@ -77,7 +77,7 @@ void PhysPageManager<MaxMemory>::freePage(uint16_t pageIndex)
 {
     if(isPhysAddrFree.test(pageIndex))
         return;
-    isPhysAddrFree.clear(pageIndex);
+    isPhysAddrFree.set(pageIndex);
     isCommonPage.clear(pageIndex);
     freePhysAddr.push(pageIndex);
     return;
