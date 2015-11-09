@@ -11,19 +11,22 @@
 int kmem_main (int32_t term, int32_t kb)
 {
 
-    termputarr (term, "allocating and deallocating one char for 512M times ...\n");
-    for(int32_t i = 0; i < 512 * 1024 * 1024; i++)
+    termputarr (term, "allocating and deallocating 4K char array for 12M times ...\n");
+    for(int32_t i = 0; i < 1; i++)
     {
-        /*
-        char** a = new char*[128*1024];
-        for(int32_t j = 0; j < 128*1024; j++)
+        char** a = new char*[4*1024];
+        termputarr (term, "Success!\n");
+        for(int32_t j = 0; j < 4*1024; j++)
+        {
             a[j] = new char;
-        for(int32_t j = 0; j < 128*1024; j++)
+            printf("Done %d\n", j);
+        }
+        termputarr (term, "Success!\n");
+        for(int32_t j = 0; j < 4*1024; j++)
             delete a[j];
+        termputarr (term, "Success!\n");
         delete[] a;
-        */
-        char* b =new char;
-        delete b;
+        termputarr (term, "Success!\n");
     }
     termputarr (term, "Success!\n");
 
