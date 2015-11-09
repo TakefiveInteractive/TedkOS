@@ -75,7 +75,7 @@ class Stack {
         {
             for (size_t i = 0; i < idx; i++)
             {
-                auto x = fn(arr[idx], a);
+                auto x = fn(arr[i], a);
                 if (x)
                 {
                     in_idx = i;
@@ -92,7 +92,7 @@ Maybe<R> Stack<T, Num>::first(Maybe<R> (*fn) (T))
 {
     for (size_t i = 0; i < idx; i++)
     {
-        auto x = fn(arr[idx]);
+        auto x = fn(arr[i]);
         if (x) return x;
     }
     return Maybe<R>();

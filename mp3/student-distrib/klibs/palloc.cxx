@@ -56,7 +56,6 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
     // 0 and 1 are pages used by kernel initialization
     isPhysAddrFree.clear(0);
     isPhysAddrFree.clear(1);
-
 }
 
 template <uint32_t MaxMemory>

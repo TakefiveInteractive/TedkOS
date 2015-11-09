@@ -33,13 +33,15 @@ constexpr size_t operator "" _MB(unsigned long long len) { return len * 1024 * 1
 
 template<size_t ElementSize>
 constexpr size_t PageSizeOf =
-    ([]() { static_assert(ElementSize == 16 || ElementSize == 256 || ElementSize == 8_KB, "Invalid page size"); })();
+    ([]() { static_assert(ElementSize == 16 || ElementSize == 256 || ElementSize == 8_KB || ElementSize == 256_KB, "Invalid page size"); })();
 template<>
 constexpr size_t PageSizeOf<16> = 4_MB;
 template<>
 constexpr size_t PageSizeOf<256> = 4_MB;
 template<>
 constexpr size_t PageSizeOf<8_KB> = 4_MB;
+template<>
+constexpr size_t PageSizeOf<256_KB> = 4_MB;
 
 #endif
 
