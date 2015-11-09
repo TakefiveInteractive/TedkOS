@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -6,8 +7,13 @@
 //-------------------------------------------------------------------------
 // Data declarations
 
-char pheader_list[16] = { 0x50, 0xa4, 0x0f, 0x08, 0x50, 0xa4, 0x04, 0x08,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+typedef struct pheader_list_t {
+    struct pheader_list_t *prev;
+    struct pheader_list_t *next;
+    uint32_t data;
+} pheader_list_t;
+
+pheader_list_t pheader_list = { .prev = &pheader_list, .next = &pheader_list, .data = 0 };
 char magic_2882[5] = { 0x7f, 0x45, 0x4c, 0x46 };
 
 //-------------------------------------------------------------------------
@@ -17,7 +23,7 @@ int  verify_magic(const char *s2);
 int  print_usage();
 signed int  verify_ident(int a1);
 void * read_program_header(int fd, int a2, int a3);
-int  parse_program_header(int a1);
+int  parse_program_header(void *a1);
 void * list_insert_after(int a1, int a2, int a3);
 void * list_insert_before(int a1, int a2, int a3);
 int  list_remove(int, void *ptr); // idb
@@ -39,18 +45,17 @@ typedef int16_t __int16;
 #define LOBYTE(w) ((BYTE)(w))
 #define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 
+
+int32_t inputbuf[128 * 1024 * 1024] = { };
+
 //----- (08048674) --------------------------------------------------------
 int  main(int argc, char *argv[])
 {
-    void *v2; // esp@1
-    void *v3; // esp@24
     ssize_t v4; // eax@37
-    size_t v6; // [sp+0h] [bp-78h]@24
     const char *v7; // [sp+4h] [bp-74h]@24
     signed int v8; // [sp+8h] [bp-70h]@13
     unsigned int v9; // [sp+Ch] [bp-6Ch]@24
     char v10; // [sp+1Bh] [bp-5Dh]@24
-    char buf; // [sp+1Ch] [bp-5Ch]@4
     int v12; // [sp+34h] [bp-44h]@13
     int v13; // [sp+38h] [bp-40h]@13
     int v14; // [sp+3Ch] [bp-3Ch]@13
@@ -58,7 +63,6 @@ int  main(int argc, char *argv[])
     int v16; // [sp+44h] [bp-34h]@13
     int v17; // [sp+48h] [bp-30h]@13
     int v18; // [sp+4Ch] [bp-2Ch]@13
-    char *file; // [sp+50h] [bp-28h]@24
     int fd; // [sp+54h] [bp-24h]@4
     int v21; // [sp+58h] [bp-20h]@24
     int i; // [sp+5Ch] [bp-1Ch]@13
@@ -69,28 +73,36 @@ int  main(int argc, char *argv[])
     size_t v27; // [sp+70h] [bp-8h]@25
     size_t v28; // [sp+78h] [bp+0h]@29
 
-    v2 = alloca(16);
     if ( argc != 2 )
     {
         print_usage();
         exit(1);
     }
-    fd = fopen(argv[1], 0);
-    if ( read(fd, &buf, 0x34u) != 52 )
+    fd = open(argv[1], O_RDONLY);
+    if ( read(fd, inputbuf, 0x34u) != 52 )
     {
         perror("Reading elf header");
         exit(1);
     }
-    if ( verify_magic(&buf) )
+    if ( verify_magic(inputbuf) )
     {
         fprintf(stderr, "%s is not an ELF file.\n", argv[1]);
         exit(1);
     }
-    if ( verify_ident((int)&buf) )
+    if ( verify_ident((int)&inputbuf) )
     {
         fprintf(stderr, "%s is not a compatible ELF file.\n", argv[1]);
         exit(1);
     }
+
+    v12 = inputbuf[0x18 / 4];
+    v13 = inputbuf[0x1C / 4];
+    v14 = inputbuf[0x20 / 4];
+    v15 = inputbuf[0x24 / 4];
+    v16 = inputbuf[0x28 / 4];
+    v17 = inputbuf[0x2A / 4];
+    v18 = inputbuf[0x2C / 4];
+
     fprintf(stderr, "e_entry    : 0x%08x\n", v12);
     fprintf(stderr, "e_phoff    : 0x%08x\n", v13);
     fprintf(stderr, "e_shoff    : 0x%08x\n", v14);
@@ -104,31 +116,26 @@ int  main(int argc, char *argv[])
     fprintf(stderr, "\n", v8);
     for ( i = 0; (uint16_t)v17 > i; ++i )
     {
-        v23 = (int)read_program_header(fd, (int)&buf, i);
-        if ( !v23 )
+        void *header = read_program_header(fd, (int)&inputbuf, i);
+        if ( !header )
         {
             fprintf(stderr, "Error reading header %d, skipping...\n", i);
             exit(1);
         }
-        if ( parse_program_header(v23) )
-            list_insert_at_tail((int)pheader_list, v23);
+        if ( parse_program_header(header) )
+            list_insert_at_tail((int)&pheader_list, header);
     }
     if ( !i )
     {
         fprintf(stderr, "No loadable segments found...\n");
         exit(1);
     }
-    v6 = argv[1] + strlen(".converted") + 1;
-    v3 = alloca(16 * ((strlen((const char *)v6) + 30) >> 4));
-    v9 = 16 * ((unsigned int)&v10 >> 4);
-    file = (char *)(16 * ((unsigned int)&v10 >> 4));
-    v7 = *(const char **)argv[1];
-    v6 = 16 * ((unsigned int)&v10 >> 4);
-    strcpy((char *)v6, v7);
+    char file[80] = { };
+    strcpy(file, argv[1]);
     strcat(file, ".converted");
     v8 = 33188;
-    v21 = open(file, 66, 33188, v9);
-    for ( j = *(_DWORD *)pheader_list; (char *)j != pheader_list; j = *(_DWORD *)j )
+    v21 = open(file, 0x42, 0x81a4);
+    for ( j = *(_DWORD *)&pheader_list; (char *)j != &pheader_list; j = *(_DWORD *)j )
     {
         v23 = *(_DWORD *)(j + 8);
         v27 = *(_DWORD *)(v23 + 20);
@@ -147,7 +154,7 @@ int  main(int argc, char *argv[])
                 exit(1);
             }
         }
-        if ( lseek(v21, *(_DWORD *)(v23 + 8) - 134512640, 0) == -1 )
+        if ( lseek(v21, *(_DWORD *)(v23 + 8) - 0x8048000, 0) == -1 )
         {
             perror("lseek for pheader write");
             exit(1);
@@ -199,12 +206,12 @@ signed int  verify_ident(int a1)
 }
 
 //----- (08048C20) --------------------------------------------------------
-void * read_program_header(int fd, int a2, int a3)
+void * read_program_header(int fd, int input, int idx)
 {
     void *v4; // [sp+14h] [bp-14h]@2
     void *buf; // [sp+24h] [bp-4h]@3
 
-    if ( lseek(fd, *(_DWORD *)(a2 + 28) + a3 * *(_WORD *)(a2 + 42), 0) == -1 )
+    if ( lseek(fd, *(_DWORD *)(input + 28) + idx * *(_WORD *)(input + 42), 0) == -1 )
     {
         perror("lseek to program header");
         v4 = 0;
@@ -212,7 +219,7 @@ void * read_program_header(int fd, int a2, int a3)
     else
     {
         buf = malloc(0x20u);
-        if ( read(fd, buf, *(_WORD *)(a2 + 42)) == *(_WORD *)(a2 + 42) )
+        if ( read(fd, buf, *(_WORD *)(input + 42)) == *(_WORD *)(input + 42) )
         {
             v4 = buf;
         }
@@ -226,7 +233,7 @@ void * read_program_header(int fd, int a2, int a3)
 }
 
 //----- (08048CCD) --------------------------------------------------------
-int  parse_program_header(int a1)
+int  parse_program_header(void *a1)
 {
     int v2; // [sp+14h] [bp-4h]@2
 
