@@ -15,18 +15,14 @@ int kmem_main (int32_t term, int32_t kb)
     for(int32_t i = 0; i < 128 * 1024; i++)
     {
         char** a = new char*[4*1024];
-        termputarr (term, "Success!\n");
         for(int32_t j = 0; j < 4*1024; j++)
         {
             a[j] = new char;
-            printf("Done %d\n", j);
         }
-        termputarr (term, "Success!\n");
         for(int32_t j = 0; j < 4*1024; j++)
             delete a[j];
-        termputarr (term, "Success!\n");
         delete[] a;
-        termputarr (term, "Success!\n");
+        printf("Done %d\n", i);
     }
     termputarr (term, "Success!\n");
 
