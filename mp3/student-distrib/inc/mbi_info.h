@@ -1,6 +1,8 @@
 #ifndef _MBI_INFO_H_
 #define _MBI_INFO_H_
 
+#include <inc/multiboot.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
