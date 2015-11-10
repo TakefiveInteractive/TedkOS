@@ -24,14 +24,14 @@ public:
         return val;
     }
 
-    const Maybe<T> operator >> (Maybe<T> other) const {
+    const Maybe<T> operator >> (Maybe<T> (*other)()) const {
         if (exists)
         {
             return *this;
         }
         else
         {
-            return other;
+            return other();
         }
     }
 

@@ -83,8 +83,8 @@ ObjectPool<ElementSize, PoolSize>::ObjectPool()
 
 namespace KMemory {
 
-static constexpr size_t MaxPoolNumInSingleSlot = 16;
-static constexpr size_t MaxPoolNumInAllSlots = 16;
+static constexpr size_t MaxPoolNumInSingleSlot = 32;
+static constexpr size_t MaxPoolNumInAllSlots = 32;
 size_t totalNumPools = 0;
 
 util::Stack<ObjectPool<16, PageSizeOf<16>> *, MaxPoolNumInSingleSlot> pools16;
@@ -124,7 +124,8 @@ Maybe<void *> paraFindAndReleaseFreePool()
     if (x)
     {
         // Free it
-        auto poolAddr = slot->drop(idx);
+        slot->drop(idx);
+        totalNumPools--;
         (!x)->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
         return Maybe<void *>(!x);
     }
@@ -134,9 +135,9 @@ Maybe<void *> paraFindAndReleaseFreePool()
 Maybe<void *> findAndReleaseFreePool()
 {
     return paraFindAndReleaseFreePool<16>()
-        >> paraFindAndReleaseFreePool<256>()
-        >> paraFindAndReleaseFreePool<8_KB>()
-        >> paraFindAndReleaseFreePool<256_KB>();
+        >> [](){ return paraFindAndReleaseFreePool<256>(); }
+        >> [](){ return paraFindAndReleaseFreePool<8_KB>(); }
+        >> [](){ return paraFindAndReleaseFreePool<256_KB>(); };
 }
 
 template<size_t ElementSize>
@@ -151,7 +152,7 @@ Maybe<void *> paraAllocate()
     else    // Our slot have no empty pools
     {
         // Allocate another pool?
-        if (slot->full() || totalNumPools == MaxPoolNumInAllSlots)
+        if (slot->full())
         {
             return Maybe<void *>();
         }
@@ -167,12 +168,15 @@ Maybe<void *> paraAllocate()
             }
             else
             {
+                if (totalNumPools == MaxPoolNumInAllSlots) return Maybe<void *>();
+
                 auto physAddr = physPages.allocPage(1);
                 void* addr = virtLast1G.allocPage(1);
                 LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
                 RELOAD_CR3();
                 auto newPool = new (addr) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
                 slot->push(newPool);
+                totalNumPools++;
                 return newPool->get();
             }
         }

@@ -14,16 +14,16 @@ int kmem_main (int32_t term, int32_t kb)
     termputarr (term, "allocating and deallocating 64K char array for 8K times ...\n");
     for(int32_t i = 0; i < 8 * 1024; i++)
     {
-        char** a = new char*[64*1024];
-        for(int32_t j = 0; j < 64*1024; j++)
+        char** a = new char*[64*10];
+        for(int32_t j = 0; j < 64*10; j++)
         {
             a[j] = new char;
         }
-        for(int32_t j = 0; j < 64*1024; j++)
+        for(int32_t j = 0; j < 64*10; j++)
             delete a[j];
         delete[] a;
-        if(i % 1024 == 0)
-            printf("Done %dK times\n", 1 + i/1024);
+        if(i % 1024 == 0 && i != 0)
+            printf("Done %dK times\n", i/1024);
     }
     termputarr (term, "Success!\n");
 
