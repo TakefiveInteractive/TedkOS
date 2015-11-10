@@ -10,7 +10,7 @@
 typedef struct pheader_list_t {
     struct pheader_list_t *prev;
     struct pheader_list_t *next;
-    uint32_t data;
+    void *data;
 } pheader_list_t;
 
 typedef struct pheader_root_t {
@@ -31,10 +31,10 @@ int32_t  print_usage();
 int32_t  verify_ident(char* a1);
 void * read_program_header(int32_t fd, void* a2, int32_t a3);
 int32_t  parse_program_header(void *a1);
-void * list_insert_after(void* a1, void* a2, void* a3);
-void * list_insert_before(void* a1, void* a2, void* a3);
-void * list_insert_at_head(void* a1, void* a2);
-void * list_insert_at_tail(void* a1, void* a2);
+void * list_insert_after(pheader_root_t* a1, pheader_list_t* a2, void* a3);
+void * list_insert_before(pheader_root_t* a1, pheader_list_t* a2, void* a3);
+void * list_insert_at_head(pheader_root_t* a1, void* a2);
+void * list_insert_at_tail(pheader_root_t* a1, void* a2);
 
 typedef uint32_t _DWORD;
 typedef uint16_t _WORD;
@@ -137,12 +137,18 @@ int  main(int argc, char *argv[])
     char file[80] = { };
     strcpy(file, argv[1]);
     strcat(file, ".converted");
-    v21 = open(file, 0x42, 0x81a4);
+    int outputFD = open(file, O_CREAT | O_TRUNC | O_SYNC | O_WRONLY, 0x81a4);
+    if (outputFD == -1) perror("open file failed");
     for (j = pheader_list.head; j != &pheader_list; j = j->prev )
     {
         char *v23 = j->data;
         v27 = *(_DWORD *)(v23 + 20);
         ptr = malloc(v27);
+        if (!ptr)
+        {
+            fprintf(stderr, "Failed allocating size of %d\n", v27);
+            exit(1);
+        }
         if ( lseek(fd, *(_DWORD *)(v23 + 4), 0) == -1 )
         {
             perror("lseek for pheader read");
@@ -157,7 +163,7 @@ int  main(int argc, char *argv[])
                 exit(1);
             }
         }
-        if ( lseek(v21, *(_DWORD *)(v23 + 8) - 0x8048000, 0) == -1 )
+        if ( lseek(outputFD, *(_DWORD *)(v23 + 8) - 0x8048000, 0) == -1 )
         {
             perror("lseek for pheader write");
             exit(1);
@@ -168,9 +174,10 @@ int  main(int argc, char *argv[])
             memset((char *)ptr + *(_DWORD *)(v23 + 16), 0, n);
         }
         v28 = *(_DWORD *)(v23 + 20);
-        v4 = write(v21, ptr, v28);
+        v4 = write(outputFD, ptr, v28);
         if ( v4 != *(_DWORD *)(v23 + 20) )
         {
+            fprintf(stderr, "write returned %d\n", v4);
             perror("pheader write");
             exit(1);
         }
@@ -261,44 +268,44 @@ int32_t  parse_program_header(void *a1)
 }
 
 //----- (08048E0C) --------------------------------------------------------
-void * list_insert_after(void* a1, void* a2, void* a3)
+void * list_insert_after(pheader_root_t* a1, pheader_list_t* element, void* data)
 {
-    void *result; // eax@1
+    pheader_list_t *result; // eax@1
 
-    ++*(_DWORD *)(a1 + 12);
+    a1->count++;
     result = malloc(sizeof(pheader_list_t));
-    *((_DWORD *)result + 2) = a3;
-    *(_DWORD *)result = *(_DWORD *)a2;
-    *((_DWORD *)result + 1) = a2;
-    *(_DWORD *)(*(_DWORD *)a2 + 4) = result;
-    *(_DWORD *)a2 = result;
+    result->data = data;
+    result->prev = element->prev;
+    result->next = element;
+    element->prev->next = result;
+    element->prev = result;
     return result;
 }
 
 //----- (08048E64) --------------------------------------------------------
-void * list_insert_before(void* a1, void* a2, void* a3)
+void * list_insert_before(pheader_root_t* a1, pheader_list_t* element, void* data)
 {
-    void *result; // eax@1
+    pheader_list_t *result; // eax@1
 
-    ++*(_DWORD *)(a1 + 12);
+    a1->count++;
     result = malloc(sizeof(pheader_list_t));
-    *((_DWORD *)result + 2) = a3;
-    *(_DWORD *)result = a2;
-    *((_DWORD *)result + 1) = *(_DWORD *)(a2 + 4);
-    **(_DWORD **)(a2 + 4) = result;
-    *(_DWORD *)(a2 + 4) = result;
+    result->data = data;
+    result->prev = element;
+    result->next = element->next;
+    element->next->prev = result;
+    element->next = result;
     return result;
 }
 
 //----- (08048F31) --------------------------------------------------------
-void * list_insert_at_head(void* a1, void* a2)
+void * list_insert_at_head(pheader_root_t* a1, void* a2)
 {
-    return list_insert_after(a1, a1, a2);
+    return list_insert_after(a1, (pheader_list_t *)a1, a2);
 }
 
 //----- (08048F52) --------------------------------------------------------
-void * list_insert_at_tail(void* a1, void* a2)
+void * list_insert_at_tail(pheader_root_t* a1, void* a2)
 {
-    return list_insert_before(a1, a1, a2);
+    return list_insert_before(a1, (pheader_list_t *)a1, a2);
 }
 
