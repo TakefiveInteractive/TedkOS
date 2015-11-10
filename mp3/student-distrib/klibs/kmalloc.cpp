@@ -144,10 +144,13 @@ bool paraFree(void *addr)
         if (pools->get(idx)->empty())
         {
             auto poolAddr = pools->drop(idx);
-            uint32_t physAddr = global_cr3val[((uint32_t)poolAddr >> 22)] & 0xffc00000;
+            uint32_t pdIndex = ((uint32_t)poolAddr >> 22);
+            uint32_t physAddr = global_cr3val[pdIndex] & 0xffc00000;
             poolAddr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
             physPages.freePage(physAddr >> 22);
             virtLast1G.freePage(poolAddr);
+            global_cr3val[pdIndex] = 0;
+            RELOAD_CR3();
         }
     }
     return success;
