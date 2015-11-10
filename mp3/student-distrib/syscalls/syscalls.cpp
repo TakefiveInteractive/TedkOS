@@ -79,7 +79,7 @@ static int32_t systemCallRunner(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
 }
 
 extern "C"
-int32_t systemCallDispatcher(uint32_t idx, uint32_t p1, uint32_t p2, uint32_t p3)
+int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, uint32_t p2, uint32_t p3)
 {
     switch (idx)
     {

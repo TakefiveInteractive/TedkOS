@@ -319,7 +319,7 @@ strlen(const char* s)
 *	Function: set n consecutive bytes of pointer s to value c
 */
 
-void*
+void* __attribute__((used))
 memset(void* s, int32_t c, uint32_t n)
 {
 	c &= 0xFF;
