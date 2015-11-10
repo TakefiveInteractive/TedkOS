@@ -19,7 +19,7 @@ int32_t num_hard_int()
     return num_hard_int_val;
 }
 
-void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index, uint32_t code)
+void __attribute__((used)) __attribute__((optimize("O0"))) interrupt_handler_with_number(size_t index, uint32_t code)
 {
     uint32_t flag;
     if(index >= NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
@@ -27,7 +27,7 @@ void __attribute__((optimize("O0"))) interrupt_handler_with_number (size_t index
         printf("UNSUPPORTED INTERRUPT!");
         return;
     }
-    
+
     spin_lock_irqsave(&num_hard_int_lock, flag);
     num_hard_int_val++;
     spin_unlock_irqrestore(&num_hard_int_lock, flag);
