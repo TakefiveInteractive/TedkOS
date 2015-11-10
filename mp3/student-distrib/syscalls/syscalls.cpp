@@ -26,6 +26,16 @@ template<unsigned N>
 class SystemCallArgN { };
 
 template<>
+class SystemCallArgN<0> {
+public:
+    template<typename F>
+    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
+    {
+        return fptr();
+    }
+};
+
+template<>
 class SystemCallArgN<1> {
 public:
     template<typename F>
