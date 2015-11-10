@@ -137,7 +137,8 @@ int  main(int argc, char *argv[])
     char file[80] = { };
     strcpy(file, argv[1]);
     strcat(file, ".converted");
-    int outputFD = open(file, O_CREAT | O_TRUNC | O_SYNC | O_WRONLY, 0x81a4);
+    int outputFD = open(file, O_CREAT | O_TRUNC | O_SYNC | O_WRONLY,
+        S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
     if (outputFD == -1) perror("open file failed");
     for (j = pheader_list.head; j != &pheader_list; j = j->prev )
     {
