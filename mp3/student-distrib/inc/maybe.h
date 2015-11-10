@@ -12,7 +12,7 @@ private:
 
 public:
     Maybe() : exists(false) { }
-    Maybe(T& bla) { val = bla; exists = true; }
+    Maybe(const T& bla) { val = bla; exists = true; }
 
     const T operator ! () const {
         if (!exists)
@@ -22,6 +22,17 @@ public:
             return T();
         }
         return val;
+    }
+
+    const Maybe<T> operator >> (Maybe<T> other) const {
+        if (exists)
+        {
+            return *this;
+        }
+        else
+        {
+            return other;
+        }
     }
 
     explicit operator bool() const { return exists; }
