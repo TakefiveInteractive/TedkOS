@@ -23,7 +23,6 @@ Maybe<void *> ObjectPool<ElementSize, PoolSize>::get()
 {
     if (freeStack.empty())
     {
-        printf("no free block here, 0x%x\n", (uint32_t) this);
         return Maybe<void *>();
     }
     else
@@ -118,13 +117,10 @@ Maybe<void *> paraAllocate()
         // Allocate another pool?
         if (pools->full())
         {
-            printf("pool full\n");
             return Maybe<void *>();
         }
         else
         {
-            printf("get new\n");
-            // TODO: move this to a new page!
             auto physAddr = physPages.allocPage(1);
             void* addr = virtLast1G.allocPage(1);
             LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
@@ -150,7 +146,6 @@ bool paraFree(void *addr)
             auto poolAddr = pools->drop(idx);
             uint32_t physAddr = global_cr3val[((uint32_t)poolAddr >> 22)] & 0xffc00000;
             poolAddr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
-            // TODO: free from pages
             physPages.freePage(physAddr >> 22);
             virtLast1G.freePage(poolAddr);
         }
