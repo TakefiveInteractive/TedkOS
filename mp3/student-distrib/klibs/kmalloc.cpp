@@ -84,8 +84,8 @@ ObjectPool<ElementSize, PoolSize>::ObjectPool()
 
 namespace KMemory {
 
-static constexpr size_t MaxPoolNumInSingleSlot = 16;
-static constexpr size_t MaxPoolNumInAllSlots = 16;
+static constexpr size_t MaxPoolNumInSingleSlot = 20;
+static constexpr size_t MaxPoolNumInAllSlots = 20;
 size_t totalNumPools = 0;
 
 util::Stack<ObjectPool<16, PageSizeOf<16>> *, MaxPoolNumInSingleSlot> pools16;
@@ -173,7 +173,6 @@ Maybe<void *> paraAllocate()
 
                 auto physAddr = physPages.allocPage(1);
                 void* addr = virtLast1G.allocPage(1);
-                printf("Esize: 0x%x, addr: 0x%x\n", ElementSize, addr);
                 LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
                 RELOAD_CR3();
                 auto newPool = new (addr) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
