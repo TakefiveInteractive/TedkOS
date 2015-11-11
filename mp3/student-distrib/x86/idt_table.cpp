@@ -44,7 +44,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "cld;           \n"
             "call interrupt_handler_with_number; \n"
             "addl $8, %%esp;\n"
-            "popal; iret;   \n"
+            "popal; iretl;   \n"
             :
             : "i" (index), "i" (ErrorCodeInExceptionBitField)
             : "cc");

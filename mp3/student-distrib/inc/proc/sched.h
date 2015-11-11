@@ -12,7 +12,7 @@ typedef void* target_esp0;
 extern "C" {
 #endif
     //      This will create a Process with:
-    //          valid PCB ( NO esp (=> iret, pushal, eax))
+    //          valid PCB ( NO esp (=> iretl, pushal, eax))
     //                    ( prev = next = NULL )
     //          valid PD  (thus FD)
     //          No executable in memory
