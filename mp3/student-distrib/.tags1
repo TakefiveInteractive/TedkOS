@@ -1,0 +1,11 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+_SYSCALL_EXEC	/Users/wangyu/ece391_common/mp3/student-distrib/syscalls/exec.h	/^#define _SYSCALL_EXEC$/;"	macro	line:2
+syscall_exec	/Users/wangyu/ece391_common/mp3/student-distrib/syscalls/exec.h	/^namespace syscall_exec {$/;"	namespace	line:7
+code_page_vaddr_base	/Users/wangyu/ece391_common/mp3/student-distrib/syscalls/exec.h	/^const uint32_t code_page_vaddr_base = 0x08000000;$/;"	member	line:9	namespace:syscall_exec
+program_image_offset	/Users/wangyu/ece391_common/mp3/student-distrib/syscalls/exec.h	/^const uint32_t program_image_offset = 0x00048000;$/;"	member	line:10	namespace:syscall_exec
+program_image_addr	/Users/wangyu/ece391_common/mp3/student-distrib/syscalls/exec.h	/^const uint32_t program_image_addr   = code_page_vaddr_base + program_image_offset;$/;"	member	line:11	namespace:syscall_exec
