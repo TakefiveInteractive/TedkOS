@@ -14,9 +14,6 @@ ProcessDesc::ProcessDesc()
     mainThreadInfo->pcb.to_process = this;
     mainThreadInfo->pcb.next = NULL;
     mainThreadInfo->pcb.prev = NULL;
-
-    // -1 is a good invalid value for physical addr.
-    pageDir = (uint32_t*)-1;
 }
 
 void ProcessDesc::init()

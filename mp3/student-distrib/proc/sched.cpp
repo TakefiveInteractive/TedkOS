@@ -13,7 +13,20 @@ target_esp0 __attribute__((used)) schedDispatchDecision()
         return NULL;
     if(wantToSwitchTo < 0)
         return NULL;
-    return ProcessDesc::get(wantToSwitchTo).mainThreadInfo->pcb.esp0;
+
+    ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
+
+    // Switch stack
+    target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
+
+    // Switch Page Directory
+    currProcMemMap = desc.memmap;
+    currProcMemMap += commonMemMap;
+    currProcMemMap.loadToCR3(&cpu0_paging_lock);
+
+    // Reset dispatch decision state.
+    wantToSwitchTo = -1;
+    return ans;
 }
 
 int32_t newPausedProcess(int32_t parentPID)
@@ -23,8 +36,11 @@ int32_t newPausedProcess(int32_t parentPID)
     ProcessDesc& pd = ProcessDesc::get(uniq_pid);
     pd.mainThreadInfo->pcb.prev = parentInfo;
     parentInfo->pcb.next = pd.mainThreadInfo;
+
+    return uniq_pid;
 }
 
+// pass -1 to cancel a prepared switch.
 void prepareSwitchTo(int32_t pid)
 {
     wantToSwitchTo = pid;

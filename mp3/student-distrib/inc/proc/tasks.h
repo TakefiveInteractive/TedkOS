@@ -13,6 +13,9 @@
 #include <stdint.h>
 #include <inc/proc/sched.h>
 #include <inc/fs/filesystem.h>
+#include <inc/klibs/palloc.h>
+
+using namespace palloc;
 
 #define MAX_NUM_PROCESS             1024
 
@@ -36,7 +39,7 @@ public:
     File *fileDescs[FD_ARRAY_LENGTH];
     // Currently no multithread
     union _thread_kinfo * mainThreadInfo;
-    uint32_t* pageDir;
+    MemMap memmap;
 };
 
 // because we saves all register states in kernel stack,
