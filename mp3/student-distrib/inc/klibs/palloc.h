@@ -136,6 +136,8 @@ namespace palloc
         // !!!!!!! CALL THIS ONLY if the variable is on 4MB~8MB Page !!!!!!!!!
         //      ( so that its virtual address = physical address )
         void loadToCR3(spinlock_t* cpuPagingLock);
+
+        bool isLoadedToCR3(spinlock_t* cpuPagingLock);
     };
 
     extern VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
