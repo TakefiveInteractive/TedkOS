@@ -38,7 +38,7 @@ namespace palloc
         uint16_t allocPage(int8_t isCommonPage);
 
         // if this page is NOT in use, do nothing.
-        void freePage(uint16_t pageIndex);       
+        void freePage(uint16_t pageIndex);
     };
 
     extern PhysPageManager<0xff000000> physPages;
@@ -62,7 +62,7 @@ namespace palloc
         void* allocPage(int8_t isCommonPage);
 
         // if this page is NOT in use, do nothing.
-        void freePage(void* virtAddr);       
+        void freePage(void* virtAddr);
     };
 
     extern VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
@@ -180,11 +180,11 @@ void VirtualMemRegion<startAddr,MaxSize>::freePage(void* virtAddr)
 {
     uint16_t pageIndex = ((uint32_t)virtAddr >> 22);
     if(isVirtAddrUsed.test(pageIndex))
-        return;
-    isVirtAddrUsed.clear(pageIndex);
-    isCommonPage.clear(pageIndex);
-    freeVirtAddr.push(pageIndex);
-    return;
+    {
+        isVirtAddrUsed.clear(pageIndex);
+        isCommonPage.clear(pageIndex);
+        freeVirtAddr.push(pageIndex);
+    }
 }
 
 }

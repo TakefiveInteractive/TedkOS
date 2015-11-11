@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -6,25 +7,34 @@
 //-------------------------------------------------------------------------
 // Data declarations
 
-char pheader_list[16] = { 0x50, 0xa4, 0x0f, 0x08, 0x50, 0xa4, 0x04, 0x08,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+typedef struct pheader_list_t {
+    struct pheader_list_t *prev;
+    struct pheader_list_t *next;
+    void *data;
+} pheader_list_t;
+
+typedef struct pheader_root_t {
+    struct pheader_list_t *head;
+    struct pheader_list_t *tail;
+    uint32_t data;
+    uint32_t count;
+} pheader_root_t;
+
+pheader_root_t pheader_list = { .head = &pheader_list, .tail = &pheader_list, .data = 0, .count = 0 };
 char magic_2882[5] = { 0x7f, 0x45, 0x4c, 0x46 };
 
 //-------------------------------------------------------------------------
 // Function declarations
 
-int  verify_magic(const char *s2);
-int  print_usage();
-signed int  verify_ident(int a1);
-void * read_program_header(int fd, int a2, int a3);
-int  parse_program_header(int a1);
-void * list_insert_after(int a1, int a2, int a3);
-void * list_insert_before(int a1, int a2, int a3);
-int  list_remove(int, void *ptr); // idb
-int  list_remove_tail(int a1);
-int  list_remove_head(int a1);
-void * list_insert_at_head(int a1, int a2);
-void * list_insert_at_tail(int a1, int a2);
+int32_t  verify_magic(const char *s2);
+int32_t  print_usage();
+int32_t  verify_ident(char* a1);
+void * read_program_header(int32_t fd, void* a2, int32_t a3);
+int32_t  parse_program_header(void *a1);
+void * list_insert_after(pheader_root_t* a1, pheader_list_t* a2, void* a3);
+void * list_insert_before(pheader_root_t* a1, pheader_list_t* a2, void* a3);
+void * list_insert_at_head(pheader_root_t* a1, void* a2);
+void * list_insert_at_tail(pheader_root_t* a1, void* a2);
 
 typedef uint32_t _DWORD;
 typedef uint16_t _WORD;
@@ -39,58 +49,64 @@ typedef int16_t __int16;
 #define LOBYTE(w) ((BYTE)(w))
 #define HIBYTE(w) ((BYTE)(((WORD)(w) >> 8) & 0xFF))
 
+
+int32_t inputbuf[128 * 1024 * 1024] = { };
+
 //----- (08048674) --------------------------------------------------------
 int  main(int argc, char *argv[])
 {
-    void *v2; // esp@1
-    void *v3; // esp@24
     ssize_t v4; // eax@37
-    size_t v6; // [sp+0h] [bp-78h]@24
     const char *v7; // [sp+4h] [bp-74h]@24
-    signed int v8; // [sp+8h] [bp-70h]@13
-    unsigned int v9; // [sp+Ch] [bp-6Ch]@24
+    int32_t v8; // [sp+8h] [bp-70h]@13
+    int32_t v9; // [sp+Ch] [bp-6Ch]@24
     char v10; // [sp+1Bh] [bp-5Dh]@24
-    char buf; // [sp+1Ch] [bp-5Ch]@4
-    int v12; // [sp+34h] [bp-44h]@13
-    int v13; // [sp+38h] [bp-40h]@13
-    int v14; // [sp+3Ch] [bp-3Ch]@13
-    int v15; // [sp+40h] [bp-38h]@13
-    int v16; // [sp+44h] [bp-34h]@13
-    int v17; // [sp+48h] [bp-30h]@13
-    int v18; // [sp+4Ch] [bp-2Ch]@13
-    char *file; // [sp+50h] [bp-28h]@24
-    int fd; // [sp+54h] [bp-24h]@4
-    int v21; // [sp+58h] [bp-20h]@24
-    int i; // [sp+5Ch] [bp-1Ch]@13
-    int v23; // [sp+60h] [bp-18h]@14
-    int j; // [sp+64h] [bp-14h]@24
+    int32_t v12; // [sp+34h] [bp-44h]@13
+    int32_t v13; // [sp+38h] [bp-40h]@13
+    int32_t v14; // [sp+3Ch] [bp-3Ch]@13
+    int32_t v15; // [sp+40h] [bp-38h]@13
+    int32_t v16; // [sp+44h] [bp-34h]@13
+    int32_t v17; // [sp+48h] [bp-30h]@13
+    int32_t v18; // [sp+4Ch] [bp-2Ch]@13
+    int32_t fd; // [sp+54h] [bp-24h]@4
+    int32_t v21; // [sp+58h] [bp-20h]@24
+    int32_t i; // [sp+5Ch] [bp-1Ch]@13
+    int32_t v23; // [sp+60h] [bp-18h]@14
+    pheader_list_t *j; // [sp+64h] [bp-14h]@24
     void *ptr; // [sp+68h] [bp-10h]@25
     size_t n; // [sp+6Ch] [bp-Ch]@36
     size_t v27; // [sp+70h] [bp-8h]@25
     size_t v28; // [sp+78h] [bp+0h]@29
 
-    v2 = alloca(16);
     if ( argc != 2 )
     {
         print_usage();
         exit(1);
     }
-    fd = fopen(argv[1], 0);
-    if ( read(fd, &buf, 0x34u) != 52 )
+    fd = open(argv[1], O_RDONLY);
+    if ( read(fd, inputbuf, 0x34u) != 52 )
     {
         perror("Reading elf header");
         exit(1);
     }
-    if ( verify_magic(&buf) )
+    if ( verify_magic(inputbuf) )
     {
         fprintf(stderr, "%s is not an ELF file.\n", argv[1]);
         exit(1);
     }
-    if ( verify_ident((int)&buf) )
+    if ( verify_ident(inputbuf) )
     {
         fprintf(stderr, "%s is not a compatible ELF file.\n", argv[1]);
         exit(1);
     }
+
+    v12 = inputbuf[0x18 / 4];
+    v13 = inputbuf[0x1C / 4];
+    v14 = inputbuf[0x20 / 4];
+    v15 = inputbuf[0x24 / 4];
+    v16 = inputbuf[0x28 / 4];
+    v17 = inputbuf[0x2A / 4];
+    v18 = inputbuf[0x2C / 4];
+
     fprintf(stderr, "e_entry    : 0x%08x\n", v12);
     fprintf(stderr, "e_phoff    : 0x%08x\n", v13);
     fprintf(stderr, "e_shoff    : 0x%08x\n", v14);
@@ -104,35 +120,36 @@ int  main(int argc, char *argv[])
     fprintf(stderr, "\n", v8);
     for ( i = 0; (uint16_t)v17 > i; ++i )
     {
-        v23 = (int)read_program_header(fd, (int)&buf, i);
-        if ( !v23 )
+        void *header = read_program_header(fd, inputbuf, i);
+        if ( !header )
         {
             fprintf(stderr, "Error reading header %d, skipping...\n", i);
             exit(1);
         }
-        if ( parse_program_header(v23) )
-            list_insert_at_tail((int)pheader_list, v23);
+        if ( parse_program_header(header) )
+            list_insert_at_tail(&pheader_list, header);
     }
     if ( !i )
     {
         fprintf(stderr, "No loadable segments found...\n");
         exit(1);
     }
-    v6 = argv[1] + strlen(".converted") + 1;
-    v3 = alloca(16 * ((strlen((const char *)v6) + 30) >> 4));
-    v9 = 16 * ((unsigned int)&v10 >> 4);
-    file = (char *)(16 * ((unsigned int)&v10 >> 4));
-    v7 = *(const char **)argv[1];
-    v6 = 16 * ((unsigned int)&v10 >> 4);
-    strcpy((char *)v6, v7);
+    char file[80] = { };
+    strcpy(file, argv[1]);
     strcat(file, ".converted");
-    v8 = 33188;
-    v21 = open(file, 66, 33188, v9);
-    for ( j = *(_DWORD *)pheader_list; (char *)j != pheader_list; j = *(_DWORD *)j )
+    int outputFD = open(file, O_CREAT | O_TRUNC | O_SYNC | O_WRONLY,
+        S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    if (outputFD == -1) perror("open file failed");
+    for (j = pheader_list.head; j != &pheader_list; j = j->prev )
     {
-        v23 = *(_DWORD *)(j + 8);
+        char *v23 = j->data;
         v27 = *(_DWORD *)(v23 + 20);
         ptr = malloc(v27);
+        if (!ptr)
+        {
+            fprintf(stderr, "Failed allocating size of %d\n", v27);
+            exit(1);
+        }
         if ( lseek(fd, *(_DWORD *)(v23 + 4), 0) == -1 )
         {
             perror("lseek for pheader read");
@@ -147,7 +164,7 @@ int  main(int argc, char *argv[])
                 exit(1);
             }
         }
-        if ( lseek(v21, *(_DWORD *)(v23 + 8) - 134512640, 0) == -1 )
+        if ( lseek(outputFD, *(_DWORD *)(v23 + 8) - 0x8048000, 0) == -1 )
         {
             perror("lseek for pheader write");
             exit(1);
@@ -158,9 +175,10 @@ int  main(int argc, char *argv[])
             memset((char *)ptr + *(_DWORD *)(v23 + 16), 0, n);
         }
         v28 = *(_DWORD *)(v23 + 20);
-        v4 = write(v21, ptr, v28);
+        v4 = write(outputFD, ptr, v28);
         if ( v4 != *(_DWORD *)(v23 + 20) )
         {
+            fprintf(stderr, "write returned %d\n", v4);
             perror("pheader write");
             exit(1);
         }
@@ -170,21 +188,21 @@ int  main(int argc, char *argv[])
 }
 
 //----- (08048B7E) --------------------------------------------------------
-int  verify_magic(const char *s2)
+int32_t  verify_magic(const char *s2)
 {
     return strncmp(magic_2882, s2, 4u);
 }
 
 //----- (08048BA2) --------------------------------------------------------
-int  print_usage()
+int32_t  print_usage()
 {
     return fprintf(stderr, "Usage: elfconvert <exename>\n");
 }
 
 //----- (08048BBF) --------------------------------------------------------
-signed int  verify_ident(int a1)
+int32_t  verify_ident(char *a1)
 {
-    signed int v2; // [sp+0h] [bp-4h]@7
+    int32_t v2; // [sp+0h] [bp-4h]@7
 
     if ( *(_BYTE *)(a1 + 4) != 1
             || *(_BYTE *)(a1 + 5) != 1
@@ -199,12 +217,12 @@ signed int  verify_ident(int a1)
 }
 
 //----- (08048C20) --------------------------------------------------------
-void * read_program_header(int fd, int a2, int a3)
+void * read_program_header(int32_t fd, void *input, int32_t idx)
 {
     void *v4; // [sp+14h] [bp-14h]@2
     void *buf; // [sp+24h] [bp-4h]@3
 
-    if ( lseek(fd, *(_DWORD *)(a2 + 28) + a3 * *(_WORD *)(a2 + 42), 0) == -1 )
+    if ( lseek(fd, *(_DWORD *)(input + 28) + idx * *(_WORD *)(input + 42), 0) == -1 )
     {
         perror("lseek to program header");
         v4 = 0;
@@ -212,7 +230,7 @@ void * read_program_header(int fd, int a2, int a3)
     else
     {
         buf = malloc(0x20u);
-        if ( read(fd, buf, *(_WORD *)(a2 + 42)) == *(_WORD *)(a2 + 42) )
+        if ( read(fd, buf, *(_WORD *)(input + 42)) == *(_WORD *)(input + 42) )
         {
             v4 = buf;
         }
@@ -226,9 +244,9 @@ void * read_program_header(int fd, int a2, int a3)
 }
 
 //----- (08048CCD) --------------------------------------------------------
-int  parse_program_header(int a1)
+int32_t  parse_program_header(void *a1)
 {
-    int v2; // [sp+14h] [bp-4h]@2
+    int32_t v2; // [sp+14h] [bp-4h]@2
 
     if ( *(_DWORD *)a1 == 1 )
     {
@@ -251,68 +269,44 @@ int  parse_program_header(int a1)
 }
 
 //----- (08048E0C) --------------------------------------------------------
-void * list_insert_after(int a1, int a2, int a3)
+void * list_insert_after(pheader_root_t* a1, pheader_list_t* element, void* data)
 {
-    void *result; // eax@1
+    pheader_list_t *result; // eax@1
 
-    ++*(_DWORD *)(a1 + 12);
-    result = malloc(0xCu);
-    *((_DWORD *)result + 2) = a3;
-    *(_DWORD *)result = *(_DWORD *)a2;
-    *((_DWORD *)result + 1) = a2;
-    *(_DWORD *)(*(_DWORD *)a2 + 4) = result;
-    *(_DWORD *)a2 = result;
+    a1->count++;
+    result = malloc(sizeof(pheader_list_t));
+    result->data = data;
+    result->prev = element->prev;
+    result->next = element;
+    element->prev->next = result;
+    element->prev = result;
     return result;
 }
 
 //----- (08048E64) --------------------------------------------------------
-void * list_insert_before(int a1, int a2, int a3)
+void * list_insert_before(pheader_root_t* a1, pheader_list_t* element, void* data)
 {
-    void *result; // eax@1
+    pheader_list_t *result; // eax@1
 
-    ++*(_DWORD *)(a1 + 12);
-    result = malloc(0xCu);
-    *((_DWORD *)result + 2) = a3;
-    *(_DWORD *)result = a2;
-    *((_DWORD *)result + 1) = *(_DWORD *)(a2 + 4);
-    **(_DWORD **)(a2 + 4) = result;
-    *(_DWORD *)(a2 + 4) = result;
+    a1->count++;
+    result = malloc(sizeof(pheader_list_t));
+    result->data = data;
+    result->prev = element;
+    result->next = element->next;
+    element->next->prev = result;
+    element->next = result;
     return result;
 }
 
-//----- (08048EBE) --------------------------------------------------------
-int  list_remove(int a1, void *ptr)
-{
-    int v2; // ST14_4@1
-
-    v2 = *((_DWORD *)ptr + 2);
-    *(_DWORD *)(*(_DWORD *)ptr + 4) = *((_DWORD *)ptr + 1);
-    **((_DWORD **)ptr + 1) = *(_DWORD *)ptr;
-    free(ptr);
-    return v2;
-}
-
-//----- (08048EF8) --------------------------------------------------------
-int  list_remove_tail(int a1)
-{
-    return list_remove(a1, *(void **)(a1 + 4));
-}
-
-//----- (08048F15) --------------------------------------------------------
-int  list_remove_head(int a1)
-{
-    return list_remove(a1, *(void **)a1);
-}
-
 //----- (08048F31) --------------------------------------------------------
-void * list_insert_at_head(int a1, int a2)
+void * list_insert_at_head(pheader_root_t* a1, void* a2)
 {
-    return list_insert_after(a1, a1, a2);
+    return list_insert_after(a1, (pheader_list_t *)a1, a2);
 }
 
 //----- (08048F52) --------------------------------------------------------
-void * list_insert_at_tail(int a1, int a2)
+void * list_insert_at_tail(pheader_root_t* a1, void* a2)
 {
-    return list_insert_before(a1, a1, a2);
+    return list_insert_before(a1, (pheader_list_t *)a1, a2);
 }
 

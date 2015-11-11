@@ -4,8 +4,8 @@
 #include <inc/fops_term.h>
 #include <inc/error.h>
 
-int8_t isThisTerminalInUse[NUM_TERMINALS] = {0};
-int8_t isThisTerminalWaitingForEnter[NUM_TERMINALS] = {0};
+volatile int8_t isThisTerminalInUse[NUM_TERMINALS] = {0};
+volatile int8_t isThisTerminalWaitingForEnter[NUM_TERMINALS] = {0};
 
 // Terminal and keyboard's "sharing" policy:
 //  1. multiple program can write to the same terminal at the same time.
@@ -28,7 +28,7 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
     int32_t i;
     uint32_t flag;
     char* cbuf = (char*) buf;
-    spin_lock_irqsave(& term_lock, flag);
+    spin_lock_irqsave(&term_lock, flag);
 
     // If ringbuf is not empty, read the LEFTOVER
     for(i = 0; i < nbytes; i++)
