@@ -14,6 +14,8 @@
 #define ALIGN_4KB_ADDR      0xFFFFF000  // Use '&'. This will help make sure flags are not affected by address.
 #define ALIGN_4MB_ADDR      0xFFC00000  // Use '&'. This will help make sure flags are not affected by address.
 
+#define PAGING_PRESENT      0x1         // Applies to all structures in paging. Test present with & present.
+
 // APPLIES TO ALL MACRO FUNCTIONS:
 //      *_BASE must be applied in all situations!!!!
 
