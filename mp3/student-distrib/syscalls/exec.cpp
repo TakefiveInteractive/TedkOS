@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/klibs/palloc.h>
+#include <inc/x86/desc.h>
 
 using namespace palloc;
 
@@ -16,8 +17,12 @@ using namespace syscall_exec;
 // Main entry to implementation of exec syscall
 int32_t sysexec(const uint8_t* file)
 {
-    if(do_exec(file) < 0)
+    uint32_t child_upid = do_exec(file);
+    if(child_upid < 0)
         return -1;
+
+    // Request context switch
+    prepareSwitchTo(child_upid);
     return 0;
 }
 
@@ -29,6 +34,10 @@ int32_t do_exec(const uint8_t* file)
     if(!is_kiss_executable(file))
         return -EINVAL;
     int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+
+    if(child_upid < 0)
+        return -1;          // Out of PIDs
+
     ProcessDesc& child = ProcessDesc::get(child_upid);
 
     // Allocate the page at 128MB virt. addr. for child
@@ -57,8 +66,37 @@ int32_t do_exec(const uint8_t* file)
     restore_flags(flags);
 
     // Initialize stack and ESP
+    // compatible with x86 32-bit iretl
+    // always no error code on stack before iretl
     uint32_t* kstackBottom = ((uint32_t*)child.mainThreadInfo->kstack) + ((THREAD_KSTACK_SIZE / 4) - 1);
+    
+    // leave a padding.
+    kstackBottom --;
 
-    // Request context switch
-    prepareSwitchTo(child_upid);
+    // SS
+    *kstackBottom = USER_DS_SEL;
+    kstackBottom --;
+
+    // ESP
+    *kstackBottom = code_page_vaddr_base + (1 << 22) - 8;    // some padding here, too.
+    kstackBottom --;
+
+    // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
+    // Set Interrupt Enable Flag. IOPL = 3
+    *kstackBottom = (flags & (~0x24100)) | 0x3200;
+    kstackBottom --;
+
+    // CS
+    *kstackBottom = USER_CS_SEL;
+    kstackBottom --;
+
+    // EIP
+    *kstackBottom = (uint32_t)entry_point;
+
+    child.mainThreadInfo->pcb.esp0 = (target_esp0)kstackBottom;
+
+    // refresh TSS so that later interrupts use this new kstack
+    tss.esp0 = (uint32_t)kstackBottom;
+    ltr(KERNEL_TSS_SEL);
+    return child_upid;
 }
