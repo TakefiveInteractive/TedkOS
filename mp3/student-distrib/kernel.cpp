@@ -148,7 +148,7 @@ void kernel_enable_basic_paging()
     spin_lock_irqsave(&cpu0_paging_lock, flag);
     memset(pageDir  , 0, 0x1000);
     memset(pageTable, 0, 0x1000);
-    REDIRECT_PAGE_DIR(pageDir, 0);
+    REDIRECT_PAGE_DIR(pageDir);
     LOAD_4MB_PAGE(1, 1 << 22, PG_WRITABLE);
     LOAD_PAGE_TABLE(0, pageTable, PT_WRITABLE);
 

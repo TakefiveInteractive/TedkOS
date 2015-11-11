@@ -151,9 +151,18 @@ namespace palloc
         virt2phys[1] = PhysAddr(1, 0).pde;
 
         spin_lock_irqsave(cpuPagingLock, flags);
-        REDIRECT_PAGE_DIR(virt2phys, 0);
+        REDIRECT_PAGE_DIR(virt2phys);
         RELOAD_CR3();
         spin_unlock_irqrestore(cpuPagingLock, flags);
     }
 
+    bool MemMap::isLoadedToCR3(spinlock_t* cpuPagingLock)
+    {
+        bool ans;
+        uint32_t flags;
+        spin_lock_irqsave(cpuPagingLock, flags);
+        ans = (((uint32_t)global_cr3val & ALIGN_4KB_ADDR) == (uint32_t) virt2phys);
+        spin_unlock_irqrestore(cpuPagingLock, flags);
+        return ans;
+    }
 }

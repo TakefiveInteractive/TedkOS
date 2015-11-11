@@ -169,12 +169,27 @@ Maybe<void *> paraAllocate()
             }
             else
             {
+                uint32_t flags;
+
                 if (totalNumPools == MaxPoolNumInAllSlots) return Maybe<void *>();
 
                 auto physAddr = physPages.allocPage(1);
                 void* addr = virtLast1G.allocPage(1);
-                LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
+
+                if(!commonMemMap.add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
+                    return Maybe<void *>();
+                if(!currProcMemMap.add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
+                    ; // kill the process.
+                if(!currProcMemMap.isLoadedToCR3(&cpu0_paging_lock))
+                {
+                    spin_lock_irqsave(&cpu0_paging_lock, flags);
+                    LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
+                    spin_unlock_irqrestore(&cpu0_paging_lock, flags);
+                }
+                spin_lock_irqsave(&cpu0_paging_lock, flags);
                 RELOAD_CR3();
+                spin_unlock_irqrestore(&cpu0_paging_lock, flags);
+
                 auto newPool = new (addr) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
                 slot->push(newPool);
                 totalNumPools++;
