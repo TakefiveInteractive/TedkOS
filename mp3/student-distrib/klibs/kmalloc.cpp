@@ -54,6 +54,7 @@ template<size_t ElementSize, size_t PoolSize>
 bool ObjectPool<ElementSize, PoolSize>::release(void *addr)
 {
     auto idx = toMapIndex(addr);
+    if (idx >= MaxNumElements) return false;
     if (!freeMap.test(idx))
     {
         freeMap.clear(idx);
@@ -83,11 +84,14 @@ ObjectPool<ElementSize, PoolSize>::ObjectPool()
 
 namespace KMemory {
 
-static constexpr size_t MaxPoolNum = 16;
-util::Stack<ObjectPool<16, PageSizeOf<16>> *, MaxPoolNum> pools16;
-util::Stack<ObjectPool<256, PageSizeOf<256>> *, MaxPoolNum> pools256;
-util::Stack<ObjectPool<8_KB, PageSizeOf<8_KB>> *, MaxPoolNum> pools8K;
-util::Stack<ObjectPool<256_KB, PageSizeOf<256_KB>> *, MaxPoolNum> pools256K;
+static constexpr size_t MaxPoolNumInSingleSlot = 20;
+static constexpr size_t MaxPoolNumInAllSlots = 20;
+size_t totalNumPools = 0;
+
+util::Stack<ObjectPool<16, PageSizeOf<16>> *, MaxPoolNumInSingleSlot> pools16;
+util::Stack<ObjectPool<256, PageSizeOf<256>> *, MaxPoolNumInSingleSlot> pools256;
+util::Stack<ObjectPool<8_KB, PageSizeOf<8_KB>> *, MaxPoolNumInSingleSlot> pools8K;
+util::Stack<ObjectPool<256_KB, PageSizeOf<256_KB>> *, MaxPoolNumInSingleSlot> pools256K;
 
 template<size_t ElementSize>
 class PoolGetter {
@@ -104,30 +108,78 @@ template<> class PoolGetter<8_KB> { public: static const auto val() { return &po
 template<> class PoolGetter<256_KB> { public: static const auto val() { return &pools256K; } };
 
 template<size_t ElementSize>
+Maybe<void *> paraFindAndReleaseFreePool()
+{
+    auto slot = PoolGetter<ElementSize>::val();
+    size_t idx = 0;
+    auto x = slot->template first<ObjectPool<ElementSize, PageSizeOf<ElementSize>> *>(idx, [](auto pool) {
+        if (pool->empty())
+        {
+            return Maybe<ObjectPool<ElementSize, PageSizeOf<ElementSize>> *>(pool);
+        }
+        else
+        {
+            return Maybe<ObjectPool<ElementSize, PageSizeOf<ElementSize>> *>();
+        }
+    });
+    if (x)
+    {
+        // Free it
+        slot->drop(idx);
+        totalNumPools--;
+        (!x)->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+        return Maybe<void *>(!x);
+    }
+    return Maybe<void *>();
+}
+
+Maybe<void *> findAndReleaseFreePool()
+{
+    return paraFindAndReleaseFreePool<16>()
+        >> [](){ return paraFindAndReleaseFreePool<256>(); }
+        >> [](){ return paraFindAndReleaseFreePool<8_KB>(); }
+        >> [](){ return paraFindAndReleaseFreePool<256_KB>(); };
+}
+
+template<size_t ElementSize>
 Maybe<void *> paraAllocate()
 {
-    auto pools = PoolGetter<ElementSize>::val();
-    auto x = pools->template first<void *>([](auto pool) { return pool->get(); });
+    auto slot = PoolGetter<ElementSize>::val();
+    auto x = slot->template first<void *>([](auto pool) { return pool->get(); });
     if (x)
     {
         return x;
     }
-    else
+    else    // Our slot have no empty pools
     {
         // Allocate another pool?
-        if (pools->full())
+        if (slot->full())
         {
             return Maybe<void *>();
         }
         else
         {
-            auto physAddr = physPages.allocPage(1);
-            void* addr = virtLast1G.allocPage(1);
-            LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
-            RELOAD_CR3();
-            auto newPool = new (addr) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
-            pools->push(newPool);
-            return newPool->get();
+            // Identify some single empty pool in other slots, and reuse if possible
+            auto freePool = findAndReleaseFreePool();
+            if (freePool)
+            {
+                auto newPool = new (!freePool) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+                slot->push(newPool);
+                return newPool->get();
+            }
+            else
+            {
+                if (totalNumPools == MaxPoolNumInAllSlots) return Maybe<void *>();
+
+                auto physAddr = physPages.allocPage(1);
+                void* addr = virtLast1G.allocPage(1);
+                LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
+                RELOAD_CR3();
+                auto newPool = new (addr) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+                slot->push(newPool);
+                totalNumPools++;
+                return newPool->get();
+            }
         }
     }
 }
@@ -143,14 +195,15 @@ bool paraFree(void *addr)
         // See if we can drop this block
         if (pools->get(idx)->empty())
         {
-            auto poolAddr = pools->drop(idx);
+            // Do nothing here
+            /*auto poolAddr = pools->drop(idx);
             uint32_t pdIndex = ((uint32_t)poolAddr >> 22);
             uint32_t physAddr = global_cr3val[pdIndex] & 0xffc00000;
             poolAddr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
             physPages.freePage(physAddr >> 22);
             virtLast1G.freePage(poolAddr);
             global_cr3val[pdIndex] = 0;
-            RELOAD_CR3();
+            RELOAD_CR3();*/
         }
     }
     return success;
