@@ -7,35 +7,57 @@
 #include <inc/x86/paging.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <inc/klibs/palloc.h>
+
+using namespace palloc;
 
 using namespace syscall_exec;
 
 // Main entry to implementation of exec syscall
+int32_t sysexec(const uint8_t* file)
+{
+    if(do_exec(file) < 0)
+        return -1;
+    return 0;
+}
+
+// Returns the uniq_pid of new process.
 int32_t do_exec(const uint8_t* file)
 {
+    uint32_t flags;
+
     if(!is_kiss_executable(file))
         return -EINVAL;
     int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+    ProcessDesc& child = ProcessDesc::get(child_upid);
 
-    // Load PAGE TABLEs
-    /*
-    uint32_t flag;
-    uint32_t* pageDir = new uint32_t[0x400];
-    spin_lock_irqsave(&cpu0_paging_lock, flag);
+    // Allocate the page at 128MB virt. addr. for child
+    uint16_t physIdx = physPages.allocPage(0);
+    if(physIdx == 0xffff)
+        return -1;          // Memory full.
 
-    memset(pageDir, 0, 0x1000);
-    REDIRECT_PAGE_DIR(pageDir);
-    LOAD_4MB_PAGE(1, 1 << 22, PG_WRITABLE);
-    loadCommonPages(0);
-    new4MBPage(code_page_vaddr_base >> 22, PG_USER | PG_WRITABLE, 0);
+    // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
+    PhysAddr physAddr = PhysAddr(physIdx, PG_WRITABLE | PG_USER);
+
+    if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
+        return -1;          // child virt addr space became weird.
+
+    // Temporarily mount the address space to CURRENT context's virtual 128MB address.
+    cli_and_save(flags);
+    uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
+    global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
+    RELOAD_CR3();
     
-    spin_unlock_irqrestore(&cpu0_paging_lock, flag);
-    */
+    // Load executable into memory
+    void* entry_point = kiss_loader(file);
+
+    // restore 128MB address back to CURRENT context's content
+    global_cr3val[code_page_vaddr_base >> 22] = backupDir;
+    RELOAD_CR3();
+    restore_flags(flags);
 
     // Initialize stack and ESP
-
-    // Load executable into memory
-    kiss_loader(file);
+    uint32_t* kstackBottom = ((uint32_t*)child.mainThreadInfo->kstack) + ((THREAD_KSTACK_SIZE / 4) - 1);
 
     // Request context switch
     prepareSwitchTo(child_upid);

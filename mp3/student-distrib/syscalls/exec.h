@@ -20,6 +20,8 @@ int8_t is_kiss_executable(const uint8_t* file);
 void* kiss_loader(const uint8_t* file);
 
 // Main entry to implementation of exec syscall
+int32_t sysexec(const uint8_t* file);
+
 int32_t do_exec(const uint8_t* file);
 
 }
