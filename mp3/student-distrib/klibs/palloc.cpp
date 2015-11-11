@@ -52,9 +52,9 @@ namespace palloc
     {
         return PhysAddr(virt2phys[((uint32_t)addr.addr)>>22]);
     }
-    
+
     // Add an entry of mapping to this map.
-    // WARNING: If an entry already exists at that location, 
+    // WARNING: If an entry already exists at that location,
     //      This will return false. Otherwise returns true.
     bool MemMap::add(const VirtAddr& virt, const PhysAddr& phys)
     {
@@ -71,7 +71,7 @@ namespace palloc
     }
 
     // Remove an entry of mapping.
-    // WARNING: If an entry DID NOT exist at that location, 
+    // WARNING: If an entry DID NOT exist at that location,
     //      OR IF THAT PHYS ADDR is RESERVED for GLOBAL KERNEL.
     //      This will return false. Otherwise returns true.
     bool MemMap::operator -= (const VirtAddr& addr)
