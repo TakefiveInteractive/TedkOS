@@ -7,7 +7,7 @@
 // Smaller than zero <=> No switch.
 int32_t wantToSwitchTo = -1;
 
-target_esp0 schedDispatchDecision()
+target_esp0 __attribute__((used)) schedDispatchDecision()
 {
     if(num_hard_int() > 0)
         return NULL;
