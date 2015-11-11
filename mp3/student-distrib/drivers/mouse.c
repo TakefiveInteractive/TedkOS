@@ -55,3 +55,8 @@ DEFINE_DRIVER_REMOVE(mouse) {
     spin_unlock_irqrestore(&mouse_lock, flag);
     return;
 }
+
+
+void mouse_handler() {
+
+}
