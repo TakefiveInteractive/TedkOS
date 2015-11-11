@@ -10,4 +10,3 @@ DEFINE_DRIVER_INIT(kb);
 DEFINE_DRIVER_REMOVE(kb);
 
 #endif
-
