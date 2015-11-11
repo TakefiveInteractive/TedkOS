@@ -88,19 +88,15 @@ static constexpr size_t MaxPoolNumInSingleSlot = 20;
 static constexpr size_t MaxPoolNumInAllSlots = 20;
 size_t totalNumPools = 0;
 
+template<size_t Size> using PoolType = ObjectPool<Size, PageSizeOf<Size>>;
+
 util::Stack<ObjectPool<16, PageSizeOf<16>> *, MaxPoolNumInSingleSlot> pools16;
 util::Stack<ObjectPool<256, PageSizeOf<256>> *, MaxPoolNumInSingleSlot> pools256;
 util::Stack<ObjectPool<8_KB, PageSizeOf<8_KB>> *, MaxPoolNumInSingleSlot> pools8K;
 util::Stack<ObjectPool<256_KB, PageSizeOf<256_KB>> *, MaxPoolNumInSingleSlot> pools256K;
 
 template<size_t ElementSize>
-class PoolGetter {
-public:
-    static const auto val()
-    {
-        static_assert(ElementSize == 16 || ElementSize == 256 || ElementSize == 8_KB || ElementSize == 256_KB, "Invalid page size");
-    }
-};
+class PoolGetter { };
 
 template<> class PoolGetter<16> { public: static const auto val() { return &pools16; } };
 template<> class PoolGetter<256> { public: static const auto val() { return &pools256; } };
@@ -112,14 +108,14 @@ Maybe<void *> paraFindAndReleaseFreePool()
 {
     auto slot = PoolGetter<ElementSize>::val();
     size_t idx = 0;
-    auto x = slot->template first<ObjectPool<ElementSize, PageSizeOf<ElementSize>> *>(idx, [](auto pool) {
+    auto x = slot->template first<PoolType<ElementSize> *>(idx, [](auto pool) {
         if (pool->empty())
         {
-            return Maybe<ObjectPool<ElementSize, PageSizeOf<ElementSize>> *>(pool);
+            return Maybe<PoolType<ElementSize> *>(pool);
         }
         else
         {
-            return Maybe<ObjectPool<ElementSize, PageSizeOf<ElementSize>> *>();
+            return Maybe<PoolType<ElementSize> *>();
         }
     });
     if (x)
@@ -127,7 +123,7 @@ Maybe<void *> paraFindAndReleaseFreePool()
         // Free it
         slot->drop(idx);
         totalNumPools--;
-        (!x)->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+        (!x)->~PoolType<ElementSize>();
         return Maybe<void *>(!x);
     }
     return Maybe<void *>();
@@ -163,7 +159,7 @@ Maybe<void *> paraAllocate()
             auto freePool = findAndReleaseFreePool();
             if (freePool)
             {
-                auto newPool = new (!freePool) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+                auto newPool = new (!freePool) PoolType<ElementSize>();
                 slot->push(newPool);
                 return newPool->get();
             }
@@ -190,7 +186,7 @@ Maybe<void *> paraAllocate()
                 RELOAD_CR3();
                 spin_unlock_irqrestore(&cpu0_paging_lock, flags);
 
-                auto newPool = new (addr) ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
+                auto newPool = new (addr) PoolType<ElementSize>();
                 slot->push(newPool);
                 totalNumPools++;
                 return newPool->get();
