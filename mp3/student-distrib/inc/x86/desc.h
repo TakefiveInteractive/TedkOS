@@ -28,6 +28,8 @@
 
 #ifndef ASM
 
+#include <inc/x86/desc_interrupts.h>
+
 /* This structure is used to load descriptor base registers
  * like the GDTR and IDTR
  * EXTRA NOTES:
