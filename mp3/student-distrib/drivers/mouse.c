@@ -8,7 +8,7 @@
 #define MOUSE_PORT 0x60
 #define MOUSE_INT_NUM 0x21
 #define MOUSE_IRQ_NUM 1
-#define KB_ID 1
+#define MOUSE_ID 1
 
 
 /*
