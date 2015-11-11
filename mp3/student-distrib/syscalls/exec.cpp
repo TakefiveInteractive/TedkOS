@@ -92,6 +92,15 @@ int32_t do_exec(const uint8_t* file)
 
     // EIP
     *kstackBottom = (uint32_t)entry_point;
+    kstackBottom --;
+
+    // eax
+    *kstackBottom = -1;
+    kstackBottom --;
+
+    // pushal
+    //*kstackBottom = 
+ 
 
     child.mainThreadInfo->pcb.esp0 = (target_esp0)kstackBottom;
 
