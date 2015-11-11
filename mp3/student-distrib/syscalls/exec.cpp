@@ -9,8 +9,11 @@
 #include <stddef.h>
 #include <inc/klibs/palloc.h>
 #include <inc/x86/desc.h>
+#include <inc/x86/stacker.h>
 
 using namespace palloc;
+using arch::Stacker;
+using arch::CPUArchTypes::x86;
 
 using namespace syscall_exec;
 
@@ -68,44 +71,31 @@ int32_t do_exec(const uint8_t* file)
     // Initialize stack and ESP
     // compatible with x86 32-bit iretl
     // always no error code on stack before iretl
-    uint32_t* kstackBottom = ((uint32_t*)child.mainThreadInfo->kstack) + ((THREAD_KSTACK_SIZE / 4) - 1);
-    
-    // leave a padding.
-    kstackBottom --;
+    Stacker<x86> kstack((uint32_t)child.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
 
-    // SS
-    *kstackBottom = USER_DS_SEL;
-    kstackBottom --;
-
-    // ESP
-    *kstackBottom = code_page_vaddr_base + (1 << 22) - 8;    // some padding here, too.
-    kstackBottom --;
+    kstack << (uint32_t) USER_DS_SEL;
+    kstack << (uint32_t) code_page_vaddr_base + (1<<22) - 8;
 
     // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
     // Set Interrupt Enable Flag. IOPL = 3
-    *kstackBottom = (flags & (~0x24100)) | 0x3200;
-    kstackBottom --;
+    kstack << ((flags & (~0x24100)) | 0x3200);
 
-    // CS
-    *kstackBottom = USER_CS_SEL;
-    kstackBottom --;
+    kstack << (uint32_t) USER_CS_SEL;
+    kstack << (uint32_t) entry_point;
 
-    // EIP
-    *kstackBottom = (uint32_t)entry_point;
-    kstackBottom --;
+    pushal_t regs;
+    regs.esp = (uint32_t) kstack.getESP();
+    regs.ebp = 0;
+    regs.eax = -1;
+    regs.ebx = regs.ecx = regs.edx = 0;
+    regs.edi = regs.esi = 0;
 
-    // eax
-    *kstackBottom = -1;
-    kstackBottom --;
+    kstack << regs;
 
-    // pushal
-    //*kstackBottom = 
- 
-
-    child.mainThreadInfo->pcb.esp0 = (target_esp0)kstackBottom;
+    child.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
 
     // refresh TSS so that later interrupts use this new kstack
-    tss.esp0 = (uint32_t)kstackBottom;
+    tss.esp0 = (uint32_t)kstack.getESP();
     ltr(KERNEL_TSS_SEL);
     return child_upid;
 }

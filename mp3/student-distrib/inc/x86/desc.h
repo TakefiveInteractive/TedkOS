@@ -42,6 +42,18 @@
  *      GDTR and LDTR's values are not in the format of SELECTOR,
  *       but IDTR and TR (TSS register)'s values ARE.
  */
+
+typedef struct {
+    int32_t edi;
+    int32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    int32_t ebx;
+    int32_t edx;
+    int32_t ecx;
+    int32_t eax;
+} pushal_t;
+
 typedef struct {
 	uint16_t padding;
 	uint16_t size;
