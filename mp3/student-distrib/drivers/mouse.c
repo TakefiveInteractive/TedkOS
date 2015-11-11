@@ -40,7 +40,7 @@ DEFINE_DRIVER_INIT(mouse) {
 	// bind handler to pic
 	bind_irq(MOUSE_IRQ_NUM,MOUSE_ID,mouse_handler,KD_POLICY);
 
-    spin_unlock_irqrestore(&keyboard_lock, flag);
+    spin_unlock_irqrestore(&mouse_lock, flag);
 	return;
 }
 
