@@ -52,7 +52,7 @@ namespace palloc
 
         PhysPageManager(multiboot_info_t* mbi);
 
-        // return NULL <=> Memory is Full.
+        // return 0xffff <=> Memory is Full.
         uint16_t allocPage(int8_t isCommonPage);
 
         // if this page is NOT in use, do nothing.
@@ -77,7 +77,7 @@ namespace palloc
 
         VirtualMemRegion();
 
-        // return 0xffff <=> Memory is Full.
+        // return NULL <=> Memory is Full.
         void* allocPage(int8_t isCommonPage);
 
         // if this page is NOT in use, do nothing.
