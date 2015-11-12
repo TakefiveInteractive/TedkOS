@@ -11,7 +11,7 @@ enum exception_type {
 };
 
 struct x86_exception_metadata_t {
-    char * name;
+    const char * name;
     enum exception_type type;
 };
 
@@ -68,7 +68,7 @@ void print_control_registers(void)
     printf("CR0 = 0x%#x, CR2 = 0x%#x, CR3 = 0x%#x\n", cr0, cr2, cr3);
 }
 
-void exception_handler(size_t vec, unsigned long int code)
+void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned long int code, idt_stack_t *info)
 {
     int have_error_code = ErrorCodeInExceptionBitField & (1 << vec);
     printf("================= WTF Exception Occurred =================\n");

@@ -1,10 +1,9 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 #include <inc/syscalls/syscalls.h>
-
-extern "C" void interrupt_handler_with_number (size_t index, unsigned long int code);
 
 /* Single bit field indicating if an error has an error code to be popped */
 const unsigned long int ErrorCodeInExceptionBitField = 0x40047D00;
@@ -16,35 +15,38 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "push %%ebp;    \n"
             "movl %%esp, %%ebp;     \n"
 #endif
-            "pushl %%eax;   \n"
             "movl %0, %%esp;        \n"
             "cmpl $32, %%esp;       \n"
-            "jae 1f;        \n"
-            "movl %1, %%eax;\n"
-            "btl %%esp, %%eax;      \n"
-            "jz 1f;         \n"
-            "leave;         \n"
-            "movl -8(%%esp), %%eax;     \n"
-            "pushl %%eax;   \n"
-            "movl 4(%%esp), %%eax;      \n"
-            "movl %%eax, -32+4(%%esp);  \n"
-            "popl %%eax;    \n"
-            "addl $4, %%esp;\n"
-            "pushal;        \n"
-            "subl $4, %%esp;\n"
-            "pushl %0;  \n"
-            "jmp 2f;        \n"
+            "jae 1f;                \n"     // Average interrupt
+            "movl %1, %%esp;        \n"
+            "btl %0, %%esp;         \n"
+            "leave;                 \n"
+            "jz 2f;                 \n"
+            "movl %%ebx, -32(%%esp);    \n" // Exception with code
+            "popl %%ebx;                \n" // Pop code into EBX
+            "pushal;                    \n"
+            "movl -4(%%esp), %%eax;     \n"
+            "movl %%eax, 16(%%esp);     \n"
+            "jmp 3f;                    \n"
 "1:;\n"
-            "leave;         \n"
-            "movl -8(%%esp), %%eax;     \n"
-            "pushal;        \n"
-            "pushl $0;      \n"
-            "pushl %0;  \n"
+            "pushal;                    \n"
+            "pushl %0;                  \n"
+            "cld;                               \n"
+            "call interrupt_handler_with_number;\n"
+            "addl $4, %%esp;                    \n"
+            "popal; iretl;                      \n"
 "2:;\n"
-            "cld;           \n"
-            "call interrupt_handler_with_number; \n"
-            "addl $8, %%esp;\n"
-            "popal; iretl;   \n"
+            "pushal;                    \n"             // Exception with no code
+            "movl $0, %%ebx;            \n"
+"3:;\n"
+            "cld;                               \n"
+            "leal -32(%%esp), %%eax;            \n"     // Load addr of top of stack at beginning of interrupt
+            "pushl %%eax;                       \n"
+            "pushl %%ebx;                       \n"
+            "pushl %0;                          \n"
+            "call exception_handler_with_number;\n"
+            "addl $12, %%esp;                   \n"
+            "popal; iretl;                      \n"
             :
             : "i" (index), "i" (ErrorCodeInExceptionBitField)
             : "cc");
