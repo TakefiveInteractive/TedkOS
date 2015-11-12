@@ -16,6 +16,16 @@
 #include <inc/tests.h>
 #include <inc/fs/kiss_wrapper.h>
 #include <inc/mbi_info.h>
+#include <inc/klibs/palloc.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
+#include <inc/x86/desc.h>
+#include <inc/x86/stacker.h>
+#include <inc/init.h>
+
+using namespace palloc;
+using arch::Stacker;
+using arch::CPUArchTypes::x86;
 
 /* Initialize runtime library */
 extern "C" void _init(void);
@@ -126,17 +136,60 @@ _entry (unsigned long magic, unsigned long addr)
     printf("Loading frame1.txt, size = %d\n", len1);
     puts((const char *)buf1);
 
-    //while(1)
+    // ----- START init as a KERNEL thread (because its code is in kernel code) -----
+
+    // should have loaded flags using cli_and_save or pushfl
+    uint32_t flags = 0;
+    int32_t child_upid = newPausedProcess(-1);
+
+    if(child_upid < 0)
     {
-        int rval;
-        printf("trying to start test programs... ");
-        rval = kshell_main();
-        if(rval)
-            printf("FAILED.\n");
+        printf("Weird Error: Out of PIDs\n");
+        asm volatile("1: hlt; jmp 1b;");
     }
 
-    /* Spin (nicely, so we don't chew up cycles) */
-    asm volatile(".1: hlt; jmp .1;");
+    ProcessDesc& proc = ProcessDesc::get(child_upid);
+
+    // Here we do NOT use any more memory than PCB & kstack.
+    // Because no stack exchange happens for kthread during interrupts.
+
+    // Initialize stack and ESP
+    // compatible with x86 32-bit iretl. KTHREAD mode.
+    // always no error code on stack before iretl
+    Stacker<x86> kstack((uint32_t)proc.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
+
+    // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
+    // Set Interrupt Enable Flag. IOPL = 3
+    kstack << ((flags & (~0x24100)) | 0x3200);
+
+    kstack << (uint32_t) USER_CS_SEL;
+    kstack << (uint32_t) init_main;
+
+    pushal_t regs;
+    regs.esp = (uint32_t) kstack.getESP();
+    regs.ebp = 0;
+    regs.eax = -1;
+    regs.ebx = regs.ecx = regs.edx = 0;
+    regs.edi = regs.esi = 0;
+
+    kstack << regs;
+
+    proc.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
+
+    // refresh TSS so that later interrupts use this new kstack
+    tss.esp0 = (uint32_t)kstack.getESP();
+    ltr(KERNEL_TSS_SEL);
+
+    asm volatile (
+        "movl %0, %%esp         ;\n"
+        "popal                  ;\n"
+        "iretl                  ;\n"
+        : : "rm" (kstack.getESP()) : "cc");
+    // This asm block changes everything but gcc should not worry about them.
+
+    // This part should never be reached.
+    printf("Halted.\n");
+    asm volatile("1: hlt; jmp 1b;");
 }
 
 void kernel_enable_basic_paging()

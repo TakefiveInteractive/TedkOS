@@ -31,11 +31,14 @@ target_esp0 __attribute__((used)) schedDispatchDecision()
 
 int32_t newPausedProcess(int32_t parentPID)
 {
-    thread_kinfo* parentInfo = ProcessDesc::get(parentPID).mainThreadInfo;
+    thread_kinfo* parentInfo = NULL;
+    if(parentPID >= 0)
+        parentInfo = ProcessDesc::get(parentPID).mainThreadInfo;
     int32_t uniq_pid = ProcessDesc::newProcess();
     ProcessDesc& pd = ProcessDesc::get(uniq_pid);
     pd.mainThreadInfo->pcb.prev = parentInfo;
-    parentInfo->pcb.next = pd.mainThreadInfo;
+    if(parentInfo)
+        parentInfo->pcb.next = pd.mainThreadInfo;
 
     return uniq_pid;
 }
