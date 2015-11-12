@@ -52,3 +52,9 @@ size_t ProcessDesc::newProcess()
     return nextNewProcess++;
 }
 
+uint8_t isCurrThreadKernel()
+{
+    return getCurrentThreadInfo()->isKernelThread;
+}
+
+

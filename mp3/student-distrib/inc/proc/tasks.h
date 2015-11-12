@@ -51,6 +51,9 @@ typedef struct _thread_pcb_t
     // Kernel stack state of current thread.
     target_esp0 esp0;
     ProcessDesc* to_process;
+
+    // If this is a kernel thread, non-zero. Otherwise zero.
+    uint8_t isKernelThread;
     
     // Following is a simple list used by "scheduling"
     //    Simplest scheduling: process is paused and the next process
@@ -71,6 +74,7 @@ typedef union _thread_kinfo
 extern "C" {
 #endif
     thread_kinfo* getCurrentThreadInfo();
+    uint8_t isCurrThreadKernel();
 #ifdef __cplusplus
 }
 #endif

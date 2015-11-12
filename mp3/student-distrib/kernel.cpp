@@ -90,6 +90,9 @@ _entry (unsigned long magic, unsigned long addr)
         tss.ldt_segment_selector = KERNEL_LDT_SEL;
         tss.ss0 = KERNEL_DS_SEL;
         tss.esp0 = 0x800000;
+
+        // should load kernel ds,es,fs,gs so that at interrupt we have correct data access
+        tss.ds = tss.es = tss.fs = tss.gs = KERNEL_DS_SEL;
         ltr(KERNEL_TSS_SEL);
     }
 
@@ -159,6 +162,7 @@ _entry (unsigned long magic, unsigned long addr)
     kstack << regs;
 
     proc.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
+    proc.mainThreadInfo->pcb.isKernelThread = 1;
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
