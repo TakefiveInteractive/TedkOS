@@ -92,7 +92,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
 
 /*
  * Basic idea about switching kernel stacks:
- *     Both syscall and PIT ensures that currPCB.esp0 points to: [ pushal, iretl info ]
+ *     Both syscall and PIT ensures that currPCB.esp0 points to: [ ds - gs, pushal, iretl info ]
  *          IF and ONLY IF their helper functions decide to SWITCH TO OTHER THREADs.
  *
  *     IF schedDispatchDecision() wants to SWITCH TO OTHER THREADs,
@@ -100,7 +100,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
  *          AND syscall and PIT must assign that value directly to $esp
  *
  *     Thus whether a SWITCH happens or NOT, AFTER changing ESP, syscall and PIT always have:
- *          [ pushal, iretl info ]  on stack.
+ *          [ ds - gs, pushal, iretl info ]  on stack.
  *
  *     Syscall/PIC Implementation functions' responsibility:
  *          1. Call Scheduler's functions to prepare a task switch.
@@ -119,6 +119,10 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "leave; \n"
 #endif
         "pushal;        \n"
+        "pushl %%ds;    \n"
+        "pushl %%es;    \n"
+        "pushl %%fs;    \n"
+        "pushl %%gs;    \n"
 
         "pushl %%edx;   \n"
         "pushl %%ecx;   \n"
@@ -139,6 +143,10 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "movl %%eax, %%esp         ;\n"         // Switch the kernel stack!
 
         "1:                         \n"
+        "popl  %%gs;    \n"
+        "popl  %%fs;    \n"
+        "popl  %%es;    \n"
+        "popl  %%ds;    \n"
         "popal; \n"
         "iretl;  \n"
         :
