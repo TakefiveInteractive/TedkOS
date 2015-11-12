@@ -3,7 +3,6 @@
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
 #include <inc/klibs/kmalloc.h>
-#include <inc/klibs/palloc.h>
 #include <inc/x86/paging.h>
 #include <stdint.h>
 #include <stddef.h>
