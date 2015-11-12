@@ -16,7 +16,6 @@
 #define SCREEN_WIDTH    80
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
-#define VMEM_HEAD       ((char*)0xB8000)
 
 // This field is used to tell whether COMBINATION key is pressed
 //      If so, then it also contains all COMBINATION keys pressed.
@@ -28,10 +27,6 @@ static uint8_t caps_locked = 0;
 // The coordinate to display the next char at.
 static uint32_t next_char_x = 0;
 static uint32_t next_char_y = 0;
-
-// This variable must be initialized every time _init() is called.
-//  Later we might use VGA panning so this value might change.
-static char* video_mem = VMEM_HEAD;
 
 // The lock must be called when operating on the screen.
 spinlock_t term_lock = SPINLOCK_UNLOCKED;
@@ -120,7 +115,6 @@ DEFINE_DRIVER_REMOVE(term)
     clear_screen_nolock();
     next_char_x = 0;
     next_char_y = 0;
-    video_mem = VMEM_HEAD;
 
     spin_unlock_irqrestore(&term_lock, flag);
 }

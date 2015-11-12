@@ -4,6 +4,7 @@
 
 void init_main()
 {
+
     /* Enable interrupts */
     sti();
 
