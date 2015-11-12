@@ -17,7 +17,7 @@
 
 using namespace palloc;
 
-#define MAX_NUM_PROCESS             1024
+#define MAX_NUM_PROCESS             256
 
 #define FD_ARRAY_LENGTH             128
 #define MAX_NUM_THREADS             128
