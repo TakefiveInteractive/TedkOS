@@ -4,6 +4,7 @@
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 #include <inc/syscalls/syscalls.h>
+#include <inc/x86/desc.h>
 
 /* Single bit field indicating if an error has an error code to be popped */
 const unsigned long int ErrorCodeInExceptionBitField = 0x40047D00;
@@ -15,6 +16,13 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "push %%ebp;    \n"
             "movl %%esp, %%ebp;     \n"
 #endif
+
+            "movw %2, %%cx             ;\n"
+            "movw %%cx, %%ds           ;\n"
+            "movw %%cx, %%es           ;\n"
+            "movw %%cx, %%fs           ;\n"
+            "movw %%cx, %%gs           ;\n"
+
             "movl %0, %%esp;        \n"
             "cmpl $32, %%esp;       \n"
             "jae 1f;                \n"     // Average interrupt
@@ -48,9 +56,18 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "call exception_handler_with_number;\n"
             "addl $12, %%esp;                   \n"
 "4:;\n"
+            "call isCurrThreadKernel   ;\n"
+            "testl %%eax, %%eax        ;\n"
+            "jnz 5f                    ;\n"         // Jump if new thread is kernel thread
+            "movw %3, %%cx             ;\n"
+            "movw %%cx, %%ds           ;\n"
+            "movw %%cx, %%es           ;\n"
+            "movw %%cx, %%fs           ;\n"
+            "movw %%cx, %%gs           ;\n"
+            "5:                         \n"
             "popal; iretl;                      \n"     // Restore registers
             :
-            : "i" (index), "i" (ErrorCodeInExceptionBitField)
+            : "i" (index), "i" (ErrorCodeInExceptionBitField), "i" (KERNEL_DS_SEL), "i" (USER_DS_SEL)
             : "cc");
     }
 };

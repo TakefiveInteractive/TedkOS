@@ -96,12 +96,6 @@ int32_t do_exec(const uint8_t* file)
 
     kstack << regs;
 
-    // ds, es, fs, gs
-    kstack << (uint32_t) USER_DS_SEL;
-    kstack << (uint32_t) USER_DS_SEL;
-    kstack << (uint32_t) USER_DS_SEL;
-    kstack << (uint32_t) USER_DS_SEL;
-
     child.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
     child.mainThreadInfo->pcb.isKernelThread = 0;
 

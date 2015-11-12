@@ -52,9 +52,9 @@ size_t ProcessDesc::newProcess()
     return nextNewProcess++;
 }
 
-uint8_t isCurrThreadKernel()
+uint8_t __attribute__((used)) isCurrThreadKernel()
 {
-    return getCurrentThreadInfo()->isKernelThread;
+    return getCurrentThreadInfo()->pcb.isKernelThread;
 }
 
 

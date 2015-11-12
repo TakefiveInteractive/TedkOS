@@ -2,6 +2,7 @@
 #include <inc/syscalls/syscalls.h>
 #include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
+#include <inc/x86/desc.h>
 #include "exec.h"
 
 using namespace boost;

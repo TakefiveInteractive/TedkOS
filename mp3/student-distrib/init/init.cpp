@@ -4,6 +4,9 @@
 
 void init_main()
 {
+    /* Enable interrupts */
+    sti();
+
     printf("Hello!\nI am the idle process!\nI am a kernel process!\nI am every other process's parent!\n");
     /* Spin (nicely, so we don't chew up cycles) */
 

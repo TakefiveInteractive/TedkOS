@@ -120,9 +120,6 @@ _entry (unsigned long magic, unsigned long addr)
         printf(" ... OK!\n");
     }
 
-    /* Enable interrupts */
-    sti();
-
     // ----- START init as a KERNEL thread (because its code is in kernel code) -----
 
     // should have loaded flags using cli_and_save or pushfl
