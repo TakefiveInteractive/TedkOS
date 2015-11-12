@@ -162,7 +162,7 @@ _entry (unsigned long magic, unsigned long addr)
     // Set Interrupt Enable Flag. IOPL = 3
     kstack << ((flags & (~0x24100)) | 0x3200);
 
-    kstack << (uint32_t) USER_CS_SEL;
+    kstack << (uint32_t) KERNEL_CS_SEL;
     kstack << (uint32_t) init_main;
 
     pushal_t regs;
@@ -178,7 +178,7 @@ _entry (unsigned long magic, unsigned long addr)
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
-    ltr(KERNEL_TSS_SEL);
+    // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
 
     asm volatile (
         "movl %0, %%esp         ;\n"

@@ -96,7 +96,7 @@ int32_t do_exec(const uint8_t* file)
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
-    ltr(KERNEL_TSS_SEL);
+    // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
     return child_upid;
 }
 
