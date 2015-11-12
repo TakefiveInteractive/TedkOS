@@ -119,23 +119,6 @@ _entry (unsigned long magic, unsigned long addr)
     /* Enable interrupts */
     sti();
 
-    /* Execute the first program (`shell') ... */
-    dentry_t dentry;
-    read_dentry_by_index(0, &dentry);
-    printf("First file: %s\n", dentry.filename);
-
-    read_dentry_by_name((const uint8_t *)"frame0.txt", &dentry);
-    uint8_t buf[200] = {};
-    size_t len = read_data(dentry.inode, 0, buf, sizeof(buf));
-    printf("Loading frame0.txt, size = %d\n", len);
-    puts((const char *)buf);
-
-    read_dentry_by_name((const uint8_t *)"frame1.txt", &dentry);
-    uint8_t buf1[200] = {};
-    size_t len1 = read_data(dentry.inode, 0, buf1, sizeof(buf1));
-    printf("Loading frame1.txt, size = %d\n", len1);
-    puts((const char *)buf1);
-
     // ----- START init as a KERNEL thread (because its code is in kernel code) -----
 
     // should have loaded flags using cli_and_save or pushfl
