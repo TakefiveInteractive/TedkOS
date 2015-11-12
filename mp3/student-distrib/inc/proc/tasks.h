@@ -5,7 +5,7 @@
 #define THREAD_KSTACK_SIZE          8192
 #define THREAD_KINFO_SIZE           THREAD_KSTACK_SIZE
 
-#define THREAD_ESP_TO_PCB           THREAD_KINFO_SIZE - 1
+#define THREAD_ESP_TO_PCB           ~(THREAD_KINFO_SIZE - 1)
 
 #ifndef ASM
 
