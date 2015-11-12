@@ -221,6 +221,7 @@ bool paraFree(void *addr)
 
 Maybe<void *> allocImpl(size_t size)
 {
+    //printf("size: %d\n", size);
     if (size <= 16)
     {
         return paraAllocate<16>();
