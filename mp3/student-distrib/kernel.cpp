@@ -22,6 +22,7 @@
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
 #include <inc/init.h>
+#include <inc/klibs/AutoSpinLock.h>
 
 using namespace palloc;
 using arch::Stacker;
@@ -105,7 +106,7 @@ _entry (unsigned long magic, unsigned long addr)
     _init();
 
     /* Initialize file system */
-    filesystem::dispatcher.mountAll();
+    filesystem::Dispatcher::init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
@@ -177,11 +178,10 @@ _entry (unsigned long magic, unsigned long addr)
 
 void kernel_enable_basic_paging()
 {
+    AutoSpinLock lock(&cpu0_paging_lock);
     int32_t i;
     uint32_t* pageDir   = basicPageDir;
     uint32_t* pageTable = basicPageTable0;
-    uint32_t flag;
-    spin_lock_irqsave(&cpu0_paging_lock, flag);
     memset(pageDir  , 0, 0x1000);
     memset(pageTable, 0, 0x1000);
     REDIRECT_PAGE_DIR(pageDir);
@@ -194,7 +194,6 @@ void kernel_enable_basic_paging()
         LOAD_4KB_PAGE(0, i, i << 12, PG_WRITABLE);
     }
     enable_paging();
-    spin_unlock_irqrestore(&cpu0_paging_lock, flag);
 }
 
 extern "C" void

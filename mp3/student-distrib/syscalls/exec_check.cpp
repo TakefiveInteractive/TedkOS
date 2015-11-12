@@ -2,6 +2,8 @@
 #include <inc/fs/kiss.h>
 #include <inc/fs/kiss_wrapper.h>
 
+namespace fs = filesystem;
+
 namespace syscall_exec {
 
 static const int NORMAL_FILE = 2;
@@ -15,12 +17,12 @@ int8_t is_kiss_executable(const uint8_t* file)//filename
 {
     //check dentry
     dentry_t dentry;
-    if( read_dentry_by_name(file,&dentry) == -1 )//cannot find
+    if(fs::read_dentry(file, &dentry) == -1)//cannot find
         return 0;
     if(dentry.filetype != NORMAL_FILE)//not regular file
         return 0;
     uint8_t buf[4] = {};
-    uint32_t len = read_data(dentry.inode,0,buf,sizeof(buf));
+    uint32_t len = fs::read_data(dentry.inode,0,buf,sizeof(buf));
     if( len < 4)//read error, or input file length error
         return 0;
     if(buf[0] == 0x7f &&

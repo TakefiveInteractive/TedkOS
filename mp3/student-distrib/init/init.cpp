@@ -14,8 +14,8 @@ void init_main()
         "movl %0, %%eax         ;\n"
         "movl %1, %%ebx         ;\n"
         "int $0x80              ;\n"
-    : : "i"(SYS_EXECUTE), "rm"(file) : "eax", "cc");
-    
+    : : "i"(SYS_EXECUTE), "rm"(file) : "eax", "cc", "ebx");
+
 
     printf("Trying to call SYS_HALT ...\n");
     asm volatile(
