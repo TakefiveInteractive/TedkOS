@@ -35,7 +35,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "cld;                               \n"
             "call interrupt_handler_with_number;\n"
             "addl $4, %%esp;                    \n"
-            "popal; iretl;                      \n"
+            "jmp 4f;                            \n"
 "2:;\n"
             "pushal;                    \n"             // Exception with no code
             "movl $0, %%ebx;            \n"
@@ -47,7 +47,8 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "pushl %0;                          \n"
             "call exception_handler_with_number;\n"
             "addl $12, %%esp;                   \n"
-            "popal; iretl;                      \n"
+"4:;\n"
+            "popal; iretl;                      \n"     // Restore registers
             :
             : "i" (index), "i" (ErrorCodeInExceptionBitField)
             : "cc");
