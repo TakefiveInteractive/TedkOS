@@ -28,19 +28,21 @@ class ProcessDesc
 {
 private:
     static size_t nextNewProcess;
-    static ProcessDesc* all_processes;
+    static ProcessDesc** all_processes;
     static void init();
+    ProcessDesc(int32_t _upid);
+    int32_t upid;
 public:
-    static ProcessDesc* all();
+    static ProcessDesc** all();
     static ProcessDesc& get(size_t uniq_pid);
     static size_t newProcess();
-    ProcessDesc();
     int32_t getUniqPid();
     File *fileDescs[FD_ARRAY_LENGTH];
     // Currently no multithread
     union _thread_kinfo * mainThreadInfo;
     MemMap memmap;
 };
+
 
 // because we saves all register states in kernel stack,
 //   here we do not repeat those states.
