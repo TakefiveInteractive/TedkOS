@@ -20,7 +20,8 @@ void init_main()
     printf("Trying to call SYS_HALT ...\n");
     asm volatile(
         "movl %0, %%eax  ;\n"
+        "movl $66666, %%ebx;\n"
         "int $0x80              ;\n"
-    : : "i"(SYS_HALT) : "eax", "cc");
+    : : "i"(SYS_HALT) : "eax", "cc", "ebx");
     asm volatile("1: hlt; jmp 1b;");
 }
