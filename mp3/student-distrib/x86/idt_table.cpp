@@ -9,7 +9,7 @@
 const unsigned long int ErrorCodeInExceptionBitField = 0x40047D00;
 
 template<size_t index> struct VectorExtractingMetaFunc {
-    static void __attribute__((optimize("O0"))) value(void) {   // Make sure the compiler doesn't try to be too clever
+    static void value(void) {   // Make sure the compiler doesn't try to be too clever
         __asm__ __volatile__ (
 #ifdef __OPTIMIZE__
             "push %%ebp;    \n"
@@ -29,6 +29,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "movl %%eax, 16(%%esp);     \n"
             "jmp 3f;                    \n"
 "1:;\n"
+            "leave;                     \n"
             "pushal;                    \n"
             "pushl %0;                  \n"
             "cld;                               \n"

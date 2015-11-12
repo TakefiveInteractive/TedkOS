@@ -19,7 +19,7 @@ int32_t num_hard_int()
     return num_hard_int_val;
 }
 
-void __attribute__((used)) __attribute__((optimize("O0"))) interrupt_handler_with_number(size_t index)
+void __attribute__((used)) interrupt_handler_with_number(size_t index)
 {
     uint32_t flag;
     if(index >= NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT

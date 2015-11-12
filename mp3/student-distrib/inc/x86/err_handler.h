@@ -4,6 +4,7 @@
 
 struct __attribute__ ((__packed__)) idt_stack_t {
     uint32_t EIP;
+    uint16_t _padding_;
     uint16_t CS;
     uint32_t EFLAGS;
 };
