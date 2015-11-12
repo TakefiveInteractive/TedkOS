@@ -161,11 +161,14 @@ _entry (unsigned long magic, unsigned long addr)
     proc.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
     proc.mainThreadInfo->pcb.isKernelThread = 1;
 
-    video_mem = (char*) virtLast1G.allocPage(1);
-    commonMemMap.add(VirtAddr(video_mem), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
+    char* vmemPage;
+    vmemPage = (char*) virtLast1G.allocPage(1);
+    commonMemMap.add(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
     currProcMemMap = proc.memmap;
     currProcMemMap += commonMemMap;
     currProcMemMap.loadToCR3(&cpu0_paging_lock);
+
+    video_mem = vmemPage + PRE_INIT_VIDEO;
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
