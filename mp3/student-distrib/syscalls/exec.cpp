@@ -103,6 +103,7 @@ int32_t do_exec(const uint8_t* file)
     kstack << (uint32_t) USER_DS_SEL;
 
     child.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
+    child.mainThreadInfo->pcb.isKernelThread = 0;
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();

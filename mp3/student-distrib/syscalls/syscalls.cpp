@@ -119,10 +119,11 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "leave; \n"
 #endif
         "pushal;        \n"
-        "pushl %%ds;    \n"
-        "pushl %%es;    \n"
-        "pushl %%fs;    \n"
-        "pushl %%gs;    \n"
+        "movw    $KERNEL_DS_SEL, %cx    ;\n"
+        "movw    %cx, %ds               ;\n"
+        "movw    %cx, %es               ;\n"
+        "movw    %cx, %fs               ;\n"
+        "movw    %cx, %gs               ;\n"
 
         "pushl %%edx;   \n"
         "pushl %%ecx;   \n"
@@ -143,10 +144,16 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "movl %%eax, %%esp         ;\n"         // Switch the kernel stack!
 
         "1:                         \n"
-        "popl  %%gs;    \n"
-        "popl  %%fs;    \n"
-        "popl  %%es;    \n"
-        "popl  %%ds;    \n"
+        "call isCurrThreadKernel   ;\n"
+        "movw $USER_DS_SEL, %%cx   ;\n"
+        "testl %%eax, %%eax        ;\n"
+        "jz 2f                     ;\n"         // Jump if new thread is NOT kernel thread
+        "movw $KERNEL_DS_SEL, %%cx ;\n"
+        "2:                         \n"
+        "movw    %cx, %ds          ;\n"
+        "movw    %cx, %es          ;\n"
+        "movw    %cx, %fs          ;\n"
+        "movw    %cx, %gs          ;\n"
         "popal; \n"
         "iretl;  \n"
         :
