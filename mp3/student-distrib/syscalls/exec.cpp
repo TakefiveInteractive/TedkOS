@@ -20,6 +20,9 @@ namespace syscall_exec
 // Main entry to implementation of exec syscall
 int32_t sysexec(const uint8_t* file)
 {
+    if(!file)
+        return -1;
+
     uint32_t child_upid = do_exec(file);
     if(child_upid < 0)
         return -1;

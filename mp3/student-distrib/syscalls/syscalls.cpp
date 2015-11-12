@@ -2,19 +2,10 @@
 #include <inc/syscalls/syscalls.h>
 #include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
+#include "exec.h"
 
 using namespace boost;
-
-#define SYS_HALT    1
-#define SYS_EXECUTE 2
-#define SYS_READ    3
-#define SYS_WRITE   4
-#define SYS_OPEN    5
-#define SYS_CLOSE   6
-#define SYS_GETARGS 7
-#define SYS_VIDMAP  8
-#define SYS_SET_HANDLER  9
-#define SYS_SIGRETURN  10
+using syscall_exec::sysexec;
 
 int32_t sysHalt(uint32_t p)
 {
@@ -84,7 +75,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
     switch (idx)
     {
         case SYS_HALT:          return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_EXECUTE:       return systemCallRunner(sysHalt, p1, p2, p3);
+        case SYS_EXECUTE:       return systemCallRunner(sysexec, p1, p2, p3);
         case SYS_READ:          return systemCallRunner(sysHalt, p1, p2, p3);
         case SYS_WRITE:         return systemCallRunner(sysHalt, p1, p2, p3);
         case SYS_OPEN:          return systemCallRunner(sysHalt, p1, p2, p3);
