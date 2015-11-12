@@ -106,7 +106,7 @@ _entry (unsigned long magic, unsigned long addr)
     _init();
 
     /* Initialize file system */
-    filesystem::dispatcher.mountAll();
+    filesystem::Dispatcher::init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
