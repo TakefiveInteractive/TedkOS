@@ -19,7 +19,25 @@ ProcessDesc::ProcessDesc()
 void ProcessDesc::init()
 {
     if(!all_processes)
-        all_processes = new ProcessDesc[MAX_NUM_PROCESS];
+    {
+        volatile uint32_t flags;
+        volatile uint16_t physAddr = physPages.allocPage(1);
+        void* addr = (void*)((uint32_t) 2 << 22);
+
+        commonMemMap.add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE));
+        currProcMemMap.add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE));
+        if(!currProcMemMap.isLoadedToCR3(&cpu0_paging_lock))
+        {
+            spin_lock_irqsave(&cpu0_paging_lock, flags);
+            LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
+            spin_unlock_irqrestore(&cpu0_paging_lock, flags);
+        }
+        spin_lock_irqsave(&cpu0_paging_lock, flags);
+        RELOAD_CR3();
+        spin_unlock_irqrestore(&cpu0_paging_lock, flags);
+
+        all_processes = (ProcessDesc*)addr;
+    }
 }
 
 ProcessDesc* ProcessDesc::all()

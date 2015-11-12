@@ -14,7 +14,8 @@ using namespace palloc;
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
 
-using namespace syscall_exec;
+namespace syscall_exec
+{
 
 // Main entry to implementation of exec syscall
 int32_t sysexec(const uint8_t* file)
@@ -97,4 +98,6 @@ int32_t do_exec(const uint8_t* file)
     tss.esp0 = (uint32_t)kstack.getESP();
     ltr(KERNEL_TSS_SEL);
     return child_upid;
+}
+
 }
