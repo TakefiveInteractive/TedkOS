@@ -19,7 +19,7 @@ int32_t num_hard_int()
     return num_hard_int_val;
 }
 
-void __attribute__((used)) __attribute__((optimize("O0"))) interrupt_handler_with_number(size_t index, uint32_t code)
+void __attribute__((used)) __attribute__((optimize("O0"))) interrupt_handler_with_number(size_t index)
 {
     uint32_t flag;
     if(index >= NUM_VEC) // we use this to represent An UNSUPPORTED INTERRUPT
@@ -32,12 +32,7 @@ void __attribute__((used)) __attribute__((optimize("O0"))) interrupt_handler_wit
     num_hard_int_val++;
     spin_unlock_irqrestore(&num_hard_int_lock, flag);
 
-    if (index <= 0x1f)
-    {
-        // Exception
-        exception_handler(index, code);
-    }
-    else if (index <= 0x2f)
+    if (index <= 0x2f)
     {
         // PIC
         irq_int_entry(index - 0x20);
@@ -54,7 +49,9 @@ void __attribute__((used)) __attribute__((optimize("O0"))) interrupt_handler_wit
 void init_idt(void)
 {
     int i = 0;
+
     init_idt_table();
+
     for(; i <= 0x1f; i++)
     {
         // Exception
