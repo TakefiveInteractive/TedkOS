@@ -20,6 +20,7 @@ namespace syscall_exec
 // Main entry to implementation of exec syscall
 int32_t sysexec(const uint8_t* file)
 {
+    printf("Executing: %s\n", file);
     if(!file)
         return -1;
 
@@ -62,7 +63,7 @@ int32_t do_exec(const uint8_t* file)
     uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
     global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
     RELOAD_CR3();
-    
+
     // Load executable into memory
     void* entry_point = kiss_loader(file);
 

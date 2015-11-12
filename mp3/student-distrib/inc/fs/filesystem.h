@@ -103,9 +103,11 @@ public:
     int32_t open(const char *filename);
     int32_t close(int32_t fd);
     void register_devfs(const char* path, const FOpsTable& jtable);
+
+    static void init();
 };
 
-extern Dispatcher dispatcher;
+extern Dispatcher *theDispatcher;
 
 }
 #endif

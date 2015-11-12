@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/klibs/lib.h>
+#include <inc/klibs/AutoSpinLock.h>
 
 using namespace palloc;
 
@@ -165,8 +166,6 @@ Maybe<void *> paraAllocate()
             }
             else
             {
-                uint32_t flags;
-
                 if (totalNumPools == MaxPoolNumInAllSlots) return Maybe<void *>();
 
                 auto physAddr = physPages.allocPage(1);
@@ -178,13 +177,13 @@ Maybe<void *> paraAllocate()
                     ; // kill the process.
                 if(!currProcMemMap.isLoadedToCR3(&cpu0_paging_lock))
                 {
-                    spin_lock_irqsave(&cpu0_paging_lock, flags);
+                    AutoSpinLock lock(&cpu0_paging_lock);
                     LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
-                    spin_unlock_irqrestore(&cpu0_paging_lock, flags);
                 }
-                spin_lock_irqsave(&cpu0_paging_lock, flags);
-                RELOAD_CR3();
-                spin_unlock_irqrestore(&cpu0_paging_lock, flags);
+                {
+                    AutoSpinLock lock(&cpu0_paging_lock);
+                    RELOAD_CR3();
+                }
 
                 auto newPool = new (addr) PoolType<ElementSize>();
                 slot->push(newPool);
@@ -222,6 +221,7 @@ bool paraFree(void *addr)
 
 Maybe<void *> allocImpl(size_t size)
 {
+    //printf("size: %d\n", size);
     if (size <= 16)
     {
         return paraAllocate<16>();

@@ -51,14 +51,38 @@ static const struct x86_exception_metadata_t exception_metadata[0x21] = {
     { "Triple Fault", Abort }
 };
 
+void print_control_registers(void)
+{
+    uint32_t cr0, cr2, cr3;
+    __asm__ __volatile__(
+        "mov %%cr0, %%eax\n\t"
+        "mov %%eax, %0\n\t"
+        "mov %%cr2, %%eax\n\t"
+        "mov %%eax, %1\n\t"
+        "mov %%cr3, %%eax\n\t"
+        "mov %%eax, %2\n\t"
+    : "=m" (cr0), "=m" (cr2), "=m" (cr3)
+    : /* no input */
+    : "eax"
+    );
+    printf("CR0 = 0x%#x, CR2 = 0x%#x, CR3 = 0x%#x\n", cr0, cr2, cr3);
+}
+
 void exception_handler(size_t vec, unsigned long int code)
 {
     int have_error_code = ErrorCodeInExceptionBitField & (1 << vec);
-    printf("WTF Exception occured! 0x%x => %s\n", vec, exception_metadata[vec].name);
+    printf("================= WTF Exception Occurred =================\n");
+    printf("0x%x => %s", vec, exception_metadata[vec].name);
     if (have_error_code)
     {
-        printf("Error code is 0x%x\n", code);
+        printf(", error code is 0x%x\n", code);
     }
+    else
+    {
+        printf("\n");
+    }
+    print_control_registers();
+    printf("====================== END OF TRACE ======================");
     // TODO: we gotta return control to program in subsequent checkpoints
     __asm__(".1: hlt; jmp .1;");
 }
