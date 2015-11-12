@@ -17,11 +17,13 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "movl %%esp, %%ebp;     \n"
 #endif
 
-            "movw %2, %%cx             ;\n"
+            "pushl %%ecx               ;\n"
+            "movl %2, %%ecx            ;\n"
             "movw %%cx, %%ds           ;\n"
             "movw %%cx, %%es           ;\n"
             "movw %%cx, %%fs           ;\n"
             "movw %%cx, %%gs           ;\n"
+            "popl %%ecx                ;\n"
 
             "movl %0, %%esp;        \n"
             "cmpl $32, %%esp;       \n"
@@ -59,7 +61,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "call isCurrThreadKernel   ;\n"
             "testl %%eax, %%eax        ;\n"
             "jnz 5f                    ;\n"         // Jump if new thread is kernel thread
-            "movw %3, %%cx             ;\n"
+            "movl %3, %%ecx            ;\n"
             "movw %%cx, %%ds           ;\n"
             "movw %%cx, %%es           ;\n"
             "movw %%cx, %%fs           ;\n"
@@ -67,7 +69,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "5:                         \n"
             "popal; iretl;                      \n"     // Restore registers
             :
-            : "i" (index), "i" (ErrorCodeInExceptionBitField), "i" (KERNEL_DS_SEL), "i" (USER_DS_SEL)
+            : "i" (index), "i" (ErrorCodeInExceptionBitField), "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
             : "cc");
     }
 };

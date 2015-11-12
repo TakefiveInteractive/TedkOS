@@ -120,7 +120,7 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "leave; \n"
 #endif
         "pushal;        \n"
-        "movw %0, %%cx             ;\n"
+        "movl %0, %%ecx            ;\n"
         "movw %%cx, %%ds           ;\n"
         "movw %%cx, %%es           ;\n"
         "movw %%cx, %%fs           ;\n"
@@ -148,7 +148,7 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "call isCurrThreadKernel   ;\n"
         "testl %%eax, %%eax        ;\n"
         "jnz 2f                    ;\n"         // Jump if new thread is kernel thread
-        "movw %1, %%cx             ;\n"
+        "movl %1, %%ecx            ;\n"
         "movw %%cx, %%ds           ;\n"
         "movw %%cx, %%es           ;\n"
         "movw %%cx, %%fs           ;\n"
@@ -157,7 +157,7 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "popal; \n"
         "iretl;  \n"
         :
-        : "i" (KERNEL_DS_SEL), "i" (USER_DS_SEL)
+        : "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
         : "cc");
 }
 
