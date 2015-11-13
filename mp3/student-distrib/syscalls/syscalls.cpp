@@ -148,8 +148,8 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "pushl %%ebx;   \n"
         "pushl %%eax;   \n"
         "call systemCallDispatcher ;\n"
-        "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.
         "addl $16, %%esp           ;\n"
+        "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.
         "jmp iret_sched_policy     ;\n"
         :
         : "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
