@@ -58,18 +58,9 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "call exception_handler_with_number;\n"
             "addl $12, %%esp;                   \n"
 "4:;\n"
-            "call isCurrThreadKernel   ;\n"
-            "testl %%eax, %%eax        ;\n"
-            "jnz 5f                    ;\n"         // Jump if new thread is kernel thread
-            "movl %3, %%ecx            ;\n"
-            "movw %%cx, %%ds           ;\n"
-            "movw %%cx, %%es           ;\n"
-            "movw %%cx, %%fs           ;\n"
-            "movw %%cx, %%gs           ;\n"
-            "5:                         \n"
-            "popal; iretl;                      \n"     // Restore registers
+            "jmp iret_sched_policy     ;\n"
             :
-            : "i" (index), "i" (ErrorCodeInExceptionBitField), "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
+            : "i" (index), "i" (ErrorCodeInExceptionBitField), "i" ((uint32_t)KERNEL_DS_SEL)
             : "cc");
     }
 };

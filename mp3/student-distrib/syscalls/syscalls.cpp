@@ -106,7 +106,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
 
 /*
  * Basic idea about switching kernel stacks:
- *     Both syscall and PIT ensures that currPCB.esp0 points to: [ ds - gs, pushal, iretl info ]
+ *     Both syscall and PIT ensures that currPCB.esp0 points to: [ pushal, iretl info ]
  *          IF and ONLY IF their helper functions decide to SWITCH TO OTHER THREADs.
  *
  *     IF schedDispatchDecision() wants to SWITCH TO OTHER THREADs,
@@ -114,7 +114,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
  *          AND syscall and PIT must assign that value directly to $esp
  *
  *     Thus whether a SWITCH happens or NOT, AFTER changing ESP, syscall and PIT always have:
- *          [ ds - gs, pushal, iretl info ]  on stack.
+ *          [ pushal, iretl info ]  on stack.
  *
  *     Syscall/PIC Implementation functions' responsibility:
  *          1. Call Scheduler's functions to prepare a task switch.
@@ -148,29 +148,7 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "call systemCallDispatcher ;\n"
         "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.
         "addl $16, %%esp           ;\n"
-
-        "call getCurrentThreadInfo ;\n"         // BACKUP ESP0 in case we do CONTEXT SWITCH.
-        "movl %%esp, (%%eax)       ;\n"         // Save the stack state where switch_to_esp0 has just been allocated.
-
-        "call schedDispatchDecision;\n"         // return NULL or *** the esp0 to switch to ***
-
-        "testl %%eax, %%eax        ;\n"
-        "jz 1f                     ;\n"         // Jump if no kernel stack switching.
-
-        "movl %%eax, %%esp         ;\n"         // Switch the kernel stack!
-
-        "1:                         \n"
-        "call isCurrThreadKernel   ;\n"
-        "testl %%eax, %%eax        ;\n"
-        "jnz 2f                    ;\n"         // Jump if new thread is kernel thread
-        "movl %1, %%ecx            ;\n"
-        "movw %%cx, %%ds           ;\n"
-        "movw %%cx, %%es           ;\n"
-        "movw %%cx, %%fs           ;\n"
-        "movw %%cx, %%gs           ;\n"
-        "2:                         \n"
-        "popal; \n"
-        "iretl;  \n"
+        "jmp iret_sched_policy     ;\n"
         :
         : "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
         : "cc");
