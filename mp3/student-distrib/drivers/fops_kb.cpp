@@ -3,8 +3,11 @@
 #include <inc/fops_kb.h>
 #include <inc/fops_term.h>
 #include <inc/error.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
+#include <inc/d2d/to_kb.h>
 
-volatile int8_t isThisTerminalInUse[NUM_TERMINALS] = {0};
+volatile int8_t ThisTerminalUsedBy[NUM_TERMINALS] = {0};
 volatile int8_t isThisTerminalWaitingForEnter[NUM_TERMINALS] = {0};
 
 // Terminal and keyboard's "sharing" policy:
@@ -28,7 +31,20 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
     int32_t i;
     uint32_t flag;
     char* cbuf = (char*) buf;
-    spin_lock_irqsave(&term_lock, flag);
+
+    spin_lock_irqsave(& term_lock, flag);
+
+    // !!! Warning: decide index using PCB, later.
+    if(ThisTerminalUsedBy[0] == -1)
+    {
+        ThisTerminalUsedBy[0] = getCurrentThreadInfo()->pcb.to_process->getUniqPid();
+        isThisTerminalWaitingForEnter[0] = 0;
+    }
+    else if(ThisTerminalUsedBy[0] != getCurrentThreadInfo()->pcb.to_process->getUniqPid())
+    {
+        spin_unlock_irqrestore(&term_lock, flag);
+        return -EFOPS;
+    }
 
     // If ringbuf is not empty, read the LEFTOVER
     for(i = 0; i < nbytes; i++)
@@ -85,25 +101,7 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
 
 int32_t kb_open(void* fdEntity)
 {
-    int32_t retval = 0;
-    uint32_t flag;
-    spin_lock_irqsave(& term_lock, flag);
-
-    // !!! Warning: decide index using PCB, later.
-    if(isThisTerminalInUse[0])
-        retval = -EFOPS;
-    else
-    {
-        isThisTerminalInUse[0] = 1;
-        isThisTerminalWaitingForEnter[0] = 0;
-
-        // We ONLY need to initialize the read buffer HERE, and upon BOOTING.
-        // do NOT initialize it anywhere else, except in CLOSE (required by TA)
-        RINGBUF_INIT(&term_read_buf);
-    }
-
-    spin_unlock_irqrestore(&term_lock, flag);
-    return retval;
+    return 0;
 }
 
 int32_t kb_close(void* fdEntity)
@@ -112,7 +110,7 @@ int32_t kb_close(void* fdEntity)
     //      thus the user must own terminal currently.
     uint32_t flag;
     spin_lock_irqsave(& term_lock, flag);
-    isThisTerminalInUse[0] = 0;
+    ThisTerminalUsedBy[0] = -1;
     isThisTerminalWaitingForEnter[0] = 0;
 
     // This is required by handout. But actually clear at OPEN is enough.

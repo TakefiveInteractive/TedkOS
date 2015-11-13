@@ -55,3 +55,30 @@ int32_t fs_close(int32_t fd)
     }
     return 0;
 }
+
+// Helps initializes the file descriptors of uniq_pid:
+//  It assumes that the fd array in the process is 
+//  completely not intialized (including numFilesInDescs)
+int32_t init_fs_desc(ProcessDesc& proc)
+{
+    proc.numFilesInDescs = 2;
+    File *fd = new File;
+
+    bool res = theDispatcher->open(*fd, "/dev/keyb");
+    if (!res) {
+        delete fd;
+        return -1;
+    }
+    proc.fileDescs[0] = fd;
+
+    fd = new File;
+    res = theDispatcher->open(*fd, "/dev/term");
+    if (!res) {
+        delete fd;
+        return -1;
+    }
+    proc.fileDescs[1] = fd;
+
+    return 0;
+}
+

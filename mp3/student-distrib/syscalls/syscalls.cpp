@@ -133,11 +133,13 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "leave; \n"
 #endif
         "pushal;        \n"
+        "pushl %%ecx               ;\n"
         "movl %0, %%ecx            ;\n"
         "movw %%cx, %%ds           ;\n"
         "movw %%cx, %%es           ;\n"
         "movw %%cx, %%fs           ;\n"
         "movw %%cx, %%gs           ;\n"
+        "popl %%ecx                ;\n"
 
         "pushl %%edx;   \n"
         "pushl %%ecx;   \n"

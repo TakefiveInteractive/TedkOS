@@ -1,6 +1,7 @@
 #include <inc/proc/tasks.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/new.h>
+#include <inc/syscalls/filesystem_wrapper.h>
 
 size_t ProcessDesc::nextNewProcess = 0;
 ProcessDesc **ProcessDesc::all_processes = NULL;
@@ -16,6 +17,8 @@ ProcessDesc::ProcessDesc(int32_t _upid)
     mainThreadInfo->pcb.prev = NULL;
 
     upid = _upid;
+
+    init_fs_desc(*this);
 }
 
 void ProcessDesc::init()

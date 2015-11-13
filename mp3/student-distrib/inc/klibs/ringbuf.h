@@ -61,6 +61,10 @@ typedef struct
     (BUF)->_macro_ringbuf_type_size = sizeof(RINGBUF_TYPE); \
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int32_t ringbuf_length(ringbuf_t* buf);
 
 int ringbuf_is_empty(ringbuf_t* buf);
@@ -93,5 +97,9 @@ void* ringbuf_back_nocp(ringbuf_t* buf);
 
 void ringbuf_pop_front(ringbuf_t* buf);
 void ringbuf_pop_back(ringbuf_t* buf);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _KLIBS_RINGBUF_H */
