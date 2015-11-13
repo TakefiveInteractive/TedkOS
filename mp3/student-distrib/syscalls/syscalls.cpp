@@ -5,15 +5,17 @@
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include "exec.h"
+#include "halt.h"
 
 using namespace boost;
 using syscall_exec::sysexec;
+using syscall_halt::syshalt;
 
-int32_t sysHalt(uint32_t p)
-{
-    printf("Ooo.. Halt with %d\n", p);
-    return 0;
-}
+// int32_t sysHalt(uint32_t p)
+// {
+//     printf("Ooo.. Halt with %d\n", p);
+//     return 0;
+// }
 
 template<typename F>
 F super_cast(uint32_t input)
@@ -88,16 +90,16 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
 {
     switch (idx)
     {
-        case SYS_HALT:          return systemCallRunner(sysHalt, p1, p2, p3);
+        case SYS_HALT:          return systemCallRunner(syshalt, p1, p2, p3);
         case SYS_EXECUTE:       return systemCallRunner(sysexec, p1, p2, p3);
         case SYS_READ:          return systemCallRunner(fs_read, p1, p2, p3);
         case SYS_WRITE:         return systemCallRunner(fs_write, p1, p2, p3);
         case SYS_OPEN:          return systemCallRunner(fs_open, p1, p2, p3);
         case SYS_CLOSE:         return systemCallRunner(fs_close, p1, p2, p3);
-        case SYS_GETARGS:       return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_VIDMAP:        return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_SET_HANDLER:   return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_SIGRETURN:     return systemCallRunner(sysHalt, p1, p2, p3);
+        case SYS_GETARGS:       return systemCallRunner(syshalt, p1, p2, p3);
+        case SYS_VIDMAP:        return systemCallRunner(syshalt, p1, p2, p3);
+        case SYS_SET_HANDLER:   return systemCallRunner(syshalt, p1, p2, p3);
+        case SYS_SIGRETURN:     return systemCallRunner(syshalt, p1, p2, p3);
 
         /* Unknown syscall */
         default: return -1;

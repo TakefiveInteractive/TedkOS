@@ -1,6 +1,8 @@
 #include <inc/init.h>
 #include <inc/klibs/lib.h>
 #include <inc/syscalls/syscalls.h>
+#include <stdint.h>
+#include <stddef.h>
 
 __attribute__((used)) void init_main()
 {
@@ -13,13 +15,16 @@ __attribute__((used)) void init_main()
 
     printf("Trying to exec shell ...\n");
 
+    int32_t ret;
     const char* file = "shell";
     asm volatile(
-        "movl %0, %%eax         ;\n"
-        "movl %1, %%ebx         ;\n"
+        "movl %1, %%eax         ;\n"
+        "movl %2, %%ebx         ;\n"
         "int $0x80              ;\n"
-    : : "i"(SYS_EXECUTE), "rm"(file) : "eax", "cc", "ebx");
+        "movl %%eax, %0         ;\n"
+    :"=rm"(ret) : "i"(SYS_EXECUTE), "rm"(file) : "eax", "cc", "ebx");
 
+    printf("Return Val: %d\n",ret);
 
     printf("Trying to call SYS_HALT ...\n");
     asm volatile(
