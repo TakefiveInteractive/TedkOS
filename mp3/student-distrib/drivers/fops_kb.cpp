@@ -7,7 +7,7 @@
 #include <inc/proc/sched.h>
 #include <inc/d2d/to_kb.h>
 
-volatile int8_t ThisTerminalUsedBy[NUM_TERMINALS] = {0};
+volatile int8_t ThisTerminalUsedBy[NUM_TERMINALS] = {-1};
 volatile int8_t isThisTerminalWaitingForEnter[NUM_TERMINALS] = {0};
 
 // Terminal and keyboard's "sharing" policy:
