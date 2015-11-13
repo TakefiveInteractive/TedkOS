@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <inc/syscalls/syscalls.h>
+#include <inc/syscalls/filesystem_wrapper.h>
 #include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
@@ -12,6 +13,18 @@ int32_t sysHalt(uint32_t p)
 {
     printf("Ooo.. Halt with %d\n", p);
     return 0;
+}
+
+template<typename F>
+F super_cast(uint32_t input)
+{
+    return reinterpret_cast<F>(input);
+}
+
+template<>
+int32_t super_cast<int32_t>(uint32_t input)
+{
+    return static_cast<int32_t>(input);
 }
 
 template<unsigned N>
@@ -33,7 +46,7 @@ public:
     template<typename F>
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
     {
-        return fptr(reinterpret_cast<typename function_traits<F>::arg1_type>(p1));
+        return fptr(super_cast<typename function_traits<F>::arg1_type>(p1));
     }
 };
 
@@ -44,8 +57,8 @@ public:
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
     {
         return fptr(
-                    reinterpret_cast<typename function_traits<F>::arg1_type>(p1),
-                    reinterpret_cast<typename function_traits<F>::arg2_type>(p2)
+                    super_cast<typename function_traits<F>::arg1_type>(p1),
+                    super_cast<typename function_traits<F>::arg2_type>(p2)
                  );
     }
 };
@@ -57,9 +70,9 @@ public:
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
     {
         return fptr(
-                    reinterpret_cast<typename function_traits<F>::arg1_type>(p1),
-                    reinterpret_cast<typename function_traits<F>::arg2_type>(p2),
-                    reinterpret_cast<typename function_traits<F>::arg3_type>(p3)
+                    super_cast<typename function_traits<F>::arg1_type>(p1),
+                    super_cast<typename function_traits<F>::arg2_type>(p2),
+                    super_cast<typename function_traits<F>::arg3_type>(p3)
                  );
     }
 };
@@ -77,10 +90,10 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
     {
         case SYS_HALT:          return systemCallRunner(sysHalt, p1, p2, p3);
         case SYS_EXECUTE:       return systemCallRunner(sysexec, p1, p2, p3);
-        case SYS_READ:          return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_WRITE:         return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_OPEN:          return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_CLOSE:         return systemCallRunner(sysHalt, p1, p2, p3);
+        case SYS_READ:          return systemCallRunner(fs_read, p1, p2, p3);
+        case SYS_WRITE:         return systemCallRunner(fs_write, p1, p2, p3);
+        case SYS_OPEN:          return systemCallRunner(fs_open, p1, p2, p3);
+        case SYS_CLOSE:         return systemCallRunner(fs_close, p1, p2, p3);
         case SYS_GETARGS:       return systemCallRunner(sysHalt, p1, p2, p3);
         case SYS_VIDMAP:        return systemCallRunner(sysHalt, p1, p2, p3);
         case SYS_SET_HANDLER:   return systemCallRunner(sysHalt, p1, p2, p3);
@@ -160,4 +173,3 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         : "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
         : "cc");
 }
-

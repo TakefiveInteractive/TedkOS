@@ -13,7 +13,6 @@
 #include <inc/debug.h>
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
-#include <inc/tests.h>
 #include <inc/fs/kiss_wrapper.h>
 #include <inc/mbi_info.h>
 #include <inc/klibs/palloc.h>
@@ -212,4 +211,3 @@ entry (unsigned long magic, unsigned long addr)
 {
     _entry(magic, addr);
 }
-
