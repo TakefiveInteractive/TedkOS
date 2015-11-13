@@ -43,7 +43,7 @@
  *       but IDTR and TR (TSS register)'s values ARE.
  */
 
-typedef struct {
+typedef struct __attribute__((packed)) {
     int32_t edi;
     int32_t esi;
     uint32_t ebp;

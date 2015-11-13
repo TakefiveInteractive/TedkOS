@@ -36,7 +36,7 @@ namespace palloc
     inline void MemMap::clear()
     {
         memset(phys2virt, 0, sizeof(phys2virt));
-        memset(virt2phys, 0, sizeof(virt2phys));
+        memset((void *)virt2phys, 0, sizeof(virt2phys));
 
         // load in the kernel code page.
         phys2virt[1] = 1;
