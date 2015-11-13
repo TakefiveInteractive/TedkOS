@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/klibs/palloc.h>
+#include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
 
@@ -18,7 +19,7 @@ namespace syscall_exec
 {
 
 // Main entry to implementation of exec syscall
-int32_t sysexec(const uint8_t* file)
+int32_t sysexec(const char* file)
 {
     printf("Executing: %s\n", file);
     if(!file)
@@ -34,9 +35,15 @@ int32_t sysexec(const uint8_t* file)
 }
 
 // Returns the uniq_pid of new process.
-int32_t do_exec(const uint8_t* file)
+int32_t do_exec(const char* arg0)
 {
     uint32_t flags;
+    uint32_t filename_len = strlen(arg0);
+    char* file = new char[filename_len + 1];
+
+    // We need to copy filename into kernel because later we will switch page table
+    file[filename_len] = '\0';
+    memcpy(file, arg0, sizeof(char) * filename_len);
 
     if(!is_kiss_executable(file))
         return -EINVAL;

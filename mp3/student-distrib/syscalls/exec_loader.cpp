@@ -9,10 +9,10 @@ namespace syscall_exec {
 //   Load "file", an executable, to "program_image_addr"
 //   You can assume that CR3 already points the page table of this process.
 // Return 0 if success. Return -ENOMEM if file is too large (not possible, though)
-void* kiss_loader(const uint8_t* file)
+void* kiss_loader(const char* file)
 {
     dentry_t dentry;
-    int32_t res = fs::read_dentry(file, &dentry);
+    int32_t res = fs::read_dentry((const uint8_t*)file, &dentry);
     if (res == -1) return NULL;
 
     const uint32_t four_mb = 0x400000;
