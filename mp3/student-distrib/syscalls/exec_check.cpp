@@ -13,11 +13,11 @@ static const int NORMAL_FILE = 2;
 
 // Check whether exists, and whether executable.
 // Return 0 if not exist or not an executable.
-int8_t is_kiss_executable(const uint8_t* file)//filename
+int8_t is_kiss_executable(const char* file)//filename
 {
     //check dentry
     dentry_t dentry;
-    if(fs::read_dentry(file, &dentry) == -1)//cannot find
+    if(fs::read_dentry((const uint8_t*)file, &dentry) == -1)//cannot find
         return 0;
     if(dentry.filetype != NORMAL_FILE)//not regular file
         return 0;
