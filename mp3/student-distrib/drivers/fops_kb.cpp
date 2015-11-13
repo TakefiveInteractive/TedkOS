@@ -6,6 +6,7 @@
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
 #include <inc/d2d/to_kb.h>
+#include <inc/klibs/AutoSpinLock.h>
 
 volatile int8_t ThisTerminalUsedBy[NUM_TERMINALS] = {-1};
 volatile int8_t isThisTerminalWaitingForEnter[NUM_TERMINALS] = {0};
@@ -29,10 +30,9 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
     // Dispatcher already checked that fd is valid,
     //      thus the user must own terminal currently.
     int32_t i;
-    uint32_t flag;
     char* cbuf = (char*) buf;
 
-    spin_lock_irqsave(& term_lock, flag);
+    AutoSpinLock lock(&term_lock);
 
     // !!! Warning: decide index using PCB, later.
     if(ThisTerminalUsedBy[0] == -1)
@@ -42,7 +42,6 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
     }
     else if(ThisTerminalUsedBy[0] != getCurrentThreadInfo()->pcb.to_process->getUniqPid())
     {
-        spin_unlock_irqrestore(&term_lock, flag);
         return -EFOPS;
     }
 
@@ -57,28 +56,19 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
         ringbuf_pop_front(&term_read_buf);
         if(cbuf[i] == '\n')
         {
-            spin_unlock_irqrestore(&term_lock, flag);
-            return i+1;
+            return i + 1;
         }
     }
 
     // If already read enough, return.
     if(i == nbytes)
     {
-        spin_unlock_irqrestore(&term_lock, flag);
         return nbytes;
     }
 
     isThisTerminalWaitingForEnter[0] = 1;
 
-    spin_unlock_irqrestore(&term_lock, flag);
-    while(1)
-    {
-        spin_lock_irqsave(&term_lock, flag);
-        if(!isThisTerminalWaitingForEnter[0])
-            break;
-        spin_unlock_irqrestore(&term_lock, flag);
-    }
+    lock.waitUntil([](){ return !isThisTerminalWaitingForEnter[0]; });
 
     for(; i < nbytes; i++)
     {
@@ -90,12 +80,10 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
         ringbuf_pop_front(&term_read_buf);
         if(cbuf[i] == '\n')
         {
-            spin_unlock_irqrestore(&term_lock, flag);
-            return i+1;
+            return i + 1;
         }
     }
 
-    spin_unlock_irqrestore(&term_lock, flag);
     return i;
 }
 
