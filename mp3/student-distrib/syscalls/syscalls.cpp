@@ -2,19 +2,11 @@
 #include <inc/syscalls/syscalls.h>
 #include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
+#include <inc/x86/desc.h>
+#include "exec.h"
 
 using namespace boost;
-
-#define SYS_HALT    1
-#define SYS_EXECUTE 2
-#define SYS_READ    3
-#define SYS_WRITE   4
-#define SYS_OPEN    5
-#define SYS_CLOSE   6
-#define SYS_GETARGS 7
-#define SYS_VIDMAP  8
-#define SYS_SET_HANDLER  9
-#define SYS_SIGRETURN  10
+using syscall_exec::sysexec;
 
 int32_t sysHalt(uint32_t p)
 {
@@ -84,7 +76,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
     switch (idx)
     {
         case SYS_HALT:          return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_EXECUTE:       return systemCallRunner(sysHalt, p1, p2, p3);
+        case SYS_EXECUTE:       return systemCallRunner(sysexec, p1, p2, p3);
         case SYS_READ:          return systemCallRunner(sysHalt, p1, p2, p3);
         case SYS_WRITE:         return systemCallRunner(sysHalt, p1, p2, p3);
         case SYS_OPEN:          return systemCallRunner(sysHalt, p1, p2, p3);
@@ -101,7 +93,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
 
 /*
  * Basic idea about switching kernel stacks:
- *     Both syscall and PIT ensures that currPCB.esp0 points to: [ pushal, eax, iret info ]
+ *     Both syscall and PIT ensures that currPCB.esp0 points to: [ ds - gs, pushal, iretl info ]
  *          IF and ONLY IF their helper functions decide to SWITCH TO OTHER THREADs.
  *
  *     IF schedDispatchDecision() wants to SWITCH TO OTHER THREADs,
@@ -109,7 +101,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
  *          AND syscall and PIT must assign that value directly to $esp
  *
  *     Thus whether a SWITCH happens or NOT, AFTER changing ESP, syscall and PIT always have:
- *          [ pushal, eax, iret info ]  on stack.
+ *          [ ds - gs, pushal, iretl info ]  on stack.
  *
  *     Syscall/PIC Implementation functions' responsibility:
  *          1. Call Scheduler's functions to prepare a task switch.
@@ -127,8 +119,12 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
 #ifndef __OPTIMIZE__
         "leave; \n"
 #endif
-        "pushl %%eax;   \n"
         "pushal;        \n"
+        "movl %0, %%ecx            ;\n"
+        "movw %%cx, %%ds           ;\n"
+        "movw %%cx, %%es           ;\n"
+        "movw %%cx, %%fs           ;\n"
+        "movw %%cx, %%gs           ;\n"
 
         "pushl %%edx;   \n"
         "pushl %%ecx;   \n"
@@ -149,11 +145,19 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "movl %%eax, %%esp         ;\n"         // Switch the kernel stack!
 
         "1:                         \n"
+        "call isCurrThreadKernel   ;\n"
+        "testl %%eax, %%eax        ;\n"
+        "jnz 2f                    ;\n"         // Jump if new thread is kernel thread
+        "movl %1, %%ecx            ;\n"
+        "movw %%cx, %%ds           ;\n"
+        "movw %%cx, %%es           ;\n"
+        "movw %%cx, %%fs           ;\n"
+        "movw %%cx, %%gs           ;\n"
+        "2:                         \n"
         "popal; \n"
-        "popl %%eax;    \n"
-        "iret;  \n"
+        "iretl;  \n"
         :
-        :
+        : "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
         : "cc");
 }
 

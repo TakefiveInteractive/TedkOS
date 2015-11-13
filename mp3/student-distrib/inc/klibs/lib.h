@@ -8,10 +8,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define PRE_INIT_VIDEO 0xB8000
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+extern char* video_mem;
 void putc(uint8_t c);
 void clear(void);
 
