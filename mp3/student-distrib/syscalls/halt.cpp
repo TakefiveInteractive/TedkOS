@@ -26,16 +26,17 @@ namespace syscall_halt {
         }
         else//has prev
         {
-
             printf("Halt process!\n");
             *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7*4) = retval;
-            asm volatile (
-                "movl %0, %%esp         ;\n"
-                "popal                  ;\n"
-                "iretl                  ;\n"
-                : : "rm" (prevInfo->pcb.esp0) : "cc");
+            prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
+
+            // asm volatile (
+            //     "movl %0, %%esp         ;\n"
+            //     "popal                  ;\n"
+            //     "iretl                  ;\n"
+            //     : : "rm" (prevInfo->pcb.esp0) : "cc");
         }
-        return 0;
+        return retval;
     }
 
 }
