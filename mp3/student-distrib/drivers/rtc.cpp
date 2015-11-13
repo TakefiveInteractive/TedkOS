@@ -2,6 +2,7 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/fs/fops.h>
 #include <inc/fs/dev_wrapper.h>
+#include <inc/klibs/AutoSpinLock.h>
 
 uint8_t frequency_converter(int freq);
 void rtc_change_frequency(uint8_t rate);
@@ -27,14 +28,12 @@ void rtc_init()
  */
 int rtc_handler(int irq, unsigned int saved_reg)
 {
-    unsigned int flag;
-    spin_lock_irqsave(&rtc_lock, flag);
+    AutoSpinLock lock(&rtc_lock);
     /* test_interrupts(); */
     /* read register c to allow future use */
     outb(RTC_STATUS_C, RTC_ADDRESS);
     inb(RTC_DATA);
     interrupt_flag = 1;
-    spin_unlock_irqrestore(&rtc_lock, flag);
     return 0;
 }
 
@@ -126,21 +125,18 @@ uint8_t frequency_converter(int freq)
  */
 void rtc_change_frequency(uint8_t rate)
 {
-    unsigned int flag;
-    spin_lock_irqsave(&rtc_lock, flag);
+    AutoSpinLock lock(&rtc_lock);
     outb(RTC_STATUS_A_NMI, RTC_ADDRESS);
     uint8_t prev = inb(RTC_DATA);
     outb(RTC_STATUS_A_NMI, RTC_ADDRESS);
     outb((prev & HIGH_BIT_MASK) | rate, RTC_DATA);
-    spin_unlock_irqrestore(&rtc_lock, flag);
 }
-
 
 FOpsTable fops_rtc = {
     .open = rtc_open,
     .close = rtc_close,
-    .write = rtc_write,
-    .read = rtc_read
+    .read = rtc_read,
+    .write = rtc_write
 };
 
 DEFINE_DRIVER_INIT(rtc)
@@ -148,7 +144,7 @@ DEFINE_DRIVER_INIT(rtc)
     bind_irq(RTC_IRQ, RTC_ID, rtc_handler, RTC_POLICY);
     rtc_init();
     register_devfs("rtc", fops_rtc);
-	return;
+    return;
 }
 
 DEFINE_DRIVER_REMOVE(rtc)

@@ -94,16 +94,15 @@ int32_t kb_open(void* fdEntity)
 
 int32_t kb_close(void* fdEntity)
 {
+    AutoSpinLock lock(&term_lock);
+
     // Dispatcher already checked that fd is valid,
     //      thus the user must own terminal currently.
-    uint32_t flag;
-    spin_lock_irqsave(& term_lock, flag);
     ThisTerminalUsedBy[0] = -1;
     isThisTerminalWaitingForEnter[0] = 0;
 
     // This is required by handout. But actually clear at OPEN is enough.
     RINGBUF_INIT(&term_read_buf);
-    spin_unlock_irqrestore(&term_lock, flag);
     return 0;
 }
 
