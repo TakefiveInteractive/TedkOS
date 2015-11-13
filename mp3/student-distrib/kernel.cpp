@@ -165,7 +165,7 @@ _entry (unsigned long magic, unsigned long addr)
     vmemPage = (char*) virtLast1G.allocPage(1);
     commonMemMap.add(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
     currProcMemMap = proc.memmap;
-    currProcMemMap += commonMemMap;
+    printf("+= result = %d\n", currProcMemMap += commonMemMap);
     currProcMemMap.loadToCR3(&cpu0_paging_lock);
 
     video_mem = vmemPage + PRE_INIT_VIDEO;
@@ -184,6 +184,7 @@ _entry (unsigned long magic, unsigned long addr)
     // This part should never be reached.
     printf("Halted.\n");
     asm volatile("1: hlt; jmp 1b;");
+    init_main();
 }
 
 void kernel_enable_basic_paging()

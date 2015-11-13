@@ -2,7 +2,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/syscalls/syscalls.h>
 
-void init_main()
+__attribute__((used)) void init_main()
 {
 
     /* Enable interrupts */

@@ -103,7 +103,7 @@ namespace palloc
         //     results already contain flags (can function as page dir)
         // For both arrays, a 0 entry means "not exist".
         uint16_t phys2virt[1 << PhysIdxLength];
-        uint32_t virt2phys[PD_NUM_ENTRIES] __attribute__((aligned (4096)));
+        volatile uint32_t virt2phys[PD_NUM_ENTRIES] __attribute__((aligned (4096)));
         inline void clear();
     public:
         // Initialize an empty memory map;
@@ -130,6 +130,12 @@ namespace palloc
         //              and 0MB ~ 4MB is NOT PRESENT !!!!
         //                  (UNLIKE kernel init stage where vmem -> somewhere 1MB)
         bool operator += (const MemMap& that);
+
+        void operator = (const MemMap& other)
+        {
+            memcpy(&phys2virt, &other.phys2virt, sizeof(phys2virt));
+            memcpy((void *)&virt2phys, (void *)&other.virt2phys, sizeof(virt2phys));
+        }
 
         // Currently we have only one cpu. Thus cpuPagingLock -> cpu0_paging_lock
         //  THIS WILL flush TLB
