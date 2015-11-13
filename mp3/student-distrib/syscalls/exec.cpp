@@ -46,24 +46,36 @@ int32_t do_exec(const char* arg0)
     memcpy(file, arg0, sizeof(char) * filename_len);
 
     if(!is_kiss_executable(file))
+    {
+        delete file;
         return -EINVAL;
+    }
     int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
 
     if(child_upid < 0)
+    {
+        delete file;
         return -1;          // Out of PIDs
+    }
 
     ProcessDesc& child = ProcessDesc::get(child_upid);
 
     // Allocate the page at 128MB virt. addr. for child
     uint16_t physIdx = physPages.allocPage(0);
     if(physIdx == 0xffff)
+    {
+        delete file;
         return -1;          // Memory full.
+    }
 
     // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
     PhysAddr physAddr = PhysAddr(physIdx, PG_WRITABLE | PG_USER);
 
     if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
+    {
+        delete file;
         return -1;          // child virt addr space became weird.
+    }
 
     // Temporarily mount the address space to CURRENT context's virtual 128MB address.
     cli_and_save(flags);
@@ -109,6 +121,8 @@ int32_t do_exec(const char* arg0)
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
     // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
+
+    delete file;
     return child_upid;
 }
 
