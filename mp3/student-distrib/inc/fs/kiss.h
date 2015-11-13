@@ -80,8 +80,8 @@ namespace filesystem {
     private:
         /* The hash table size must be not smaller than the number of dentries */
         util::LinearProbingHashTable<133, Filename, uint32_t, HashFunc> dentryIndexOfFilename;
-        dentry_t dentries[MaxNumFiles];
-        inode_t inodes[MaxNumFiles];
+        dentry_t *dentries;
+        inode_t *inodes;
         uint32_t numDentries;
         uint32_t numInodes;
         uint32_t numTotalDataBlocks;

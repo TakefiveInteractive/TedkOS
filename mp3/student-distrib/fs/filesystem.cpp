@@ -6,17 +6,22 @@ namespace filesystem {
 
 const size_t MaxMountableFilesystems = 4;
 
-/* Our singleton objects here */
-Dispatcher dispatcher;
-DevFS devFS;
-KissFS kissFS;
+/* Our singleton object here */
+Dispatcher *theDispatcher = nullptr;
 
 Dispatcher::Dispatcher()
 {
     for (auto &x : fileOfFd) x = nullptr;
-    this->_devFS = &devFS;
-    this->_kissFS = &kissFS;
+    this->_devFS = new DevFS();
+    this->_kissFS = new KissFS();
     numFds = 0;
+}
+
+void Dispatcher::init()
+{
+    if (theDispatcher != nullptr) return;
+    theDispatcher = new Dispatcher();
+    theDispatcher->mountAll();
 }
 
 void Dispatcher::mountAll()
@@ -126,7 +131,7 @@ bool Dispatcher::isInvalidFd(int32_t fd)
 
 void Dispatcher::register_devfs(const char* path, const FOpsTable& jtable)
 {
-   static_cast<DevFS *>(_devFS)->registerDevice(path, jtable);
+   static_cast<DevFS *>(theDispatcher->_devFS)->registerDevice(path, jtable);
 }
 
 }

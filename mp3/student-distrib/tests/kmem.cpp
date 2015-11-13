@@ -52,8 +52,8 @@ int kmem_main (int32_t term, int32_t kb)
         }
         delete[] b;
         delete[] c;
-        if(i % 1024 == 0 && i != 0)
-            printf("Done %dK times\n", i/1024);
+        if(i % 128 == 0 && i != 0)
+            printf("Done %d * 128 times\n", i / 128);
     }
     termputarr (term, "Success!\n");
 

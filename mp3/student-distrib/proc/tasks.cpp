@@ -3,9 +3,9 @@
 #include <inc/klibs/new.h>
 
 size_t ProcessDesc::nextNewProcess = 0;
-ProcessDesc *ProcessDesc::all_processes = NULL;
+ProcessDesc **ProcessDesc::all_processes = NULL;
 
-ProcessDesc::ProcessDesc()
+ProcessDesc::ProcessDesc(int32_t _upid)
 {
     memset(fileDescs, 0, sizeof(fileDescs));
     mainThreadInfo = new thread_kinfo;
@@ -15,17 +15,19 @@ ProcessDesc::ProcessDesc()
     mainThreadInfo->pcb.next = NULL;
     mainThreadInfo->pcb.prev = NULL;
 
-    // -1 is a good invalid value for physical addr.
-    pageDir = (uint32_t*)-1;
+    upid = _upid;
 }
 
 void ProcessDesc::init()
 {
     if(!all_processes)
-        all_processes = new ProcessDesc[MAX_NUM_PROCESS];
+    {
+        all_processes = new ProcessDesc*[MAX_NUM_PROCESS];
+        memset(all_processes, 0, sizeof(all_processes));
+    }
 }
 
-ProcessDesc* ProcessDesc::all()
+ProcessDesc** ProcessDesc::all()
 {
     init();
     return all_processes;
@@ -34,12 +36,14 @@ ProcessDesc* ProcessDesc::all()
 ProcessDesc& ProcessDesc::get(size_t uniq_pid)
 {
     init();
-    return all_processes[uniq_pid];
+    if(!all_processes[uniq_pid])
+        all_processes[uniq_pid] = new ProcessDesc(uniq_pid);
+    return *all_processes[uniq_pid];
 }
 
 int32_t ProcessDesc::getUniqPid()
 {
-    return this - all_processes;
+    return upid;
 }
 
 size_t ProcessDesc::newProcess()
@@ -47,4 +51,10 @@ size_t ProcessDesc::newProcess()
     init();
     return nextNewProcess++;
 }
+
+uint8_t __attribute__((used)) isCurrThreadKernel()
+{
+    return getCurrentThreadInfo()->pcb.isKernelThread;
+}
+
 
