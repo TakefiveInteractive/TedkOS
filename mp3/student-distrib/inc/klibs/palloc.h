@@ -148,7 +148,8 @@ namespace palloc
 
     extern VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
 
-    extern MemMap currProcMemMap;
+    extern MemMap spareMemMaps[2];
+    extern int currProcMemMap;
     extern MemMap commonMemMap;
 }
 

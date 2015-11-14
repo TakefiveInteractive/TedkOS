@@ -173,9 +173,9 @@ Maybe<void *> paraAllocate()
 
                 if(!commonMemMap.add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
                     return Maybe<void *>();
-                if(!currProcMemMap.add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
+                if(!spareMemMaps[currProcMemMap].add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
                     ; // kill the process.
-                if(!currProcMemMap.isLoadedToCR3(&cpu0_paging_lock))
+                if(!spareMemMaps[currProcMemMap].isLoadedToCR3(&cpu0_paging_lock))
                 {
                     AutoSpinLock lock(&cpu0_paging_lock);
                     LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);

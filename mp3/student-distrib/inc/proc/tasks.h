@@ -48,7 +48,7 @@ public:
 typedef struct _thread_pcb_t
 {
     // Kernel stack state of current thread.
-    target_esp0 esp0;
+    volatile target_esp0 esp0;
     ProcessDesc* to_process;
 
     // If this is a kernel thread, non-zero. Otherwise zero.
