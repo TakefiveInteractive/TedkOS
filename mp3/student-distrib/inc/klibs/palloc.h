@@ -154,6 +154,8 @@ namespace palloc
         class Mapping
         {
         public:
+            // Use the default constructor will fill values with INVALID address
+            Mapping();
             Mapping(const PhysAddr& p, const VirtAddr& v);
             PhysAddr phys;
             VirtAddr virt;

@@ -28,10 +28,7 @@ target_esp0 __attribute__((used)) schedDispatchDecision(target_esp0 currentESP)
     tss.esp0 = (uint32_t)desc.mainThreadInfo->pcb.esp0;
 
     // Switch Page Directory
-    currProcMemMap = 1 - currProcMemMap;
-    spareMemMaps[currProcMemMap] = desc.memmap;
-    spareMemMaps[currProcMemMap] += commonMemMap;
-    spareMemMaps[currProcMemMap].loadToCR3(&cpu0_paging_lock);
+    cpu0_memmap.loadProcessMap(desc.memmap);
 
     // Reset dispatch decision state.
     wantToSwitchTo = -1;

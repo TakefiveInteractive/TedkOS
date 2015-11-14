@@ -107,7 +107,7 @@ int32_t do_exec(const char* arg0)
 
     // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
     // Set Interrupt Enable Flag. IOPL = 3
-    kstack << ((flags & (~0x24100)) | 0x3200);
+    kstack << (uint32_t)(((uint32_t)flags & (~0x24100)) | 0x3200);
 
     kstack << (uint32_t) USER_CS_SEL;
     kstack << (uint32_t) entry_point;

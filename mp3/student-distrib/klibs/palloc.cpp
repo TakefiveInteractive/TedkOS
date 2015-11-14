@@ -37,6 +37,8 @@ namespace palloc
 
     inline void MemMap::clear()
     {
+        memset(phys2virt, 0, sizeof(phys2virt));
+        memset((void*)virt2phys, 0, sizeof(virt2phys));
         // load in the kernel code page.
         phys2virt[1] = 1;
         virt2phys[1] = PhysAddr(1, 0).pde;
@@ -168,6 +170,9 @@ namespace palloc
 
     TinyMemMap::Mapping::Mapping(const PhysAddr& p, const VirtAddr& v)
         : phys (p), virt(v) {}
+
+    TinyMemMap::Mapping::Mapping()
+        : phys (0xffff, 0), virt(NULL) {}
     
     MemMapManager::MemMapManager(spinlock_t* cpu_cr3_lock)
     {
@@ -238,7 +243,7 @@ namespace palloc
             if(ours && theirs)
                 return false;
         }
-        spareMemMaps[1 - loadedMap] = MemMap();
+        spareMemMaps[1-loadedMap].clear();
         map.pdStack.first((Maybe<bool> (*)(TinyMemMap::Mapping, MemMapManager*))[](auto val, auto _this)
         {
             _this->spareMemMaps[1 - _this->loadedMap].add(val.virt, val.phys);
