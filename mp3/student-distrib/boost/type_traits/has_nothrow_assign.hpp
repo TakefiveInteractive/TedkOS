@@ -42,7 +42,7 @@ namespace boost {
    {
       template <class T, bool b1, bool b2> struct has_nothrow_assign_imp{ static const bool value = false; };
       template <class T>          struct has_nothrow_assign_imp<T, false, true>{ static const bool value = noexcept(boost::declval<typename add_reference<T>::type>() = boost::declval<typename add_reference<T const>::type>()); };
-      template <class T, std::size_t N> struct has_nothrow_assign_imp<T[N], false, true>{ static const bool value = has_nothrow_assign_imp<T, false, true>::value; };
+      template <class T, size_t N> struct has_nothrow_assign_imp<T[N], false, true>{ static const bool value = has_nothrow_assign_imp<T, false, true>::value; };
       template <class T>          struct has_nothrow_assign_imp<T[], false, true>{ static const bool value = has_nothrow_assign_imp<T, false, true>::value; };
    }
 
@@ -53,8 +53,8 @@ namespace boost {
 #ifndef BOOST_HAS_NOTHROW_ASSIGN
 #if !defined(BOOST_NO_CXX11_NOEXCEPT) && !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
       // Portable C++11 version:
-      detail::has_nothrow_assign_imp<T, 
-      (is_const<typename remove_reference<T>::type>::value || is_volatile<typename remove_reference<T>::type>::value || is_reference<T>::value), 
+      detail::has_nothrow_assign_imp<T,
+      (is_const<typename remove_reference<T>::type>::value || is_volatile<typename remove_reference<T>::type>::value || is_reference<T>::value),
       is_assignable<typename add_reference<T>::type, typename add_reference<const T>::type>::value
       >::value
 #else
@@ -65,7 +65,7 @@ namespace boost {
 #endif
    > {};
 
-template <class T, std::size_t N> struct has_nothrow_assign <T[N]> : public has_nothrow_assign<T> {};
+template <class T, size_t N> struct has_nothrow_assign <T[N]> : public has_nothrow_assign<T> {};
 template <> struct has_nothrow_assign<void> : public false_type{};
 template <class T> struct has_nothrow_assign<T volatile> : public false_type{};
 template <class T> struct has_nothrow_assign<T&> : public false_type{};

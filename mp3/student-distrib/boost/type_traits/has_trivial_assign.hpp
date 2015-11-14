@@ -43,7 +43,7 @@ namespace boost {
    template <class T> struct has_trivial_assign<T&&> : public false_type{};
 #endif
    // Arrays are not explictly assignable:
-   template <typename T, std::size_t N> struct has_trivial_assign<T[N]> : public false_type{};
+   template <typename T, size_t N> struct has_trivial_assign<T[N]> : public false_type{};
    template <typename T> struct has_trivial_assign<T[]> : public false_type{};
 
 } // namespace boost
