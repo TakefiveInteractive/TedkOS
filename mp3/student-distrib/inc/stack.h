@@ -70,8 +70,10 @@ class Stack {
         T get(size_t x) const { return arr[x]; }
 
         template<typename R> Maybe<R> first(Maybe<R> (*fn) (T));
+        template<typename R, typename S> Maybe<R> first(Maybe<R> (*fn) (T, S), S arg0) const;
 
         template<typename R> Maybe<R> first(size_t &in_idx, Maybe<R> (*fn) (T));
+        template<typename R, typename S> Maybe<R> first(size_t &in_idx, Maybe<R> (*fn) (T, S), S arg0) const;
 
         bool firstTrue(void *a, size_t &in_idx, bool (*fn) (T, void*))
         {
@@ -97,12 +99,33 @@ Maybe<R> Stack<T, Num>::first(Maybe<R> (*fn) (T))
 }
 
 template<typename T, size_t Num>
+template<typename R, typename S>
+Maybe<R> Stack<T, Num>::first(Maybe<R> (*fn) (T, S), S arg0) const
+{
+    size_t bla;
+    return first(bla, fn, arg0);
+}
+
+template<typename T, size_t Num>
 template<typename R>
 Maybe<R> Stack<T, Num>::first(size_t &in_idx, Maybe<R> (*fn) (T))
 {
     for (size_t i = 0; i < idx; i++)
     {
         auto x = fn(arr[i]);
+        in_idx = i;
+        if (x) return x;
+    }
+    return Maybe<R>();
+}
+
+template<typename T, size_t Num>
+template<typename R, typename S>
+Maybe<R> Stack<T, Num>::first(size_t &in_idx, Maybe<R> (*fn) (T, S), S arg0) const
+{
+    for (size_t i = 0; i < idx; i++)
+    {
+        auto x = fn(arr[i], arg0);
         in_idx = i;
         if (x) return x;
     }
