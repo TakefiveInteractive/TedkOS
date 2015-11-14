@@ -10,7 +10,7 @@
 .globl  ldt_selector, tss_selector
 .globl  tss, tss_desc, ldt, ldt_desc
 .globl  gdt_ptr
-.globl  gdtr_val, idtr_val, idt
+.globl  gdtr_val, idtr_val, idt, gdt
 
 .align 4
 
@@ -77,6 +77,14 @@ tss_desc:
 	# Set up a descriptor LDT
 ldt_desc:
 	.quad 0
+
+    # Set up a descriptor for 32-bit kernel CS
+    # Base Address is NOT Correct, should be updated at runtime
+    .quad 0x00009A000000FFFF
+
+    # Set up a descriptor for 32-bit kernel DS
+    # Base Address: 0x0, Thus only first 1MB can be accessed
+    .quad 0x000092000000FFFF
 
 gdt_bottom:
 # This is end of GDT table

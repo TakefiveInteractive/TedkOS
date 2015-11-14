@@ -23,6 +23,7 @@
 #include <inc/x86/stacker.h>
 #include <inc/init.h>
 #include <inc/klibs/AutoSpinLock.h>
+#include <inc/x86/real.h>
 
 using namespace palloc;
 using arch::Stacker;
@@ -96,6 +97,8 @@ _entry (unsigned long magic, unsigned long addr)
         ltr(KERNEL_TSS_SEL);
     }
 
+    prepareRealMode();
+
     /* Paging */
     kernel_enable_basic_paging();
 
@@ -119,6 +122,11 @@ _entry (unsigned long magic, unsigned long addr)
         known_drivers[i].init();
         printf(" ... OK!\n");
     }
+
+    // ---- TEST REAL MODE ----
+
+    real_context_t real_context;
+    legacyInt(0x10, real_context);
 
     // ----- START init as a KERNEL thread (because its code is in kernel code) -----
 
