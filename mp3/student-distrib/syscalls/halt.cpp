@@ -39,6 +39,9 @@ namespace syscall_halt {
             *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7*4) = retval;
             prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
 
+            // refresh TSS so that later interrupts use this new kstack
+            tss.esp0 = (uint32_t)prevInfo->pcb.esp0;
+
             // asm volatile (
             //     "movl %0, %%esp         ;\n"
             //     "popal                  ;\n"

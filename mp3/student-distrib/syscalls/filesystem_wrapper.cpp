@@ -15,6 +15,7 @@ bool check_valid_fd(int32_t fd, ProcessDesc *processDesc)
 
 int32_t fs_read(int32_t fd, void *buf, int32_t nbytes)
 {
+    sti();
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     if (!check_valid_fd(fd, processDesc)) return -1;
     return theDispatcher->read(*processDesc->fileDescs[fd], buf, nbytes);

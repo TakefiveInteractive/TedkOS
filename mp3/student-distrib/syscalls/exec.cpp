@@ -10,6 +10,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
+#include <inc/fops_kb.h>
 
 using namespace palloc;
 using arch::Stacker;
@@ -127,6 +128,9 @@ int32_t do_exec(const char* arg0)
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
     // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
+
+    // RELEASE control of stdin.
+    kb_close(NULL);
 
     // delete file;
     restore_flags(flags);
