@@ -19,6 +19,9 @@
 
 typedef struct
 {
+    // 32-bit states
+    int32_t esp;
+
     // General purpose registers
     int16_t di;
     int16_t si;
@@ -28,9 +31,6 @@ typedef struct
     int16_t dx;
     int16_t cx;
     int16_t ax;
-
-    // 32-bit states
-    int32_t esp;
 } real_context_t;
 
 // Prepare Real Mode:
