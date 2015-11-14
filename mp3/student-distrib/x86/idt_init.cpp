@@ -41,6 +41,9 @@ void __attribute__((used)) interrupt_handler_with_number(size_t index)
     spin_lock_irqsave(&num_nest_int_lock, flag);
     num_nest_int_val--;
     spin_unlock_irqrestore(&num_nest_int_lock, flag);
+
+    // required by scheduler.
+    cli();
 }
 
 // This function initializes IDT table,
