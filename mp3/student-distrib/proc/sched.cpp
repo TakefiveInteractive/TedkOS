@@ -26,7 +26,7 @@ target_esp0 __attribute__((used)) schedDispatchDecision(target_esp0 currentESP)
     // Switch Page Directory
     currProcMemMap = 1 - currProcMemMap;
     spareMemMaps[currProcMemMap] = desc.memmap;
-    printf("+= result = %d\n", spareMemMaps[currProcMemMap] += commonMemMap);
+    spareMemMaps[currProcMemMap] += commonMemMap;
     spareMemMaps[currProcMemMap].loadToCR3(&cpu0_paging_lock);
 
     // Reset dispatch decision state.

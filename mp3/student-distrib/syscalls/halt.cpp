@@ -30,8 +30,8 @@ namespace syscall_halt {
         }
         else//has prev
         {
-            printf("Halt process!\n");
-            
+            printf("Halt process with retval=%d!\n", retval);
+
             // close stdin and stdout
             fs_close(0);
             fs_close(1);
