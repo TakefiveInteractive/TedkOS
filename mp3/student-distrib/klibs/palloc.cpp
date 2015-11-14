@@ -28,16 +28,13 @@ namespace palloc
         return pde & 0x1fff;
     }
 
-    MemMap::MemMap()
+    MemMap::MemMap() : phys2virt(), virt2phys()
     {
         clear();
     }
 
     inline void MemMap::clear()
     {
-        memset(phys2virt, 0, sizeof(phys2virt));
-        memset((void *)virt2phys, 0, sizeof(virt2phys));
-
         // load in the kernel code page.
         phys2virt[1] = 1;
         virt2phys[1] = PhysAddr(1, 0).pde;
