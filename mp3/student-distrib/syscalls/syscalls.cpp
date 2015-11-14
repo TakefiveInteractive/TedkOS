@@ -4,6 +4,8 @@
 #include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
+#include <inc/klibs/spinlock.h>
+#include <inc/x86/idt_init.h>
 #include "exec.h"
 #include "halt.h"
 
@@ -88,22 +90,33 @@ static int32_t systemCallRunner(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
 extern "C"
 int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, uint32_t p2, uint32_t p3)
 {
+    int32_t retval;
+    uint32_t flag;
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val++;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
+
     switch (idx)
     {
-        case SYS_HALT:          return systemCallRunner(syshalt, p1, p2, p3);
-        case SYS_EXECUTE:       return systemCallRunner(sysexec, p1, p2, p3);
-        case SYS_READ:          return systemCallRunner(fs_read, p1, p2, p3);
-        case SYS_WRITE:         return systemCallRunner(fs_write, p1, p2, p3);
-        case SYS_OPEN:          return systemCallRunner(fs_open, p1, p2, p3);
-        case SYS_CLOSE:         return systemCallRunner(fs_close, p1, p2, p3);
-        case SYS_GETARGS:       return systemCallRunner(syshalt, p1, p2, p3);
-        case SYS_VIDMAP:        return systemCallRunner(syshalt, p1, p2, p3);
-        case SYS_SET_HANDLER:   return systemCallRunner(syshalt, p1, p2, p3);
-        case SYS_SIGRETURN:     return systemCallRunner(syshalt, p1, p2, p3);
+        case SYS_HALT:          retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_EXECUTE:       retval = systemCallRunner(sysexec, p1, p2, p3); break;
+        case SYS_READ:          retval = systemCallRunner(fs_read, p1, p2, p3); break;
+        case SYS_WRITE:         retval = systemCallRunner(fs_write, p1, p2, p3); break;
+        case SYS_OPEN:          retval = systemCallRunner(fs_open, p1, p2, p3); break;
+        case SYS_CLOSE:         retval = systemCallRunner(fs_close, p1, p2, p3); break;
+        case SYS_GETARGS:       retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_VIDMAP:        retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_SET_HANDLER:   retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_SIGRETURN:     retval = systemCallRunner(syshalt, p1, p2, p3); break;
 
         /* Unknown syscall */
-        default: return -1;
+        default: retval = -1; break;
     }
+
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val--;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
+    return retval;
 }
 
 /*
@@ -147,7 +160,7 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "pushl %%ecx;   \n"
         "pushl %%ebx;   \n"
         "pushl %%eax;   \n"
-        "call systemCallDispatcher ;\n"
+        "call systemCallDispatcher ;\n"         // Responsibility to increment the nested counter goes to systemCallDispatcher
         "addl $16, %%esp           ;\n"
         "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.
         "jmp iret_sched_policy     ;\n"

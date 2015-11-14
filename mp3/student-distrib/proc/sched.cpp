@@ -7,12 +7,16 @@
 // Smaller than zero <=> No switch.
 int32_t wantToSwitchTo = -1;
 
-target_esp0 __attribute__((used)) schedDispatchDecision()
+target_esp0 __attribute__((used)) schedDispatchDecision(target_esp0 currentESP)
 {
-    if(num_hard_int() > 0)
+    if(num_nest_int() > 0)
         return NULL;
     if(wantToSwitchTo < 0)
         return NULL;
+
+    // Firstly save current esp0 to current thread's pcb
+    // Should only be saved if this is the outmost interrupt.
+    getCurrentThreadInfo()->pcb.esp0 = currentESP;
 
     ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
 
@@ -20,9 +24,10 @@ target_esp0 __attribute__((used)) schedDispatchDecision()
     target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
 
     // Switch Page Directory
-    currProcMemMap = desc.memmap;
-    currProcMemMap += commonMemMap;
-    currProcMemMap.loadToCR3(&cpu0_paging_lock);
+    currProcMemMap = 1 - currProcMemMap;
+    spareMemMaps[currProcMemMap] = desc.memmap;
+    printf("+= result = %d\n", spareMemMaps[currProcMemMap] += commonMemMap);
+    spareMemMaps[currProcMemMap].loadToCR3(&cpu0_paging_lock);
 
     // Reset dispatch decision state.
     wantToSwitchTo = -1;
