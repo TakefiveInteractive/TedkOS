@@ -31,19 +31,10 @@ static uint32_t next_char_y = 0;
 // The lock must be called when operating on the screen.
 spinlock_t term_lock = SPINLOCK_UNLOCKED;
 
-#define RINGBUF_SIZE            TERM_BUFFER_SIZE
-#define RINGBUF_TYPE            term_buf_item
-#include <inc/klibs/ringbuf.h>
+term_buf_item term_buf[TERM_BUFFER_SIZE];
 
-// read(keyboard) should return displayed contents
-// But it does not rely on term_DELETE_buf.
-// !!! read(keyboard) is MANAGED BY TERMINAL's ANOTHER buffer !!!!
-//      This buffer is used to indicate:
-//        how much offset is when deleting a character
-ringbuf_t term_delete_buf;
-
-// the buffer used by fops
-ringbuf_t term_read_buf;
+// this is actually the position of NEXT NEW char.
+volatile int32_t term_buf_pos = 0;
 
 /********** Private, yet debuggable functions ***********/
 void scroll_down_nolock(void);
@@ -93,8 +84,7 @@ DEFINE_DRIVER_INIT(term)
     spin_lock_irqsave(&term_lock, flag);
 
     // Initialize the buffer.
-    RINGBUF_INIT(&term_delete_buf);
-    RINGBUF_INIT(&term_read_buf);
+    term_buf_pos = 0;
 
     register_devfs("term", fops_term);
     register_devfs("keyb", fops_kb);
@@ -179,7 +169,7 @@ void kb_to_term(uint32_t kernelKeycode)
             // Currently this is the ONLY COMBINATION allowed.
             if(pending_kc == KKC_CTRL && ascii_part == 'l')
                 clear_screen_nolock();
-            else if((pending_kc & (~KKC_SHIFT)) == 0)
+            else if((pending_kc & (~KKC_SHIFT)) == 0 && term_buf_pos < TERM_BUFFER_SIZE - 1) //-1 because '\n' takes space
             {
                 // In this case we have directly printable characters
                 char c = (char)ascii_part;
@@ -216,8 +206,7 @@ void kb_to_term(uint32_t kernelKeycode)
                     rec.x_offset = next_char_x - old_x;
                     rec.y_offset = 0;
                 }
-                ringbuf_push(&term_delete_buf, &rec);
-                ringbuf_push(&term_read_buf, &rec);
+                term_buf[term_buf_pos++] = rec;
             }
         }
 
@@ -233,10 +222,8 @@ void kb_to_term(uint32_t kernelKeycode)
 // Warning: these handlers DO NOT LOCK spinlocks !!!
 void term_enter_handler(uint32_t keycode)
 {
-    // newLine is used by term_read_buf, so offset_? is not needed
     term_buf_item newLine;
     newLine.displayed_char = '\n';
-
     if(next_char_y < SCREEN_HEIGHT - 1)
     {
         next_char_y++;
@@ -247,24 +234,17 @@ void term_enter_handler(uint32_t keycode)
         next_char_x = 0;
         scroll_down_nolock();
     }
-    RINGBUF_INIT(&term_delete_buf);
-    ringbuf_push(&term_read_buf, &newLine);
-
     // currently we only have 1 terminal. CP2
+    // term2kb_readover and kb_read must add '\n' by itself.
+    term_buf[term_buf_pos++] = newLine;
     term2kb_readover(0);
 }
 
 void term_backspace_handler(uint32_t keycode)
 {
-    if(!ringbuf_is_empty(&term_read_buf))
+    if(term_buf_pos > 0)
     {
-        term_buf_item* i = ringbuf_back_nocp(&term_read_buf);
-        if(i->displayed_char != '\n')
-            ringbuf_pop_back(&term_read_buf);
-    }
-    if(!ringbuf_is_empty(&term_delete_buf))
-    {
-        term_buf_item* i = ringbuf_back_nocp(&term_delete_buf);
+        term_buf_item* i = &term_buf[term_buf_pos - 1];
         if(i->y_offset)
         {
             // Clear current line
@@ -295,7 +275,7 @@ void term_backspace_handler(uint32_t keycode)
             for(uint32_t j = next_char_x; j <= orig_x; j++)
                 show_char_at_nolock(j, next_char_y, ' ');
         }
-        ringbuf_pop_back(&term_delete_buf);
+        term_buf_pos --;
     }
     set_cursor_nolock(next_char_x, next_char_y);
 }
@@ -312,6 +292,8 @@ void term_delete_handler(uint32_t keycode)
 
 void term_tab_handler(uint32_t keycode)
 {
+    if(term_buf_pos >= TERM_BUFFER_SIZE - 1)
+        return;
     uint32_t old_x;
     term_buf_item rec;
     rec.displayed_char = '\t';
@@ -334,8 +316,7 @@ void term_tab_handler(uint32_t keycode)
         rec.x_offset = next_char_x - old_x;
         rec.y_offset = 0;
     }
-    ringbuf_push(&term_delete_buf, &rec);
-    ringbuf_push(&term_read_buf,   &rec);
+    term_buf[term_buf_pos++] = rec;
 }
 
 void term_none_handler(uint32_t keycode)
@@ -349,7 +330,7 @@ void term_none_handler(uint32_t keycode)
 void clear_screen_nolock(void)
 {
     // Re-Initialize the DELETE buffer.
-    RINGBUF_INIT(&term_delete_buf);
+    term_buf_pos = 0;
 
     asm volatile (
         "cld                                                    ;"
@@ -382,7 +363,7 @@ void term_putc(uint8_t c)
     spin_lock_irqsave(&term_lock, flag);
 
     // Re-Initialize the DELETE buffer. (Things printed from screens are not deletable)
-    RINGBUF_INIT(&term_delete_buf);
+    term_buf_pos = 0;
 
     if(c == '\0') {
         // We should not print spaces for any trailing null characters

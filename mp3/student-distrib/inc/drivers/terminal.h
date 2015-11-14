@@ -7,9 +7,6 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/drivers/common.h>
 
-#define NUM_TERMINALS           1
-#define TERM_BUFFER_SIZE        128
-
 typedef struct
 {
     char displayed_char;
@@ -25,6 +22,11 @@ typedef struct
     // Otherwise (=0) no new line.
     uint8_t y_offset;
 } term_buf_item;
+
+#define NUM_TERMINALS           1
+#define TERM_BUFFER_SIZE        128
+extern term_buf_item term_buf[TERM_BUFFER_SIZE];
+extern volatile int32_t term_buf_pos;
 
 // Must lock term_lock when accessing:
 //  0. terminal

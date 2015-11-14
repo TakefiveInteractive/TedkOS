@@ -13,13 +13,6 @@
 #error "In the shared area between kb and term, please follow RINGBUF_TYPE=term_buf_item, and do NOT override !!!"
 #endif
 
-#define RINGBUF_SIZE            TERM_BUFFER_SIZE
-#define RINGBUF_TYPE            term_buf_item
-#include <inc/klibs/ringbuf.h>
-
-// REQUIRE: '\n' MUST be stored in this buffer, TOO.
-extern ringbuf_t term_read_buf;
-
 #ifdef __cplusplus
 extern "C" {
 #endif

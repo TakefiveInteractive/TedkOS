@@ -29,7 +29,6 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
 {
     // Dispatcher already checked that fd is valid,
     //      thus the user must own terminal currently.
-    int32_t i;
     char* cbuf = (char*) buf;
 
     AutoSpinLock lock(&term_lock);
@@ -45,45 +44,26 @@ int32_t kb_read(void* fdEntity, uint8_t* buf, int32_t nbytes)
         return -EFOPS;
     }
 
-    // If ringbuf is not empty, read the LEFTOVER
-    for(i = 0; i < nbytes; i++)
+    if(term_buf_pos < nbytes)
     {
-        term_buf_item val;
-        if(ringbuf_is_empty(&term_read_buf))
-            break;
-        ringbuf_front(&term_read_buf, &val);
-        cbuf[i] = val.displayed_char;
-        ringbuf_pop_front(&term_read_buf);
-        if(cbuf[i] == '\n')
-        {
-            return i + 1;
-        }
+        isThisTerminalWaitingForEnter[0] = 1;
+
+        lock.waitUntil([](){ return !isThisTerminalWaitingForEnter[0]; });
     }
 
-    // If already read enough, return.
-    if(i == nbytes)
+    volatile int32_t copylen;
+    if(nbytes < term_buf_pos)
+        copylen = nbytes;
+    else copylen = term_buf_pos;
+
+    // Now that we do not need term_buf_pos anymore, we clear its value here.
+    term_buf_pos = 0;
+
+    volatile int32_t i;
+    for(i = 0; i < copylen; i++)
     {
-        return nbytes;
+        cbuf[i] = term_buf[i].displayed_char;
     }
-
-    isThisTerminalWaitingForEnter[0] = 1;
-
-    lock.waitUntil([](){ return !isThisTerminalWaitingForEnter[0]; });
-
-    for(; i < nbytes; i++)
-    {
-        term_buf_item val;
-        if(ringbuf_is_empty(&term_read_buf))
-            break;
-        ringbuf_front(&term_read_buf, &val);
-        cbuf[i] = val.displayed_char;
-        ringbuf_pop_front(&term_read_buf);
-        if(cbuf[i] == '\n')
-        {
-            return i + 1;
-        }
-    }
-
     return i;
 }
 
@@ -102,7 +82,7 @@ int32_t kb_close(void* fdEntity)
     isThisTerminalWaitingForEnter[0] = 0;
 
     // This is required by handout. But actually clear at OPEN is enough.
-    RINGBUF_INIT(&term_read_buf);
+    term_buf_pos = 0;
     return 0;
 }
 
