@@ -124,10 +124,6 @@ int32_t do_exec(const char* arg0)
     child.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
     child.mainThreadInfo->pcb.isKernelThread = 0;
 
-    // refresh TSS so that later interrupts use this new kstack
-    tss.esp0 = (uint32_t)kstack.getESP();
-    // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
-
     // RELEASE control of stdin.
     kb_close(NULL);
 

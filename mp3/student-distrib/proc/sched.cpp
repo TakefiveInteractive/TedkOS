@@ -23,6 +23,10 @@ target_esp0 __attribute__((used)) schedDispatchDecision(target_esp0 currentESP)
     // Switch stack
     target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
 
+    // Save new kernel stack into TSS.
+    //   so that later interrupts use this new kstack
+    tss.esp0 = (uint32_t)desc.mainThreadInfo->pcb.esp0;
+
     // Switch Page Directory
     currProcMemMap = 1 - currProcMemMap;
     spareMemMaps[currProcMemMap] = desc.memmap;
