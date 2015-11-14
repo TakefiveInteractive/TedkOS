@@ -1,7 +1,7 @@
 #ifndef _INC_STACK_H_
 #define _INC_STACK_H_
 
-#include <inc/maybe.h>
+#include <inc/klibs/maybe.h>
 
 namespace util {
 

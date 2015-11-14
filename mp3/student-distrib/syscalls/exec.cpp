@@ -10,7 +10,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
-#include <inc/fops_kb.h>
+#include <inc/drivers/fops_kb.h>
 
 using namespace palloc;
 using namespace boost;

@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <inc/bitset.h>
-#include <inc/stack.h>
-#include <inc/maybe.h>
+#include <inc/klibs/bitset.h>
+#include <inc/klibs/stack.h>
+#include <inc/klibs/maybe.h>
 #include <inc/mbi_info.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>

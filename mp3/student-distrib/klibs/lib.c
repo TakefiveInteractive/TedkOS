@@ -16,7 +16,7 @@ char* video_mem = (char *)PRE_INIT_VIDEO;
 //  It WILL NOT affect terminal's write fops, though.
 //  Use it ONLY WHEN terminal driver is not working at all.
 #ifndef LEGACY_PUTC
-#include <inc/terminal.h>
+#include <inc/drivers/terminal.h>
 #endif
 
 void clear(void)

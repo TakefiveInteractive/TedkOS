@@ -1,14 +1,14 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <inc/terminal.h>
-#include <inc/driver.h>
+#include <inc/drivers/terminal.h>
+#include <inc/drivers/common.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/d2d/to_kb.h>
 #include <inc/d2d/to_term.h>
 
-#include <inc/fops_kb.h>
-#include <inc/fops_term.h>
+#include <inc/drivers/fops_kb.h>
+#include <inc/drivers/fops_term.h>
 
 // The width must be an even number so that
 //      scroll_down_nolock can use rep movsd.

@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <inc/keyboard.h>
+#include <inc/drivers/keyboard.h>
 #include <inc/d2d/to_term.h>
 #include <inc/klibs/spinlock.h>
 

@@ -1,7 +1,7 @@
 #ifndef _KB_DRIVER_H
 #define _KB_DRIVER_H
 
-#include <inc/driver.h>
+#include <inc/drivers/common.h>
 
 #include <inc/klibs/lib.h>
 #include <inc/i8259.h>

@@ -1,4 +1,4 @@
-#include <inc/rtc.h>
+#include <inc/drivers/rtc.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/fs/fops.h>
 #include <inc/fs/dev_wrapper.h>

@@ -5,8 +5,8 @@
 #include <stdint.h>
 
 #include <inc/fs/fops.h>
-#include <inc/prefix_tree.h>
-#include <inc/fixedmemorypool.h>
+#include <inc/klibs/prefix_tree.h>
+#include <inc/klibs/fixedmemorypool.h>
 
 #ifdef __cplusplus
 namespace filesystem {
