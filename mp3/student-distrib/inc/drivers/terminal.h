@@ -5,7 +5,7 @@
 #include <stddef.h>
 
 #include <inc/klibs/spinlock.h>
-#include <inc/driver.h>
+#include <inc/drivers/common.h>
 
 #define NUM_TERMINALS           1
 #define TERM_BUFFER_SIZE        128

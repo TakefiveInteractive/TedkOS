@@ -1,7 +1,7 @@
 #include <inc/klibs/spinlock.h>
-#include <inc/terminal.h>
-#include <inc/fops_kb.h>
-#include <inc/fops_term.h>
+#include <inc/drivers/terminal.h>
+#include <inc/drivers/fops_kb.h>
+#include <inc/drivers/fops_term.h>
 #include <inc/error.h>
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>

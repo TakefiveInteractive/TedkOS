@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <inc/fixedmemorypool.h>
+#include <inc/klibs/fixedmemorypool.h>
 #include <inc/klibs/lib.h>
 
 namespace util {

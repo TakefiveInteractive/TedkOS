@@ -1,7 +1,7 @@
 #ifndef _KEYBOARD_FOPS_H
 #define _KEYBOARD_FOPS_H
 
-#include <inc/terminal.h>
+#include <inc/drivers/terminal.h>
 #include <stdint.h>
 #include <stddef.h>
 
