@@ -171,19 +171,8 @@ Maybe<void *> paraAllocate()
                 auto physAddr = physPages.allocPage(1);
                 void* addr = virtLast1G.allocPage(1);
 
-                if(!commonMemMap.add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
+                if(!cpu0_memmap.addCommonPage(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
                     return Maybe<void *>();
-                if(!spareMemMaps[currProcMemMap].add(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
-                    ; // kill the process.
-                if(!spareMemMaps[currProcMemMap].isLoadedToCR3(&cpu0_paging_lock))
-                {
-                    AutoSpinLock lock(&cpu0_paging_lock);
-                    LOAD_4MB_PAGE((uint32_t)addr >> 22, (uint32_t)physAddr << 22, PG_WRITABLE);
-                }
-                {
-                    AutoSpinLock lock(&cpu0_paging_lock);
-                    RELOAD_CR3();
-                }
 
                 auto newPool = new (addr) PoolType<ElementSize>();
                 slot->push(newPool);
@@ -212,8 +201,8 @@ bool paraFree(void *addr)
             poolAddr->~ObjectPool<ElementSize, PageSizeOf<ElementSize>>();
             physPages.freePage(physAddr >> 22);
             virtLast1G.freePage(poolAddr);
-            global_cr3val[pdIndex] = 0;
-            RELOAD_CR3();*/
+            cpu0_memmap.delCommonPage(VirtAddr(poolAddr));
+            */
         }
     }
     return success;

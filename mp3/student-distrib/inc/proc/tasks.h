@@ -38,7 +38,7 @@ public:
     int32_t numFilesInDescs;
     // Currently no multithread
     union _thread_kinfo * mainThreadInfo;
-    MemMap memmap;
+    TinyMemMap memmap;
 };
 
 

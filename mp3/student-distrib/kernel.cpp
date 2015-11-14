@@ -163,14 +163,12 @@ _entry (unsigned long magic, unsigned long addr)
 
     char* vmemPage;
     vmemPage = (char*) virtLast1G.allocPage(1);
-    commonMemMap.add(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
-
-    currProcMemMap = 1 - currProcMemMap;
-    spareMemMaps[currProcMemMap] = proc.memmap;
-    printf("+= result = %d\n", spareMemMaps[currProcMemMap] += commonMemMap);
-    spareMemMaps[currProcMemMap].loadToCR3(&cpu0_paging_lock);
-
+    cpu0_memmap.addCommonPage(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
     video_mem = vmemPage + PRE_INIT_VIDEO;
+
+    cpu0_memmap.start();
+    cpu0_memmap.loadProcessMap(proc.memmap);
+
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
