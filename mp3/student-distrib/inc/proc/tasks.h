@@ -27,7 +27,6 @@ class ProcessDesc
 private:
     static size_t nextNewProcess;
     static ProcessDesc** all_processes;
-    static void init();
     ProcessDesc(int32_t _upid);
     int32_t upid;
 public:

@@ -111,14 +111,14 @@ namespace palloc
 
         inline VirtAddr translate(const PhysAddr& addr);
         inline PhysAddr translate(const VirtAddr& addr);
-        
+
         // Add an entry of mapping to this map.
-        // WARNING: If an entry already exists at that location, 
+        // WARNING: If an entry already exists at that location,
         //      This will return false. Otherwise returns true.
         bool add(const VirtAddr& virt, const PhysAddr& phys);
 
         // Remove an entry of mapping.
-        // WARNING: If an entry DID NOT exist at that location, 
+        // WARNING: If an entry DID NOT exist at that location,
         //      OR IF THAT PHYS ADDR is RESERVED for GLOBAL KERNEL.
         //      This will return false. Otherwise returns true.
         bool operator -= (const VirtAddr& addr);
