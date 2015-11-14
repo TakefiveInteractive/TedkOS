@@ -28,7 +28,7 @@ int32_t sysexec(const char* file)
 
     int32_t child_upid = do_exec(file);
     if(child_upid < 0)
-        return -1;
+        return child_upid;
 
     // Request context switch
     prepareSwitchTo(child_upid);
@@ -42,9 +42,7 @@ int32_t do_exec(const char* arg0)
     cli_and_save(flags);
 
     uint32_t filename_len = strlen(arg0);
-
-    //char* file = new char[filename_len + 1];
-    char file[100];
+    char* file = new char[filename_len + 1];
 
     // We need to copy filename into kernel because later we will switch page table
     file[filename_len] = '\0';
@@ -52,17 +50,19 @@ int32_t do_exec(const char* arg0)
 
     if(!is_kiss_executable(file))
     {
-        // delete file;
+        delete file;
         restore_flags(flags);
+        // "no such command"
         return -1;
     }
     int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
 
     if(child_upid < 0)
     {
-        // delete file;
+        delete file;
         restore_flags(flags);
-        return -1;          // Out of PIDs
+        // "terminated by exception"
+        return 256;          // Out of PIDs
     }
 
     ProcessDesc& child = ProcessDesc::get(child_upid);
@@ -71,9 +71,10 @@ int32_t do_exec(const char* arg0)
     uint16_t physIdx = physPages.allocPage(0);
     if(physIdx == 0xffff)
     {
-        // delete file;
+        delete file;
         restore_flags(flags);
-        return -1;          // Memory full.
+        // "terminated by exception"
+        return 256;          // Memory full.
     }
 
     // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
@@ -81,9 +82,10 @@ int32_t do_exec(const char* arg0)
 
     if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
     {
-        // delete file;
+        delete file;
         restore_flags(flags);
-        return -1;          // child virt addr space became weird.
+        // "terminated by exception"
+        return 256;          // child virt addr space became weird.
     }
 
     // Temporarily mount the address space to CURRENT context's virtual 128MB address.
@@ -132,7 +134,7 @@ int32_t do_exec(const char* arg0)
     // RELEASE control of stdin.
     kb_close(NULL);
 
-    // delete file;
+    delete file;
     restore_flags(flags);
     return child_upid;
 }
