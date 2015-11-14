@@ -1,4 +1,6 @@
 #include <inc/klibs/palloc.h>
+#include <inc/klibs/AutoSpinLock.h>
+#include <inc/x86/paging.h>
 
 namespace palloc
 {
@@ -136,10 +138,8 @@ namespace palloc
     //  THIS WILL flush TLB
     // !!!!!!! CALL THIS ONLY if the variable is on 4MB~8MB Page !!!!!!!!!
     //      ( so that its virtual address = physical address )
-    void MemMap::loadToCR3(spinlock_t* cpuPagingLock)
+    inline void MemMap::loadToCR3()
     {
-        uint32_t flags;
-
         // clear the NULL page.
         virt2phys[0] = 0;
 
@@ -147,19 +147,125 @@ namespace palloc
         phys2virt[1] = 1;
         virt2phys[1] = PhysAddr(1, 0).pde;
 
-        spin_lock_irqsave(cpuPagingLock, flags);
         REDIRECT_PAGE_DIR(virt2phys);
         RELOAD_CR3();
-        spin_unlock_irqrestore(cpuPagingLock, flags);
     }
 
-    bool MemMap::isLoadedToCR3(spinlock_t* cpuPagingLock)
+    inline bool MemMap::isLoadedToCR3()
     {
-        bool ans;
-        uint32_t flags;
-        spin_lock_irqsave(cpuPagingLock, flags);
-        ans = (((uint32_t)global_cr3val & ALIGN_4KB_ADDR) == (uint32_t) virt2phys);
-        spin_unlock_irqrestore(cpuPagingLock, flags);
-        return ans;
+        return ((uint32_t)global_cr3val & ALIGN_4KB_ADDR) == (uint32_t) virt2phys;
+    }
+
+    bool TinyMemMap::add(const VirtAddr& virt, const PhysAddr& phys)
+    {
+        if(isVirtAddrUsed.test(((uint32_t)virt.addr)>>22))
+            return false;
+        isVirtAddrUsed.set(((uint32_t)virt.addr)>>22);
+        TinyMemMap::Mapping map(phys, virt);
+        pdStack.push(map);
+        return true;
+    }
+
+    TinyMemMap::Mapping::Mapping(const PhysAddr& p, const VirtAddr& v)
+        : phys (p), virt(v) {}
+    
+    MemMapManager::MemMapManager(spinlock_t* cpu_cr3_lock)
+    {
+        loadedMap = 0;
+        isStarted = false;
+        this->cpu_cr3_lock = cpu_cr3_lock;
+    }
+
+    bool MemMapManager::addCommonPage(const VirtAddr& virt, const PhysAddr& phys)
+    {
+        AutoSpinLock lock(cpu_cr3_lock);
+        if(!commonMemMap.add(virt, phys))
+            return false;
+        if(!spareMemMaps[loadedMap].add(virt, phys))
+        {
+            commonMemMap -= virt;
+            return false;
+        }
+        if(!isStarted)
+            global_cr3val[((uint32_t)virt.addr) >> 22] = phys.pde;
+        RELOAD_CR3();
+        return true;
+    }
+
+    bool MemMapManager::delCommonPage(const VirtAddr& virt)
+    {
+        AutoSpinLock lock(cpu_cr3_lock);
+        PhysAddr phys = commonMemMap.translate(virt);
+        if(!(commonMemMap -= virt))
+            return false;
+        if(!(spareMemMaps[loadedMap] -= virt))
+        {
+            commonMemMap.add(virt, phys);
+            return false;
+        }
+        if(!isStarted)
+            global_cr3val[((uint32_t)virt.addr) >> 22] = 0;
+        RELOAD_CR3();
+        return true;
+    }
+
+    bool MemMapManager::delCommonPage(const PhysAddr& phys)
+    {
+        AutoSpinLock lock(cpu_cr3_lock);
+        VirtAddr virt = commonMemMap.translate(phys);
+        if(!(commonMemMap -= virt))
+            return false;
+        if(!(spareMemMaps[loadedMap] -= virt))
+        {
+            commonMemMap.add(virt, phys);
+            return false;
+        }
+        if(!isStarted)
+            global_cr3val[((uint32_t)virt.addr) >> 22] = 0;
+        RELOAD_CR3();
+        return true;
+    }
+
+    bool MemMapManager::loadProcessMap(const TinyMemMap& map)
+    {
+        if(!isStarted)
+            return false;
+        AutoSpinLock lock(cpu_cr3_lock);
+        for(uint16_t i = 2; i < PD_NUM_ENTRIES; i++)
+        {
+            bool ours   = commonMemMap.virt2phys[i] & PAGING_PRESENT;
+            bool theirs = map.isVirtAddrUsed.test(i);
+            if(ours && theirs)
+                return false;
+        }
+        spareMemMaps[1 - loadedMap] = MemMap();
+        map.pdStack.first((Maybe<bool> (*)(TinyMemMap::Mapping, MemMapManager*))[](auto val, auto _this)
+        {
+            _this->spareMemMaps[1 - _this->loadedMap].add(val.virt, val.phys);
+            return Maybe<bool>(true);
+        }, this);
+        spareMemMaps[1 - loadedMap] += commonMemMap;
+        spareMemMaps[1 - loadedMap].loadToCR3();
+        loadedMap = 1 - loadedMap;
+        return true;
+    }
+
+    // Start service, and DICARD the old static map in kernel
+    // This changes a lot of things, for example:
+    //   You need to update video memory address.
+    void MemMapManager::start()
+    {
+        AutoSpinLock lock(cpu_cr3_lock);
+        spareMemMaps[loadedMap].loadToCR3();
+        isStarted = true;
+    }
+
+    // Stop service and change back to the old static map in kernel
+    void MemMapManager::stop(uint32_t* pageDir)
+    {
+        AutoSpinLock lock(cpu_cr3_lock);
+        REDIRECT_PAGE_DIR(pageDir);
+        RELOAD_CR3();
+        isStarted = false;
     }
 }
