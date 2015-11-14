@@ -75,7 +75,6 @@ uint8_t try_read_byte() {
 DEFINE_DRIVER_INIT(mouse) {
     uint32_t flag;
     spin_lock_irqsave(&mouse_lock, flag);
-
 	// bind handler to pic
 	bind_irq(MOUSE_IRQ_NUM,MOUSE_ID,mouse_handler,KD_POLICY);
 
@@ -86,7 +85,7 @@ DEFINE_DRIVER_INIT(mouse) {
 DEFINE_DRIVER_REMOVE(mouse) {
     uint32_t flag;
     spin_lock_irqsave(&mouse_lock, flag);
-
+    init_mouse();
 	//rm handler from pic
 	unbind_irq(MOUSE_IRQ_NUM,MOUSE_ID);
 
@@ -131,9 +130,12 @@ void init_mouse() {
 
 int mouse_handler() {
 
+    printf("asdjaksdjaklsjdkasjlk\n");
+
     //registers_t regs;
 	//save_regs(regs);
-    init_mouse();
+
+    //init_mouse();
     uint8_t flags = try_read_byte();
     if (last_read == ReadSuccess) {
         if (flags == 0xFA) {
