@@ -1,5 +1,3 @@
-#include <stdint.h>
-#include <stddef.h>
 #include <inc/keyboard.h>
 #include <inc/d2d/to_term.h>
 #include <inc/klibs/spinlock.h>
@@ -62,7 +60,6 @@ uint32_t KBascii[128] =
 #define SPECIAL_PREFIX      0xE0
 int8_t  pending_special = 0;
 spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
-
 int kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
