@@ -8,6 +8,8 @@ spinlock_t legacyInt_lock = SPINLOCK_UNLOCKED;
 // Allocate 1KB for real_mode stack
 volatile uint16_t real_mode_stack[512] __attribute__((aligned (1024)));
 
+real_context_t cpu0_real_context;
+
 void legacyInt(int16_t interrupt_num, real_context_t& regs)
 {
     uint32_t flags;
@@ -39,4 +41,11 @@ void prepareRealMode()
     memcpy((void*)(REAL_MODE_CODE_BASE << 4), (void*)legacyInt_16bit_entry, REAL_MODE_SEG_LEN);
 
     spin_unlock_irqrestore(&legacyInt_lock, flags);
+}
+
+extern "C" void __attribute__((used)) back_to_32bit()
+{
+    printf("Hello from kernel!\n");
+    printf("Hello from kernel!\n");
+    asm volatile("1: hlt; jmp 1b;");
 }

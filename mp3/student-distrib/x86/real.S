@@ -26,6 +26,12 @@ legacyInt_noLock:
     movl  %cr3, %eax
     pushl %eax
 
+
+    # Currently the kernel stack looks like:
+    # [ iret, ebp, ebx, esi, edi, cr0, cr3, -> 
+    # backup current Stack ESP
+    movl  %esp, (cpu0_real_context)
+
     # Turn OFF paging
     movl  %cr0, %eax
     andl  $~REAL_MODE_PG_BIT, %eax
@@ -33,9 +39,18 @@ legacyInt_noLock:
     movl  $0, %eax
     movl  %eax, %cr3
 
-    # Currently the kernel stack looks like:
-    # [ iret, ebp, ebx, esi, edi, cr0, cr3, -> 
     ljmp  $CS_16BIT_SEL, $REAL_MODE_CODE_BASE * 16
+
+back_32bit_entry:
+    movl  $KERNEL_DS_SEL, %esp
+    movl  %esp, %ds
+    movl  %esp, %ss
+    movl  %esp, %fs
+    movl  %esp, %gs
+    movl  %esp, %es
+    movl  cpu0_real_context, %esp
+    movl  (%esp), %esp
+    jmp back_to_32bit
 
 .code16
 
@@ -74,15 +89,20 @@ real_mode_entry:
     # initializae IDT / IVT
     lidt  STACK_FROM - 4 - 2
 
-    # switch VGA page
-    movw  $0x0501, %ax 
-    int   $0x10
-
     # print 10 character (0x59 = 'Y')
     movw  $0x0A59, %ax
-    movw  $0x0100, %bx
+    movw  $0x0000, %bx
     movw  $10, %cx
     int   $0x10
+
+    # ----- From now on: Working on returning to protected mode -----
+    cli
+
+    # No need to lgdt gdtr_val, because we've loaded it once.
+
+    movl $REAL_MODE_BIT, %esp
+    movl %esp, %cr0
+    ljmpl $KERNEL_CS_SEL, $back_32bit_entry
 
 halted:
     hlt
