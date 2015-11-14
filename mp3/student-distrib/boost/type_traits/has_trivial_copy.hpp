@@ -22,8 +22,8 @@
 
 namespace boost {
 
-template <typename T> struct has_trivial_copy 
-: public integral_constant<bool, 
+template <typename T> struct has_trivial_copy
+: public integral_constant<bool,
 #ifdef BOOST_HAS_TRIVIAL_COPY
    BOOST_HAS_TRIVIAL_COPY(T) BOOST_TT_TRIVIAL_CONSTRUCT_FIX
 #else
@@ -31,7 +31,7 @@ template <typename T> struct has_trivial_copy
 #endif
 >{};
 // Arrays are not explicitly copyable:
-template <typename T, std::size_t N> struct has_trivial_copy<T[N]> : public false_type{};
+template <typename T, size_t N> struct has_trivial_copy<T[N]> : public false_type{};
 template <typename T> struct has_trivial_copy<T[]> : public false_type{};
 // Are volatile types ever trivial?  We don't really know, so assume not:
 template <typename T> struct has_trivial_copy<T volatile> : public false_type{};
@@ -44,7 +44,7 @@ template <> struct has_trivial_copy<void const volatile> : public false_type{};
 #endif
 
 template <class T> struct has_trivial_copy<T&> : public false_type{};
-#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES) 
+#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
 template <class T> struct has_trivial_copy<T&&> : public false_type{};
 #endif
 

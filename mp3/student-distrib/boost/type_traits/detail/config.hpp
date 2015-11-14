@@ -13,7 +13,6 @@
 #include <boost/config.hpp>
 #endif
 #include <boost/version.hpp>
-#include <boost/detail/workaround.hpp>
 
 //
 // whenever we have a conversion function with ellipses
@@ -24,19 +23,6 @@
 #   define BOOST_TT_DECL __cdecl
 #else
 #   define BOOST_TT_DECL /**/
-#endif
-
-# if (BOOST_WORKAROUND(__MWERKS__, < 0x3000)                         \
-    || BOOST_WORKAROUND(__IBMCPP__, < 600 )                         \
-    || BOOST_WORKAROUND(__BORLANDC__, < 0x5A0)                      \
-    || defined(__ghs)                                               \
-    || BOOST_WORKAROUND(__HP_aCC, < 60700)           \
-    || BOOST_WORKAROUND(MPW_CPLUS, BOOST_TESTED_AT(0x890))          \
-    || BOOST_WORKAROUND(__SUNPRO_CC, BOOST_TESTED_AT(0x580)))       \
-    && defined(BOOST_NO_IS_ABSTRACT)
-
-#   define BOOST_TT_NO_CONFORMING_IS_CLASS_IMPLEMENTATION 1
-
 #endif
 
 #ifndef BOOST_TT_NO_CONFORMING_IS_CLASS_IMPLEMENTATION
@@ -50,15 +36,6 @@
 //
 #if defined(_MSC_EXTENSIONS) && !defined(__BORLANDC__)
 #  define BOOST_TT_TEST_MS_FUNC_SIGS
-#endif
-
-//
-// define BOOST_TT_NO_CV_FUNC_TEST
-// if tests for cv-qualified member functions don't 
-// work in is_member_function_pointer
-//
-#if BOOST_WORKAROUND(__MWERKS__, < 0x3000) || BOOST_WORKAROUND(__IBMCPP__, <= 600)
-#  define BOOST_TT_NO_CV_FUNC_TEST
 #endif
 
 //
