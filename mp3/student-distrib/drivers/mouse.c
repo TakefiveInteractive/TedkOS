@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/mouse.h>
+#include <inc/keyboard.h>
+
 
 #define KD_POLICY 0
 #define MOUSE_PORT 0x60
@@ -36,7 +38,6 @@ enum read_status {
      ReadFailure,
 };
 enum read_status last_read;
-spinlock_t mouse_lock = SPINLOCK_UNLOCKED;
 
 void write_byte(uint8_t data, uint8_t port);
 uint8_t read_byte();
@@ -74,26 +75,26 @@ uint8_t try_read_byte() {
 
 DEFINE_DRIVER_INIT(mouse) {
     uint32_t flag;
-    spin_lock_irqsave(&mouse_lock, flag);
+    spin_lock_irqsave(&keyboard_lock, flag);
 	// bind handler to pic
-	bind_irq(MOUSE_IRQ_NUM,MOUSE_ID,mouse_handler,KD_POLICY);
+    init_mouse();
 
-    spin_unlock_irqrestore(&mouse_lock, flag);
+	bind_irq(MOUSE_IRQ_NUM,MOUSE_ID,mouse_handler,KD_POLICY);
+    //init_mouse();
+
+    spin_unlock_irqrestore(&keyboard_lock, flag);
 	return;
 }
 
 DEFINE_DRIVER_REMOVE(mouse) {
     uint32_t flag;
-    spin_lock_irqsave(&mouse_lock, flag);
-    init_mouse();
+    spin_lock_irqsave(&keyboard_lock, flag);
 	//rm handler from pic
 	unbind_irq(MOUSE_IRQ_NUM,MOUSE_ID);
 
-    spin_unlock_irqrestore(&mouse_lock, flag);
+    spin_unlock_irqrestore(&keyboard_lock, flag);
     return;
 }
-
-
 
 void init_mouse() {
     send_command(0xFF, 0x60);
@@ -124,22 +125,28 @@ void init_mouse() {
     }
 
 	// enable acks
-	send_command(0xF4, 0x60);
+	send_command(0xF4, MOUSE_PORT);
 }
 
 
 int mouse_handler() {
 
-    printf("asdjaksdjaklsjdkasjlk\n");
+    //printf("asd\n");
 
     //registers_t regs;
 	//save_regs(regs);
+    uint32_t flag;
+
+    spin_lock_irqsave(&keyboard_lock, flag);
 
     //init_mouse();
     uint8_t flags = try_read_byte();
     if (last_read == ReadSuccess) {
         if (flags == 0xFA) {
             // ack
+            spin_unlock_irqrestore(&keyboard_lock, flag);
+
+            return 0;
         } else {
             if ( (flags & MOVEMENT_ONE) != 0 &&
                     (flags & X_OVERFLOW) == 0 &&
@@ -176,8 +183,13 @@ int mouse_handler() {
                 if (flags & MIDDLE_BUTTON) {
                     //not specified
                 }
+                spin_unlock_irqrestore(&keyboard_lock, flag);
+                return 0;
+
             }
         }
     }
+    spin_unlock_irqrestore(&keyboard_lock, flag);
+
     return 0;
 }
