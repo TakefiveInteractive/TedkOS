@@ -10,7 +10,7 @@
 #define BOOST_TT_ALIGNMENT_OF_HPP_INCLUDED
 
 #include <boost/config.hpp>
-#include <cstddef>
+#include <stdint.h>
 
 #include <boost/type_traits/intrinsics.hpp>
 #include <boost/type_traits/integral_constant.hpp>
@@ -48,7 +48,7 @@ struct alignment_of_hack
 template <unsigned A, unsigned S>
 struct alignment_logic
 {
-    BOOST_STATIC_CONSTANT(std::size_t, value = A < S ? A : S);
+    BOOST_STATIC_CONSTANT(size_t, value = A < S ? A : S);
 };
 
 
@@ -61,13 +61,13 @@ struct alignment_of_impl
     // and our own logic gets things wrong from time to time :-(
     // Using a combination of the two seems to make the most of a bad job:
     //
-    BOOST_STATIC_CONSTANT(std::size_t, value =
+    BOOST_STATIC_CONSTANT(size_t, value =
         (::boost::detail::alignment_logic<
             sizeof(::boost::detail::alignment_of_hack<T>) - sizeof(T),
             __alignof(T)
         >::value));
 #elif !defined(BOOST_ALIGNMENT_OF)
-    BOOST_STATIC_CONSTANT(std::size_t, value =
+    BOOST_STATIC_CONSTANT(size_t, value =
         (::boost::detail::alignment_logic<
             sizeof(::boost::detail::alignment_of_hack<T>) - sizeof(T),
             sizeof(T)
@@ -79,13 +79,13 @@ struct alignment_of_impl
    // always work in that context for some unexplained reason.
    // (See type_with_alignment tests for test cases).
    //
-   BOOST_STATIC_CONSTANT(std::size_t, value = BOOST_ALIGNMENT_OF(T));
+   BOOST_STATIC_CONSTANT(size_t, value = BOOST_ALIGNMENT_OF(T));
 #endif
 };
 
 } // namespace detail
 
-template <class T> struct alignment_of : public integral_constant<std::size_t, ::boost::detail::alignment_of_impl<T>::value>{};
+template <class T> struct alignment_of : public integral_constant<size_t, ::boost::detail::alignment_of_impl<T>::value>{};
 
 // references have to be treated specially, assume
 // that a reference is just a special pointer:
@@ -99,11 +99,11 @@ template<> struct alignment_of<long double> : public alignment_of<long_double_wr
 #endif
 
 // void has to be treated specially:
-template<> struct alignment_of<void> : integral_constant<std::size_t, 0>{};
+template<> struct alignment_of<void> : integral_constant<size_t, 0>{};
 #ifndef BOOST_NO_CV_VOID_SPECIALIZATIONS
-template<> struct alignment_of<void const> : integral_constant<std::size_t, 0>{};
-template<> struct alignment_of<void const volatile> : integral_constant<std::size_t, 0>{};
-template<> struct alignment_of<void volatile> : integral_constant<std::size_t, 0>{};
+template<> struct alignment_of<void const> : integral_constant<size_t, 0>{};
+template<> struct alignment_of<void const volatile> : integral_constant<size_t, 0>{};
+template<> struct alignment_of<void volatile> : integral_constant<size_t, 0>{};
 #endif
 
 } // namespace boost

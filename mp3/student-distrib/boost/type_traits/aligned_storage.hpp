@@ -13,10 +13,9 @@
 #ifndef BOOST_TT_ALIGNED_STORAGE_HPP
 #define BOOST_TT_ALIGNED_STORAGE_HPP
 
-#include <cstddef> // for std::size_t
+#include <stdint.h>
 
 #include "boost/config.hpp"
-#include "boost/detail/workaround.hpp"
 #include "boost/type_traits/alignment_of.hpp"
 #include "boost/type_traits/type_with_alignment.hpp"
 #include "boost/type_traits/is_pod.hpp"
@@ -27,7 +26,7 @@ namespace boost {
 namespace detail { namespace aligned_storage {
 
 BOOST_STATIC_CONSTANT(
-      std::size_t
+      size_t
     , alignment_of_max_align = ::boost::alignment_of<boost::detail::max_align>::value
     );
 
@@ -35,8 +34,8 @@ BOOST_STATIC_CONSTANT(
 // To be TR1 conforming this must be a POD type:
 //
 template <
-      std::size_t size_
-    , std::size_t alignment_
+      size_t size_
+    , size_t alignment_
 >
 struct aligned_storage_imp
 {
@@ -48,8 +47,8 @@ struct aligned_storage_imp
     } data_;
     void* address() const { return const_cast<aligned_storage_imp*>(this); }
 };
-template <std::size_t size>
-struct aligned_storage_imp<size, std::size_t(-1)>
+template <size_t size>
+struct aligned_storage_imp<size, size_t(-1)>
 {
    union data_t
    {
@@ -59,7 +58,7 @@ struct aligned_storage_imp<size, std::size_t(-1)>
    void* address() const { return const_cast<aligned_storage_imp*>(this); }
 };
 
-template< std::size_t alignment_ >
+template< size_t alignment_ >
 struct aligned_storage_imp<0u,alignment_>
 {
     /* intentionally empty */
@@ -69,30 +68,30 @@ struct aligned_storage_imp<0u,alignment_>
 }} // namespace detail::aligned_storage
 
 template <
-      std::size_t size_
-    , std::size_t alignment_ = std::size_t(-1)
+      size_t size_
+    , size_t alignment_ = size_t(-1)
 >
-class aligned_storage : 
+class aligned_storage :
 #ifndef __BORLANDC__
-   private 
+   private
 #else
    public
 #endif
-   ::boost::detail::aligned_storage::aligned_storage_imp<size_, alignment_> 
+   ::boost::detail::aligned_storage::aligned_storage_imp<size_, alignment_>
 {
- 
+
 public: // constants
 
     typedef ::boost::detail::aligned_storage::aligned_storage_imp<size_, alignment_> type;
 
     BOOST_STATIC_CONSTANT(
-          std::size_t
+          size_t
         , size = size_
         );
     BOOST_STATIC_CONSTANT(
-          std::size_t
+          size_t
         , alignment = (
-              alignment_ == std::size_t(-1)
+              alignment_ == size_t(-1)
             ? ::boost::detail::aligned_storage::alignment_of_max_align
             : alignment_
             )
@@ -130,7 +129,7 @@ public: // accessors
 // Make sure that is_pod recognises aligned_storage<>::type
 // as a POD (Note that aligned_storage<> itself is not a POD):
 //
-template <std::size_t size_, std::size_t alignment_>
+template <size_t size_, size_t alignment_>
 struct is_pod< ::boost::detail::aligned_storage::aligned_storage_imp<size_, alignment_> > : public true_type{};
 
 } // namespace boost

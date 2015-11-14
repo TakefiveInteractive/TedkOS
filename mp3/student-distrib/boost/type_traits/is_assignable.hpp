@@ -39,8 +39,8 @@ namespace boost{
    }
 
    template <class T, class U> struct is_assignable : public integral_constant<bool, sizeof(detail::is_assignable_imp::test<T, U>(0)) == sizeof(boost::type_traits::yes_type)>{};
-   template <class T, std::size_t N, class U> struct is_assignable<T[N], U> : public is_assignable<T, U>{};
-   template <class T, std::size_t N, class U> struct is_assignable<T(&)[N], U> : public is_assignable<T&, U>{};
+   template <class T, size_t N, class U> struct is_assignable<T[N], U> : public is_assignable<T, U>{};
+   template <class T, size_t N, class U> struct is_assignable<T(&)[N], U> : public is_assignable<T&, U>{};
    template <class T, class U> struct is_assignable<T[], U> : public is_assignable<T, U>{};
    template <class T, class U> struct is_assignable<T(&)[], U> : public is_assignable<T&, U>{};
    template <class U> struct is_assignable<void, U> : public integral_constant<bool, false>{};

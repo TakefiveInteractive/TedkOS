@@ -52,7 +52,7 @@ namespace boost{
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
    template <class T> struct is_destructible<T&&> : public is_destructible<T>{};
 #endif
-   template <class T, std::size_t N> struct is_destructible<T[N]> : public is_destructible<T>{};
+   template <class T, size_t N> struct is_destructible<T[N]> : public is_destructible<T>{};
    template <class T> struct is_destructible<T[]> : public is_destructible<T>{};
 
 } // namespace boost
