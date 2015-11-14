@@ -9,6 +9,10 @@
 #include <inc/klibs/palloc.h>
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
+#include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/fs/filesystem.h>
+
+using namespace filesystem;
 
 
 using namespace palloc;
@@ -27,8 +31,16 @@ namespace syscall_halt {
         else//has prev
         {
             printf("Halt process!\n");
+            
+            // close stdin and stdout
+            fs_close(0);
+            fs_close(1);
+
             *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7*4) = retval;
             prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
+
+            // refresh TSS so that later interrupts use this new kstack
+            tss.esp0 = (uint32_t)prevInfo->pcb.esp0;
 
             // asm volatile (
             //     "movl %0, %%esp         ;\n"

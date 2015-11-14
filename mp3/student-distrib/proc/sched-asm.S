@@ -6,10 +6,10 @@
 # KStack must look like: [pushal, iret info]
 # Must use 'jmp' to "call" this function
 iret_sched_policy:
-    call getCurrentThreadInfo          # BACKUP ESP0 in case we do CONTEXT SWITCH.
-    movl %esp, (%eax)                # Save the stack state where switch_to_esp0 has just been allocated.
 
+    pushl %esp                         # current stack frame is important, should be saved by schedDispatchDecision
     call schedDispatchDecision         # return NULL or *** the esp0 to switch to ***
+    addl $4, %esp
 
     testl %eax, %eax        
     jz iret_sched_policy_noswitch      # Jump if no kernel stack switching.
