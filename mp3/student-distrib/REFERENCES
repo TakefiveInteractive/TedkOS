@@ -1,0 +1,23 @@
+====== Here we state the source codes of others we cited ======
+
+Boost C++ libraries:
+	We did NOT rely on it to implement critical aspects of the operating system,
+		or any aspect of the operating system that we are required to learn in this course.
+
+	We use it ONLY to simplify C++ programming.
+
+====== A note on the binary files provided in fsdir ======
+
+Some of the binaries do NOT come with source codes.
+
+Those binaries may be compiled using others' source codes,
+
+	We did NOT rely on them to implement critical aspects of the operating system.
+		or any aspect of the operating system that we are required to learn in this course.
+
+for example,
+	1. we plan to compile several games, but it's certainly
+	not possible for us to write all the codes of the
+	user-side programs. For example, We relied on newlib-2.2.0-1
+	so that a user program can use libm (math.h) library.
+	
