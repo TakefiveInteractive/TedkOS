@@ -8,6 +8,7 @@ gcc.dmg
 gcc-strip.tar.gz
 gcc-strip-nolink.tar.gz
 mp3/student-distrib/cross
+mp3/userland/newlib-2.2.0-1/**/*.cache/
 
 .vimrc
 
