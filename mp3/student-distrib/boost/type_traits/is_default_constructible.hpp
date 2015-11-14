@@ -32,10 +32,10 @@ namespace boost{
    }
 
    template <class T> struct is_default_constructible : public integral_constant<bool, sizeof(detail::is_default_constructible_imp::test<T>(0)) == sizeof(boost::type_traits::yes_type)>{};
-   template <class T, std::size_t N> struct is_default_constructible<T[N]> : public is_default_constructible<T>{};
+   template <class T, size_t N> struct is_default_constructible<T[N]> : public is_default_constructible<T>{};
    template <class T> struct is_default_constructible<T[]> : public is_default_constructible<T>{};
    template <class T> struct is_default_constructible<T&> : public integral_constant<bool, false>{};
-#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES) 
+#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
    template <class T> struct is_default_constructible<T&&> : public integral_constant<bool, false>{};
 #endif
    template <> struct is_default_constructible<void> : public integral_constant<bool, false>{};

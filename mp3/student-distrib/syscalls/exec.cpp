@@ -13,6 +13,7 @@
 #include <inc/fops_kb.h>
 
 using namespace palloc;
+using namespace boost;
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
 
@@ -42,17 +43,14 @@ int32_t do_exec(const char* arg0)
     cli_and_save(flags);
 
     uint32_t filename_len = strlen(arg0);
-
-    //char* file = new char[filename_len + 1];
-    char file[100];
+    unique_ptr<char[]> file(new char[filename_len + 1]);
 
     // We need to copy filename into kernel because later we will switch page table
+    for (size_t i = 0; i < filename_len; i++) file[i] = arg0[i];
     file[filename_len] = '\0';
-    memcpy(file, arg0, sizeof(char) * filename_len);
 
     if(!is_kiss_executable(file))
     {
-        // delete file;
         restore_flags(flags);
         return -1;
     }
@@ -60,7 +58,6 @@ int32_t do_exec(const char* arg0)
 
     if(child_upid < 0)
     {
-        // delete file;
         restore_flags(flags);
         return -1;          // Out of PIDs
     }
@@ -71,7 +68,6 @@ int32_t do_exec(const char* arg0)
     uint16_t physIdx = physPages.allocPage(0);
     if(physIdx == 0xffff)
     {
-        // delete file;
         restore_flags(flags);
         return -1;          // Memory full.
     }
@@ -81,7 +77,6 @@ int32_t do_exec(const char* arg0)
 
     if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
     {
-        // delete file;
         restore_flags(flags);
         return -1;          // child virt addr space became weird.
     }
@@ -132,7 +127,6 @@ int32_t do_exec(const char* arg0)
     // RELEASE control of stdin.
     kb_close(NULL);
 
-    // delete file;
     restore_flags(flags);
     return child_upid;
 }
