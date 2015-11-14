@@ -26,7 +26,7 @@ int32_t sysexec(const char* file)
     if(!file)
         return -1;
 
-    uint32_t child_upid = do_exec(file);
+    int32_t child_upid = do_exec(file);
     if(child_upid < 0)
         return -1;
 
@@ -54,7 +54,7 @@ int32_t do_exec(const char* arg0)
     {
         // delete file;
         restore_flags(flags);
-        return -EINVAL;
+        return -1;
     }
     int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
 
