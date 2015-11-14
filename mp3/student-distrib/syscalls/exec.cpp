@@ -38,8 +38,12 @@ int32_t sysexec(const char* file)
 int32_t do_exec(const char* arg0)
 {
     uint32_t flags;
+    cli_and_save(flags);
+
     uint32_t filename_len = strlen(arg0);
-    char* file = new char[filename_len + 1];
+
+    //char* file = new char[filename_len + 1];
+    char file[100];
 
     // We need to copy filename into kernel because later we will switch page table
     file[filename_len] = '\0';
@@ -47,14 +51,16 @@ int32_t do_exec(const char* arg0)
 
     if(!is_kiss_executable(file))
     {
-        delete file;
+        // delete file;
+        restore_flags(flags);
         return -EINVAL;
     }
     int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
 
     if(child_upid < 0)
     {
-        delete file;
+        // delete file;
+        restore_flags(flags);
         return -1;          // Out of PIDs
     }
 
@@ -64,7 +70,8 @@ int32_t do_exec(const char* arg0)
     uint16_t physIdx = physPages.allocPage(0);
     if(physIdx == 0xffff)
     {
-        delete file;
+        // delete file;
+        restore_flags(flags);
         return -1;          // Memory full.
     }
 
@@ -73,12 +80,12 @@ int32_t do_exec(const char* arg0)
 
     if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
     {
-        delete file;
+        // delete file;
+        restore_flags(flags);
         return -1;          // child virt addr space became weird.
     }
 
     // Temporarily mount the address space to CURRENT context's virtual 128MB address.
-    cli_and_save(flags);
     uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
     global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
     RELOAD_CR3();
@@ -89,7 +96,6 @@ int32_t do_exec(const char* arg0)
     // restore 128MB address back to CURRENT context's content
     global_cr3val[code_page_vaddr_base >> 22] = backupDir;
     RELOAD_CR3();
-    restore_flags(flags);
 
     // Initialize stack and ESP
     // compatible with x86 32-bit iretl
@@ -122,7 +128,8 @@ int32_t do_exec(const char* arg0)
     tss.esp0 = (uint32_t)kstack.getESP();
     // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
 
-    delete file;
+    // delete file;
+    restore_flags(flags);
     return child_upid;
 }
 

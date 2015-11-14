@@ -112,6 +112,7 @@ _entry (unsigned long magic, unsigned long addr)
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+
     for(size_t i = 0; i < num_known_drivers; i++)
     {
         printf("Loading driver '%s' ...", known_drivers[i].name);
@@ -163,9 +164,11 @@ _entry (unsigned long magic, unsigned long addr)
     char* vmemPage;
     vmemPage = (char*) virtLast1G.allocPage(1);
     commonMemMap.add(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
-    currProcMemMap = proc.memmap;
-    printf("+= result = %d\n", currProcMemMap += commonMemMap);
-    currProcMemMap.loadToCR3(&cpu0_paging_lock);
+
+    currProcMemMap = 1 - currProcMemMap;
+    spareMemMaps[currProcMemMap] = proc.memmap;
+    printf("+= result = %d\n", spareMemMaps[currProcMemMap] += commonMemMap);
+    spareMemMaps[currProcMemMap].loadToCR3(&cpu0_paging_lock);
 
     video_mem = vmemPage + PRE_INIT_VIDEO;
 
