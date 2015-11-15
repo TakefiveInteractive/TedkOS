@@ -10,7 +10,14 @@
  *  'a' is ok. KKC_ENTER is ok,
  *  but SHIFT|'a' is not ok.
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 void kb_to_term(uint32_t kernelKeycode);
+#ifdef __cplusplus
+}
+#endif
 
 // Definitions of kernel level keycodes are defined here as well.
 // 0. KKC = 0 means no key is pressed or release, nothing happened.

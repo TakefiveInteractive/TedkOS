@@ -97,7 +97,7 @@ void remove_action(irqaction_list* list, irqaction* item)
         irqaction *srcPrev, *srcNext, *src;
         src = clobber + 1;
         memcpy(clobber, src, sizeof(irqaction));
-        
+
         // These two nodes' attributes are affected and should be adjusted.
         srcPrev = src->prev;
         srcNext = src->next;

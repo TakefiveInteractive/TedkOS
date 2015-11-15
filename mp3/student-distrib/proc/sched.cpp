@@ -7,22 +7,28 @@
 // Smaller than zero <=> No switch.
 int32_t wantToSwitchTo = -1;
 
-target_esp0 __attribute__((used)) schedDispatchDecision()
+target_esp0 __attribute__((used)) schedDispatchDecision(target_esp0 currentESP)
 {
-    if(num_hard_int() > 0)
+    if(num_nest_int() > 0)
         return NULL;
     if(wantToSwitchTo < 0)
         return NULL;
+
+    // Firstly save current esp0 to current thread's pcb
+    // Should only be saved if this is the outmost interrupt.
+    getCurrentThreadInfo()->pcb.esp0 = currentESP;
 
     ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
 
     // Switch stack
     target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
 
+    // Save new kernel stack into TSS.
+    //   so that later interrupts use this new kstack
+    tss.esp0 = (uint32_t)desc.mainThreadInfo->pcb.esp0;
+
     // Switch Page Directory
-    currProcMemMap = desc.memmap;
-    currProcMemMap += commonMemMap;
-    currProcMemMap.loadToCR3(&cpu0_paging_lock);
+    cpu0_memmap.loadProcessMap(desc.memmap);
 
     // Reset dispatch decision state.
     wantToSwitchTo = -1;

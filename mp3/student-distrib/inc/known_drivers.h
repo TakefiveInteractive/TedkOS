@@ -1,8 +1,8 @@
 
-#include <inc/driver.h>
-#include <inc/rtc.h>
-#include <inc/keyboard.h>
-#include <inc/terminal.h>
+#include <inc/drivers/common.h>
+#include <inc/drivers/rtc.h>
+#include <inc/drivers/keyboard.h>
+#include <inc/drivers/terminal.h>
 
 /* Include the header of your driver here. */
 

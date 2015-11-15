@@ -1,6 +1,6 @@
 
 //  (C) Copyright Dave Abrahams, Steve Cleary, Beman Dawes, Howard
-//  Hinnant & John Maddock 2000.  
+//  Hinnant & John Maddock 2000.
 //  Use, modification and distribution are subject to the Boost Software License,
 //  Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt).
@@ -13,7 +13,7 @@
 
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
-#include <cstddef>
+#include <stdint.h>
 
 namespace boost {
 
@@ -24,9 +24,9 @@ template <class T> struct remove_cv<T volatile>{ typedef T type; };
 template <class T> struct remove_cv<T const volatile>{ typedef T type; };
 
 #if !defined(BOOST_NO_ARRAY_TYPE_SPECIALIZATIONS)
-template <class T, std::size_t N> struct remove_cv<T const[N]>{ typedef T type[N]; };
-template <class T, std::size_t N> struct remove_cv<T const volatile[N]>{ typedef T type[N]; };
-template <class T, std::size_t N> struct remove_cv<T volatile[N]>{ typedef T type[N]; };
+template <class T, size_t N> struct remove_cv<T const[N]>{ typedef T type[N]; };
+template <class T, size_t N> struct remove_cv<T const volatile[N]>{ typedef T type[N]; };
+template <class T, size_t N> struct remove_cv<T volatile[N]>{ typedef T type[N]; };
 #if !BOOST_WORKAROUND(__BORLANDC__, < 0x600) && !defined(__IBMCPP__) &&  !BOOST_WORKAROUND(__DMC__, BOOST_TESTED_AT(0x840))
 template <class T> struct remove_cv<T const[]>{ typedef T type[]; };
 template <class T> struct remove_cv<T const volatile[]>{ typedef T type[]; };

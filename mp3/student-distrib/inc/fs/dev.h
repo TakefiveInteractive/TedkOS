@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inc/fs/filesystem.h>
-#include <inc/lphashtable.h>
+#include <inc/klibs/lphashtable.h>
 
 #ifdef __cplusplus
 namespace filesystem {

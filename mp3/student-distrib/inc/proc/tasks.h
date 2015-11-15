@@ -22,14 +22,11 @@ using namespace palloc;
 #define FD_ARRAY_LENGTH             128
 #define MAX_NUM_THREADS             128
 
-class File;
-
 class ProcessDesc
 {
 private:
     static size_t nextNewProcess;
     static ProcessDesc** all_processes;
-    static void init();
     ProcessDesc(int32_t _upid);
     int32_t upid;
 public:
@@ -37,10 +34,11 @@ public:
     static ProcessDesc& get(size_t uniq_pid);
     static size_t newProcess();
     int32_t getUniqPid();
-    File *fileDescs[FD_ARRAY_LENGTH];
+    filesystem::File *fileDescs[FD_ARRAY_LENGTH];
+    int32_t numFilesInDescs;
     // Currently no multithread
     union _thread_kinfo * mainThreadInfo;
-    MemMap memmap;
+    TinyMemMap memmap;
 };
 
 
@@ -49,12 +47,12 @@ public:
 typedef struct _thread_pcb_t
 {
     // Kernel stack state of current thread.
-    target_esp0 esp0;
+    volatile target_esp0 esp0;
     ProcessDesc* to_process;
 
     // If this is a kernel thread, non-zero. Otherwise zero.
     uint8_t isKernelThread;
-    
+
     // Following is a simple list used by "scheduling"
     //    Simplest scheduling: process is paused and the next process
     //    to be executed is stored as current pcb->next.

@@ -1,22 +1,21 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inc/klibs/lib.h>
-#include <inc/klibs/spinlock.h>
 #include <inc/i8259.h>
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_init.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
 
-spinlock_t num_hard_int_lock = SPINLOCK_UNLOCKED;
-int32_t num_hard_int_val = 0;
+spinlock_t num_nest_int_lock = SPINLOCK_UNLOCKED;
+int32_t num_nest_int_val = 0;
 
 // Call this only when the interrupt is TURNED OFF!
 //      (Not for atomic operation...)
 //      (Just to avoid race condition...)
-int32_t num_hard_int()
+int32_t num_nest_int()
 {
-    return num_hard_int_val;
+    return num_nest_int_val;
 }
 
 void __attribute__((used)) interrupt_handler_with_number(size_t index)
@@ -28,9 +27,9 @@ void __attribute__((used)) interrupt_handler_with_number(size_t index)
         return;
     }
 
-    spin_lock_irqsave(&num_hard_int_lock, flag);
-    num_hard_int_val++;
-    spin_unlock_irqrestore(&num_hard_int_lock, flag);
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val++;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
 
     if (index <= 0x2f)
     {
@@ -39,9 +38,12 @@ void __attribute__((used)) interrupt_handler_with_number(size_t index)
     }
     // See idt_table.cpp for SYSCALL handler.
 
-    spin_lock_irqsave(&num_hard_int_lock, flag);
-    num_hard_int_val--;
-    spin_unlock_irqrestore(&num_hard_int_lock, flag);
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val--;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
+
+    // required by scheduler.
+    cli();
 }
 
 // This function initializes IDT table,
@@ -51,6 +53,9 @@ void init_idt(void)
     int i = 0;
 
     init_idt_table();
+
+    //  EVERY interrupt is a INTERRUPT_GATE !!
+    // Because we COUNT number of nested INTERRUPTs.
 
     for(; i <= 0x1f; i++)
     {
@@ -79,7 +84,7 @@ void init_idt(void)
         // either NOTHING or APIC
 
         // Not defined <=> Trap and Not present and DPL = 0
-        INIT_TRAP_DESC(idt[i], KERNEL_CS_SEL);
+        INIT_INT_DESC(idt[i], KERNEL_CS_SEL);
         idt[i].dpl = 0;
         idt[i].present = 1;
         SET_IDT_DESC_OFFSET(idt[i], raw_interrupt_handlers[i]);
@@ -87,7 +92,7 @@ void init_idt(void)
     for(; i <= 0x80; i++)
     {
         // Syscall
-        INIT_TRAP_DESC(idt[i], KERNEL_CS_SEL);
+        INIT_INT_DESC(idt[i], KERNEL_CS_SEL);
         idt[i].dpl = 3;
         idt[i].present = 1;
         SET_IDT_DESC_OFFSET(idt[i], raw_interrupt_handlers[i]);
@@ -97,7 +102,7 @@ void init_idt(void)
         // More APIC, local APIC timer, OR SMP communication
 
         // Not defined <=> Trap and Not present and DPL = 0
-        INIT_TRAP_DESC(idt[i], KERNEL_CS_SEL);
+        INIT_INT_DESC(idt[i], KERNEL_CS_SEL);
         idt[i].dpl = 0;
         idt[i].present = 1;
         SET_IDT_DESC_OFFSET(idt[i], raw_interrupt_handlers[i]);

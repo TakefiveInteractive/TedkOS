@@ -13,7 +13,6 @@
 #include <inc/debug.h>
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
-#include <inc/tests.h>
 #include <inc/fs/kiss_wrapper.h>
 #include <inc/mbi_info.h>
 #include <inc/klibs/palloc.h>
@@ -118,6 +117,7 @@ _entry (unsigned long magic, unsigned long addr)
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+
     for(size_t i = 0; i < num_known_drivers; i++)
     {
         printf("Loading driver '%s' ...", known_drivers[i].name);
@@ -202,12 +202,12 @@ _entry (unsigned long magic, unsigned long addr)
 
     char* vmemPage;
     vmemPage = (char*) virtLast1G.allocPage(1);
-    commonMemMap.add(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
-    currProcMemMap = proc.memmap;
-    printf("+= result = %d\n", currProcMemMap += commonMemMap);
-    currProcMemMap.loadToCR3(&cpu0_paging_lock);
-
+    cpu0_memmap.addCommonPage(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
     video_mem = vmemPage + PRE_INIT_VIDEO;
+
+    cpu0_memmap.start();
+    cpu0_memmap.loadProcessMap(proc.memmap);
+
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
@@ -253,4 +253,3 @@ entry (unsigned long magic, unsigned long addr)
 {
     _entry(magic, addr);
 }
-
