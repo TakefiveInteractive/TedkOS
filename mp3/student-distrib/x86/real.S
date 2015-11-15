@@ -16,6 +16,7 @@ legacyInt_noLock:
     pushl %ebp
     movl  %esp, %ebp
 
+    pushl %ebp
     pushl %ebx
     pushl %esi
     pushl %edi
@@ -23,12 +24,15 @@ legacyInt_noLock:
     movl  %cr0, %eax
     pushl %eax
 
+    movl  %cr4, %eax
+    pushl %eax
+
     movl  %cr3, %eax
     pushl %eax
 
 
     # Currently the kernel stack looks like:
-    # [ iret, ebp, ebx, esi, edi, cr0, cr3, -> 
+    # [ leave, ebp (ours), ebx, esi, edi, cr0, cr4, cr3 -> 
     # backup current Stack ESP
     movl  %esp, (cpu0_real_context)
 
@@ -48,9 +52,33 @@ back_32bit_entry:
     movl  %esp, %fs
     movl  %esp, %gs
     movl  %esp, %es
+
+    # return to correct stack
     movl  cpu0_real_context, %esp
-    movl  (%esp), %esp
-    jmp back_to_32bit
+    pushw %dx
+    pushw %cx
+    pushw %bx
+    pushw %ax
+    pushw %si
+    pushw %di
+    pushw $0                    # this will save context to cpu0_real_context
+    call save_real_context
+    addl  $7*2, %esp
+
+    popl  %eax
+    popl  %ecx
+    popl  %edx
+    movl  %eax, %cr3
+    movl  %ecx, %cr4
+    movl  %edx, %cr0
+    popl  %edi
+    popl  %esi
+    popl  %ebx
+    popl  %ebp
+
+    # Up till now, we only have stack frame (for "leave") left
+    leave
+    ret
 
 .code16
 

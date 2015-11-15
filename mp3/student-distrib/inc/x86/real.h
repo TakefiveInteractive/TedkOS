@@ -23,14 +23,13 @@ typedef struct
     int32_t esp;
 
     // General purpose registers
+    int16_t ax;
+    int16_t bx;
+    int16_t cx;
+    int16_t dx;
+
     int16_t di;
     int16_t si;
-    uint16_t bp;
-    uint16_t padding;
-    int16_t bx;
-    int16_t dx;
-    int16_t cx;
-    int16_t ax;
 } real_context_t;
 
 // Prepare Real Mode:
