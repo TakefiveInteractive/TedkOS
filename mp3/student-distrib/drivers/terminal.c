@@ -220,7 +220,7 @@ void kb_to_term(uint32_t kernelKeycode)
 //--------------- Definition of sp_kkc_handlers. These must match with terminal-asm.S !!! ----------------
 
 // Warning: these handlers DO NOT LOCK spinlocks !!!
-void term_enter_handler(uint32_t keycode)
+void __attribute__((externally_visible)) term_enter_handler(uint32_t keycode)
 {
     term_buf_item newLine;
     newLine.displayed_char = '\n';
@@ -240,7 +240,7 @@ void term_enter_handler(uint32_t keycode)
     term2kb_readover(0);
 }
 
-void term_backspace_handler(uint32_t keycode)
+void __attribute__((externally_visible)) term_backspace_handler(uint32_t keycode)
 {
     if(term_buf_pos > 0)
     {
@@ -280,17 +280,17 @@ void term_backspace_handler(uint32_t keycode)
     set_cursor_nolock(next_char_x, next_char_y);
 }
 
-void term_capslock_handler(uint32_t keycode)
+void __attribute__((externally_visible)) term_capslock_handler(uint32_t keycode)
 {
     caps_locked = !caps_locked;
 }
 
-void term_delete_handler(uint32_t keycode)
+void __attribute__((externally_visible)) term_delete_handler(uint32_t keycode)
 {
     ;
 }
 
-void term_tab_handler(uint32_t keycode)
+void __attribute__((externally_visible)) term_tab_handler(uint32_t keycode)
 {
     if(term_buf_pos >= TERM_BUFFER_SIZE - 1)
         return;
@@ -319,7 +319,7 @@ void term_tab_handler(uint32_t keycode)
     term_buf[term_buf_pos++] = rec;
 }
 
-void term_none_handler(uint32_t keycode)
+void __attribute__((externally_visible)) term_none_handler(uint32_t keycode)
 {
     ;
 }

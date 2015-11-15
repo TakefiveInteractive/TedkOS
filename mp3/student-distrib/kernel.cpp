@@ -295,7 +295,7 @@ void kernel_enable_basic_paging()
     enable_paging();
 }
 
-extern "C" void
+extern "C" void __attribute__((externally_visible))
 entry (unsigned long magic, unsigned long addr)
 {
     _entry(magic, addr);
