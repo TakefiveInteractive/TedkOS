@@ -125,10 +125,23 @@ _entry (unsigned long magic, unsigned long addr)
 
     // ---- TEST REAL MODE ----
 
+    cli();
+
     real_context_t real_context;
+    real_context.ax=0x0A59;
+    real_context.bx=0;
+    real_context.cx=10;
     legacyInt(0x10, real_context);
 
+    for(volatile int32_t i=0; i<10000; i++) ;
+
+    printf("\n\nBack to KERNEL!\n\n");
+
+    sti();
+
     // ----- START init as a KERNEL thread (because its code is in kernel code) -----
+
+    /*
 
     // should have loaded flags using cli_and_save or pushfl
     uint32_t flags = 0;
@@ -190,6 +203,8 @@ _entry (unsigned long magic, unsigned long addr)
     // This asm block changes everything but gcc should not worry about them.
 
     // This part should never be reached.
+
+    */
     printf("Halted.\n");
     asm volatile("1: hlt; jmp 1b;");
     init_main();

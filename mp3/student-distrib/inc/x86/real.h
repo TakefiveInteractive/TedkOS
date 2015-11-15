@@ -17,12 +17,13 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/klibs/lib.h>
 
+// !!!!! DO NOT CHANGE the order, content OF THIS STRUCT !!!!!
 typedef struct
 {
     // 32-bit states
     int32_t esp;
 
-    // General purpose registers
+    // real mode states
     int16_t ax;
     int16_t bx;
     int16_t cx;
