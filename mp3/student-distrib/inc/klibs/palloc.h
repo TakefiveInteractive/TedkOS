@@ -108,6 +108,7 @@ namespace palloc
         // Initialize an empty memory map;
         MemMap();
 
+        // Translating is only based on INDEX, NOT flags
         inline VirtAddr translate(const PhysAddr& addr);
         inline PhysAddr translate(const VirtAddr& addr);
 
@@ -181,6 +182,11 @@ namespace palloc
         spinlock_t* cpu_cr3_lock;
     public:
         MemMapManager(spinlock_t* cpu_cr3_lock);
+
+        // Translating is only based on INDEX, NOT flags
+        VirtAddr translate(const PhysAddr& addr);
+        PhysAddr translate(const VirtAddr& addr);
+
         bool addCommonPage(const VirtAddr& virt, const PhysAddr& phys);
 
         // delete the mapping ONLY.
@@ -197,6 +203,10 @@ namespace palloc
         // Stop service and change back to the old static map in kernel
         void stop(uint32_t* pageDir);
     };
+
+    // This function tries to find or create a virtual address for page 0MB - 4MB
+    // If it returns 0xffffffff, then memory is used up.
+    Maybe<uint32_t> virtOfPage0();
 
     // Assume the machine has at most 4080 MB memory.
     //  Also: the manager will scan the actual memory map provided by multiboot info
