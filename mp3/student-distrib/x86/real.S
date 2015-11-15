@@ -57,15 +57,12 @@ back_32bit_entry:
 
     # return to correct stack
     movl  cpu0_real_context, %esp
-    pushw %dx
-    pushw %cx
-    pushw %bx
-    pushw %ax
-    pushw %si
-    pushw %di
-    pushw $0                    # this will save context to cpu0_real_context
-    call save_real_context
-    addl  $7*2, %esp
+    movw  %ax, 4+cpu0_real_context
+    movw  %bx, 6+cpu0_real_context
+    movw  %cx, 8+cpu0_real_context
+    movw  %dx, 10+cpu0_real_context
+    movw  %di, 12+cpu0_real_context
+    movw  %si, 14+cpu0_real_context
 
     popl  %eax
     popl  %ecx
