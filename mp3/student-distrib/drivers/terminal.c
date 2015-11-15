@@ -134,8 +134,8 @@ void kb_to_term(uint32_t kernelKeycode)
     uint32_t ascii_part, special_part, combine_part;
     spin_lock_irqsave(&term_lock, flag);
 
-    ascii_part   = kernelKeycode & 0x000000FF;
-    special_part = kernelKeycode & 0x0000FF00;
+    ascii_part   = kernelKeycode & 0x000000FF;//from 0 - 255 (0-0xFF),same as ascii table
+    special_part = kernelKeycode & 0x0000FF00;//
     combine_part = kernelKeycode & 0x7FFF0000;
 
     if((kernelKeycode & 0x80000000) == KKC_RELEASE)
@@ -480,4 +480,3 @@ void scroll_down_nolock(void)
         : "cc", "memory", "ecx", "eax"
     );
 }
-
