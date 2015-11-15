@@ -188,7 +188,7 @@ bool paraFree(void *addr)
 {
     auto pools = PoolGetter<ElementSize>::val();
     size_t idx;
-    bool success = pools->firstTrue(addr, idx, [](auto pool, void* addr) { return pool->release(addr); });
+    bool success = pools->firstTrue(idx, [addr](auto pool) { return pool->release(addr); });
     if (success)
     {
         // See if we can drop this block
