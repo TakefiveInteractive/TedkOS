@@ -139,11 +139,7 @@ real_mode_entry:
     movw  4+10, %di
     movw  4+12, %si
 
-    # print 10 character (0x59 = 'Y')
-    # movw  $0x0A59, %ax
-    # movw  $0x0000, %bx
-    # movw  $10, %cx
-
+    # calls the jump table to call the correct interrupt NUMBER
     jmp %bp
 
 start_return_to_protected:
