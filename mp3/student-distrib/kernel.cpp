@@ -140,7 +140,8 @@ _entry (unsigned long magic, unsigned long addr)
 
 
     // Change to HD Video Mode
-    real_context.ax=0x006A;
+    real_context.ax=0x4F02;
+    real_context.bx=0x811A;
     legacyInt(0x10, real_context);
 
     // Wait for 3 second
@@ -163,11 +164,23 @@ _entry (unsigned long magic, unsigned long addr)
         for(int i=0; i<4; i++)
             printf("%c", vbeInfo.VbeSignature[i]);
         printf("\n");
-        printf("\tVbeVersion = %d\n", vbeInfo.VbeVersion);
-        printf("\tVbeCapability = %d\n", vbeInfo.CapabilityFlags);
+        printf("\tVbeVersion = %x\n", vbeInfo.VbeVersion);
+        printf("\tVbeCapability = %x\n", vbeInfo.CapabilityFlags);
 
         RealModePtr OEMString(vbeInfo.OemStringPtr);
         printf("\tOEM = %s\n", (char*)OEMString.get32());
+
+        printf("\tTotal Memory = %d KB\n", ((uint32_t)(vbeInfo.TotalMemory)) * 64);
+
+        printf("\t The following is valid only if VBE > 2.0\n");
+
+        printf("\tVendor Name = %s\n", (char*)RealModePtr(vbeInfo.VendorNamePtr).get32());
+
+        printf("\tAvailable Video Modes:\n\t\t");
+        uint16_t* modeList = (uint16_t*)RealModePtr(vbeInfo.VideoModePtr).get32();
+        for(int i=0; modeList[i]!=0xffff; i++)
+            printf("%x, ", modeList[i]);
+        printf("\n");
     }
 
     printf("\n\nBack to KERNEL!\n\n");
