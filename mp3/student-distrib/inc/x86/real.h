@@ -29,10 +29,6 @@ class RealModePtr
 {
 private:
     uint16_t seg, off;
-
-    // This function tries to find or create a virtual address for page 0MB - 4MB
-    // If it returns 0xffffffff, then memory is used up.
-    Maybe<uint32_t> virtOfPage0() const;
 public:
 
     // an array of two elements representing a far pointer.
