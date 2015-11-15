@@ -8,7 +8,8 @@ using namespace util;
 template<typename Result,typename ...Args>
 struct abstract_function
 {
-    virtual Result operator()(Args... args)=0;
+    virtual Result operator()(Args... args) = 0;
+    virtual abstract_function *clone(MemoryPool<uint8_t[64], 2> &pool) const = 0;
     virtual ~abstract_function() = default;
 };
 
@@ -17,16 +18,19 @@ class concrete_function: public abstract_function<Result,Args...>
 {
     Func f;
 public:
-    concrete_function(const Func &x)
-        : f(x)
-    {}
-    Result operator()(Args... args) override
+    concrete_function(const Func &x) : f(x) { }
+    Result operator() (Args... args) override
     {
         return f(args...);
     }
 
+    concrete_function *clone(MemoryPool<uint8_t[64], 2> &pool) const override
+    {
+        return new (pool) concrete_function { f };
+    }
+
     // custom new and delete
-    void *operator new(size_t s, MemoryPool<uint8_t[64], 3>& hp)   { return reinterpret_cast<concrete_function*>(hp.get()); }
+    void *operator new(size_t s, MemoryPool<uint8_t[64], 2>& hp)   { return reinterpret_cast<concrete_function*>(hp.get()); }
 };
 
 template<typename Func>
@@ -48,7 +52,7 @@ class function<Result(Args...)>
 {
     abstract_function<Result,Args...> *f;
     // Size-agnostic pool. 64 should be enough for most functions
-    MemoryPool<uint8_t[64], 3> pool;
+    MemoryPool<uint8_t[64], 2> pool;
 
 public:
     function() : f(nullptr) { }
@@ -58,9 +62,14 @@ public:
         f = new (pool) concrete_function<typename func_filter<Func>::type,Result,Args...>(x);
     }
 
+    function(const function &other)
+    {
+        f = other.f->clone(pool);
+    }
+
     Result operator()(Args... args)
     {
-        if(f)
+        if (f)
             return (*f)(args...);
         else
             return Result{};
