@@ -130,15 +130,17 @@ _entry (unsigned long magic, unsigned long addr)
 
     cli();
 
-    // Change to VGA Page 1
-    real_context_t real_context;
-    real_context.ax=0x0501;
-    legacyInt(0x10, real_context);
+    uint16_t orig_mode;
 
-    // Write to VGA Page 1
-    real_context.ax=0x0A59;
-    real_context.bx=0x0100;
-    real_context.cx=10;
+    // Back up current mode.
+    real_context_t real_context;
+    real_context.ax = 0x0f00;
+    legacyInt(0x10, real_context);
+    orig_mode = real_context.ax & 0x00ff;
+
+
+    // Change to HD Video Mode
+    real_context.ax=0x006A;
     legacyInt(0x10, real_context);
 
     // Wait for 3 second
@@ -148,8 +150,8 @@ _entry (unsigned long magic, unsigned long addr)
         rtc_read(NULL, NULL, 0);
     cli();
 
-    // Change back to original Page 0
-    real_context.ax=0x0500;
+    // Change back to original mode
+    real_context.ax=orig_mode;
     legacyInt(0x10, real_context);
 
     auto vbeInfoMaybe = getVbeInfo();
