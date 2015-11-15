@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <inc/bitset.h>
-#include <inc/stack.h>
-#include <inc/maybe.h>
+#include <inc/klibs/bitset.h>
+#include <inc/klibs/stack.h>
+#include <inc/klibs/maybe.h>
 #include <inc/mbi_info.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>
@@ -97,6 +97,7 @@ namespace palloc
     //      THAT requires a more special mapping.
     class MemMap
     {
+        friend class MemMapManager;
     private:
         // arrays to translate indices between phys space and virt space.
         //  Some thing is special about virt2phys:
@@ -111,14 +112,14 @@ namespace palloc
 
         inline VirtAddr translate(const PhysAddr& addr);
         inline PhysAddr translate(const VirtAddr& addr);
-        
+
         // Add an entry of mapping to this map.
-        // WARNING: If an entry already exists at that location, 
+        // WARNING: If an entry already exists at that location,
         //      This will return false. Otherwise returns true.
         bool add(const VirtAddr& virt, const PhysAddr& phys);
 
         // Remove an entry of mapping.
-        // WARNING: If an entry DID NOT exist at that location, 
+        // WARNING: If an entry DID NOT exist at that location,
         //      OR IF THAT PHYS ADDR is RESERVED for GLOBAL KERNEL.
         //      This will return false. Otherwise returns true.
         bool operator -= (const VirtAddr& addr);
@@ -141,15 +142,67 @@ namespace palloc
         //  THIS WILL flush TLB
         // !!!!!!! CALL THIS ONLY if the variable is on 4MB~8MB Page !!!!!!!!!
         //      ( so that its virtual address = physical address )
-        void loadToCR3(spinlock_t* cpuPagingLock);
+        inline void loadToCR3();
 
-        bool isLoadedToCR3(spinlock_t* cpuPagingLock);
+        inline bool isLoadedToCR3();
+    };
+
+    class TinyMemMap
+    {
+        friend class MemMapManager;
+    private:
+        class Mapping
+        {
+        public:
+            // Use the default constructor will fill values with INVALID address
+            Mapping();
+            Mapping(const PhysAddr& p, const VirtAddr& v);
+            PhysAddr phys;
+            VirtAddr virt;
+        };
+        util::Stack<TinyMemMap::Mapping, 1 * KB> pdStack;
+        util::BitSet<1 * KB> isVirtAddrUsed;
+    public:
+        bool add(const VirtAddr& virt, const PhysAddr& phys);
+    };
+
+    // This mamanger manages a whole cpu's process map and common map
+    //  common map is completely private, not overwritable by others.
+    //  CR3 is automatically reload unless otherwise specified.
+    //
+    // By default the manager is NOT in service. You need to call start()
+    class MemMapManager
+    {
+    private:
+        MemMap spareMemMaps[2];
+        int loadedMap;
+        // If false, we are using the static plain old Page Dir
+        // If true, this manager is in charge.
+        bool isStarted;
+        MemMap commonMemMap;
+        spinlock_t* cpu_cr3_lock;
+    public:
+        MemMapManager(spinlock_t* cpu_cr3_lock);
+        bool addCommonPage(const VirtAddr& virt, const PhysAddr& phys);
+
+        // delete the mapping ONLY.
+        // to RELEASE the ACTUAL SPACE, call Phys/VirtAddrManager.freePage
+        bool delCommonPage(const VirtAddr& virt);
+        bool delCommonPage(const PhysAddr& phys);
+        bool loadProcessMap(const TinyMemMap& map);
+
+        // Start service, and DICARD the old static map in kernel
+        // This changes a lot of things, for example:
+        //   You need to update video memory address.
+        void start();
+
+        // Stop service and change back to the old static map in kernel
+        void stop(uint32_t* pageDir);
     };
 
     extern VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
 
-    extern MemMap currProcMemMap;
-    extern MemMap commonMemMap;
+    extern MemMapManager cpu0_memmap;
 }
 
 //---------------------------------- IMPLEMENTATION -----------------------------------------

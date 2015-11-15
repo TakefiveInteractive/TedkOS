@@ -16,13 +16,13 @@ namespace arch
         Stacker(void* esp)
         {
             // In machine level a padding of 4 is enough.
-            top = (uint32_t)esp + 3;
+            top = (uint32_t)esp - 3;
         }
 
         Stacker(uint32_t esp)
         {
             // In machine level a padding of 4 is enough.
-            top = esp + 3;
+            top = esp - 3;
         }
 
         template <typename T>

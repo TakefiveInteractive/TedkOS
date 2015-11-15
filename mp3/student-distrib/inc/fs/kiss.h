@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inc/multiboot.h>
-#include <inc/lphashtable.h>
+#include <inc/klibs/lphashtable.h>
 #include <inc/klibs/lib.h>
 #include <inc/fs/filesystem.h>
 

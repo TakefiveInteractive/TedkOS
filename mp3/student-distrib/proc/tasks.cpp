@@ -1,13 +1,14 @@
 #include <inc/proc/tasks.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/new.h>
+#include <inc/syscalls/filesystem_wrapper.h>
 
 size_t ProcessDesc::nextNewProcess = 0;
-ProcessDesc **ProcessDesc::all_processes = NULL;
+ProcessDesc *static_all_processes[MAX_NUM_PROCESS] = { };
+ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 
-ProcessDesc::ProcessDesc(int32_t _upid)
+ProcessDesc::ProcessDesc(int32_t _upid) : fileDescs(), numFilesInDescs(0)
 {
-    memset(fileDescs, 0, sizeof(fileDescs));
     mainThreadInfo = new thread_kinfo;
 
     mainThreadInfo->pcb.esp0 = NULL;
@@ -16,26 +17,17 @@ ProcessDesc::ProcessDesc(int32_t _upid)
     mainThreadInfo->pcb.prev = NULL;
 
     upid = _upid;
-}
 
-void ProcessDesc::init()
-{
-    if(!all_processes)
-    {
-        all_processes = new ProcessDesc*[MAX_NUM_PROCESS];
-        memset(all_processes, 0, sizeof(all_processes));
-    }
+    init_fs_desc(*this);
 }
 
 ProcessDesc** ProcessDesc::all()
 {
-    init();
     return all_processes;
 }
 
 ProcessDesc& ProcessDesc::get(size_t uniq_pid)
 {
-    init();
     if(!all_processes[uniq_pid])
         all_processes[uniq_pid] = new ProcessDesc(uniq_pid);
     return *all_processes[uniq_pid];
@@ -48,7 +40,6 @@ int32_t ProcessDesc::getUniqPid()
 
 size_t ProcessDesc::newProcess()
 {
-    init();
     return nextNewProcess++;
 }
 

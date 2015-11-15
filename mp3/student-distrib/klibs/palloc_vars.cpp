@@ -5,8 +5,7 @@ namespace palloc {
 
 PhysPageManager<0xff000000> physPages(MultiBootInfoAddress);
 VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
-MemMap currProcMemMap;
-MemMap commonMemMap;
+MemMapManager cpu0_memmap(&cpu0_paging_lock);
 
 }
 

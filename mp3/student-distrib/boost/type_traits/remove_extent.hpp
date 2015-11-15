@@ -11,17 +11,17 @@
 
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
-#include <cstddef>
+#include <stdint.h>
 
 namespace boost {
 
 template <class T> struct remove_extent{ typedef T type; };
 
 #if !defined(BOOST_NO_ARRAY_TYPE_SPECIALIZATIONS)
-template <typename T, std::size_t N> struct remove_extent<T[N]> { typedef T type; };
-template <typename T, std::size_t N> struct remove_extent<T const[N]> { typedef T const type; };
-template <typename T, std::size_t N> struct remove_extent<T volatile [N]> { typedef T volatile type; };
-template <typename T, std::size_t N> struct remove_extent<T const volatile [N]> { typedef T const volatile type; };
+template <typename T, size_t N> struct remove_extent<T[N]> { typedef T type; };
+template <typename T, size_t N> struct remove_extent<T const[N]> { typedef T const type; };
+template <typename T, size_t N> struct remove_extent<T volatile [N]> { typedef T volatile type; };
+template <typename T, size_t N> struct remove_extent<T const volatile [N]> { typedef T const volatile type; };
 #if !BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x610)) && !defined(__IBMCPP__) &&  !BOOST_WORKAROUND(__DMC__, BOOST_TESTED_AT(0x840))
 template <typename T> struct remove_extent<T[]> { typedef T type; };
 template <typename T> struct remove_extent<T const[]> { typedef T const type; };

@@ -28,9 +28,9 @@ namespace boost{
    }
 
    template <class T> struct has_nothrow_destructor : public detail::has_nothrow_destructor_imp<T, boost::is_destructible<T>::value>{};
-   template <class T, std::size_t N> struct has_nothrow_destructor<T[N]> : public has_nothrow_destructor<T>{};
+   template <class T, size_t N> struct has_nothrow_destructor<T[N]> : public has_nothrow_destructor<T>{};
    template <class T> struct has_nothrow_destructor<T&> : public integral_constant<bool, false>{};
-#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES) 
+#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
    template <class T> struct has_nothrow_destructor<T&&> : public integral_constant<bool, false>{};
 #endif
 }

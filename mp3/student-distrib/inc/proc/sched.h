@@ -21,7 +21,7 @@ extern "C" {
     // Currently all switches are blocking:
     //      Parent process will wait for child to finish
     void prepareSwitchTo(int32_t pid);
-    target_esp0 schedDispatchDecision();
+    target_esp0 schedDispatchDecision(target_esp0 currentESP);
 #ifdef __cplusplus
 }
 #endif

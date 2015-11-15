@@ -27,6 +27,19 @@ class AutoSpinLock: NonCopyable // Scoped Lock idiom
             uint32_t flag = flag_;
             spin_unlock_irqrestore(lock_, flag);
         }
+
+        void waitUntil(bool (*fn) (void))
+        {
+            uint32_t flag = flag_;
+            spin_unlock_irqrestore(lock_, flag);
+            for (;;)
+            {
+                spin_lock_irqsave(lock_, flag);
+                if(fn()) break;
+                spin_unlock_irqrestore(lock_, flag);
+            }
+            flag_ = flag;
+        }
     private:
         spinlock_t *lock_;
         uint32_t flag_;
