@@ -2,6 +2,7 @@
 #define _INC_STACK_H_
 
 #include <inc/klibs/maybe.h>
+#include <inc/klibs/function.h>
 
 namespace util {
 
@@ -69,17 +70,17 @@ class Stack {
 
         T get(size_t x) const { return arr[x]; }
 
-        template<typename R> Maybe<R> first(Maybe<R> (*fn) (T));
-        template<typename R, typename S> Maybe<R> first(Maybe<R> (*fn) (T, S), S arg0) const;
+        template<typename R> Maybe<R> first(function<Maybe<R> (T x)> fn) const;
+        template<typename R, typename S> Maybe<R> first(function<Maybe<R> (T x, S y)> fn, S arg0) const;
 
-        template<typename R> Maybe<R> first(size_t &in_idx, Maybe<R> (*fn) (T));
-        template<typename R, typename S> Maybe<R> first(size_t &in_idx, Maybe<R> (*fn) (T, S), S arg0) const;
+        template<typename R> Maybe<R> first(size_t &in_idx, function<Maybe<R> (T x)> fn) const;
+        template<typename R, typename S> Maybe<R> first(size_t &in_idx, function<Maybe<R> (T x, S y)> fn, S arg0) const;
 
-        bool firstTrue(void *a, size_t &in_idx, bool (*fn) (T, void*))
+        bool firstTrue(size_t &in_idx, function<bool(T x)> fn) const
         {
             for (size_t i = 0; i < idx; i++)
             {
-                auto x = fn(arr[i], a);
+                auto x = fn(arr[i]);
                 if (x)
                 {
                     in_idx = i;
@@ -92,7 +93,7 @@ class Stack {
 
 template<typename T, size_t Num>
 template<typename R>
-Maybe<R> Stack<T, Num>::first(Maybe<R> (*fn) (T))
+Maybe<R> Stack<T, Num>::first(function<Maybe<R> (T x)> fn) const
 {
     size_t bla;
     return first(bla, fn);
@@ -100,7 +101,7 @@ Maybe<R> Stack<T, Num>::first(Maybe<R> (*fn) (T))
 
 template<typename T, size_t Num>
 template<typename R, typename S>
-Maybe<R> Stack<T, Num>::first(Maybe<R> (*fn) (T, S), S arg0) const
+Maybe<R> Stack<T, Num>::first(function<Maybe<R> (T x, S y)> fn, S arg0) const
 {
     size_t bla;
     return first(bla, fn, arg0);
@@ -108,7 +109,7 @@ Maybe<R> Stack<T, Num>::first(Maybe<R> (*fn) (T, S), S arg0) const
 
 template<typename T, size_t Num>
 template<typename R>
-Maybe<R> Stack<T, Num>::first(size_t &in_idx, Maybe<R> (*fn) (T))
+Maybe<R> Stack<T, Num>::first(size_t &in_idx, function<Maybe<R> (T x)> fn) const
 {
     for (size_t i = 0; i < idx; i++)
     {
@@ -121,7 +122,7 @@ Maybe<R> Stack<T, Num>::first(size_t &in_idx, Maybe<R> (*fn) (T))
 
 template<typename T, size_t Num>
 template<typename R, typename S>
-Maybe<R> Stack<T, Num>::first(size_t &in_idx, Maybe<R> (*fn) (T, S), S arg0) const
+Maybe<R> Stack<T, Num>::first(size_t &in_idx, function<Maybe<R> (T x, S y)> fn, S arg0) const
 {
     for (size_t i = 0; i < idx; i++)
     {
