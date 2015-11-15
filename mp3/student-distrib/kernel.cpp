@@ -30,8 +30,8 @@ using arch::CPUArchTypes::x86;
 
 /* Initialize runtime library */
 extern "C" void _init(void);
-extern "C" int32_t rtc_read (void* fd, uint8_t* buf, int32_t nbytes);
-extern "C" int32_t rtc_open (void *fd);
+extern int32_t rtc_read (void* fd, uint8_t* buf, int32_t nbytes);
+extern int32_t rtc_open (void *fd);
 
 // Make sure usable_mem has at least 12KB memory (later it will be 5MB memory.)
 // It uses the two aligned arrays declared below.
