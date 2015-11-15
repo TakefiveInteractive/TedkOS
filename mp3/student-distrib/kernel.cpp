@@ -31,6 +31,8 @@ using arch::CPUArchTypes::x86;
 
 /* Initialize runtime library */
 extern "C" void _init(void);
+extern "C" int32_t rtc_read (void* fd, uint8_t* buf, int32_t nbytes);
+extern "C" int32_t rtc_open (void *fd);
 
 // Make sure usable_mem has at least 12KB memory (later it will be 5MB memory.)
 // It uses the two aligned arrays declared below.
@@ -127,13 +129,29 @@ _entry (unsigned long magic, unsigned long addr)
 
     cli();
 
+    // Change to VGA Page 1
     real_context_t real_context;
+    real_context.ax=0x0501;
+    legacyInt(0x10, real_context);
+
+    // Write to VGA Page 1
+    real_context;
     real_context.ax=0x0A59;
-    real_context.bx=0;
+    real_context.bx=0x0100;
     real_context.cx=10;
     legacyInt(0x10, real_context);
 
-    for(volatile int32_t i=0; i<10000; i++) ;
+    // Wait for 3 second
+    sti();
+    rtc_open(NULL);
+    for(int i=0; i<6; i++)
+        rtc_read(NULL, NULL, 0);
+    cli();
+
+    // Change back to original Page 0
+    real_context;
+    real_context.ax=0x0500;
+    legacyInt(0x10, real_context);
 
     printf("\n\nBack to KERNEL!\n\n");
 
