@@ -59,8 +59,6 @@ namespace palloc
         void freePage(uint16_t pageIndex);
     };
 
-    extern PhysPageManager<0xff000000> physPages;
-
     // MaxSize and startAddr must be divisible by 4MB
     //   It allocates one 4MB virtual mem at a time.
     template <uint32_t startAddr, uint32_t MaxSize>
@@ -200,6 +198,12 @@ namespace palloc
         void stop(uint32_t* pageDir);
     };
 
+    // Assume the machine has at most 4080 MB memory.
+    //  Also: the manager will scan the actual memory map provided by multiboot info
+    //          to determine which parts of memory actually exist.
+    extern PhysPageManager<0xff000000> physPages;
+
+    // 0xc0000000 - 0x3fc00000 is the Last 1GB of virtual address space
     extern VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
 
     extern MemMapManager cpu0_memmap;
