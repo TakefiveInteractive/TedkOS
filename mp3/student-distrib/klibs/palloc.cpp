@@ -173,7 +173,7 @@ namespace palloc
 
     TinyMemMap::Mapping::Mapping()
         : phys (0xffff, 0), virt(NULL) {}
-    
+
     MemMapManager::MemMapManager(spinlock_t* cpu_cr3_lock)
     {
         loadedMap = 0;
@@ -243,12 +243,12 @@ namespace palloc
             if(ours && theirs)
                 return false;
         }
-        spareMemMaps[1-loadedMap].clear();
-        map.pdStack.first((Maybe<bool> (*)(TinyMemMap::Mapping, MemMapManager*))[](auto val, auto _this)
+        spareMemMaps[1 - loadedMap].clear();
+        map.pdStack.template first<bool>([this](auto val)
         {
-            _this->spareMemMaps[1 - _this->loadedMap].add(val.virt, val.phys);
+            spareMemMaps[1 - loadedMap].add(val.virt, val.phys);
             return Maybe<bool>(true);
-        }, this);
+        });
         spareMemMaps[1 - loadedMap] += commonMemMap;
         spareMemMaps[1 - loadedMap].loadToCR3();
         loadedMap = 1 - loadedMap;
