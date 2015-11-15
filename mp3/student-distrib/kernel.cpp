@@ -135,7 +135,6 @@ _entry (unsigned long magic, unsigned long addr)
     legacyInt(0x10, real_context);
 
     // Write to VGA Page 1
-    real_context;
     real_context.ax=0x0A59;
     real_context.bx=0x0100;
     real_context.cx=10;
@@ -149,7 +148,6 @@ _entry (unsigned long magic, unsigned long addr)
     cli();
 
     // Change back to original Page 0
-    real_context;
     real_context.ax=0x0500;
     legacyInt(0x10, real_context);
 
