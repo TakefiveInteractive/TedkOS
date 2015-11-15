@@ -14,6 +14,10 @@ void legacyInt(int16_t interrupt_num, real_context_t& regs)
 {
     uint32_t flags;
     spin_lock_irqsave(&legacyInt_lock, flags);
+    
+    // Pass in the parameters.
+    *(int16_t*)(REAL_MODE_DATA_BASE << 4) = interrupt_num;
+    *(real_context_t*)((REAL_MODE_DATA_BASE << 4) + sizeof(int16_t)) = regs;
     legacyInt_noLock(interrupt_num);
     memcpy(&regs, &cpu0_real_context, sizeof(real_context_t));
     spin_unlock_irqrestore(&legacyInt_lock, flags);
