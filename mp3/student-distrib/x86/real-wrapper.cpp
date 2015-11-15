@@ -88,23 +88,3 @@ void* RealModePtr::get32() const
     else return NULL;
 }
 
-// This function tries to find or create a virtual address for page 0MB - 4MB
-// If it returns 0xffffffff, then memory is used up.
-Maybe<uint32_t> RealModePtr::virtOfPage0() const
-{
-    // Search for a page from 0MB - 4MB (index=0)
-    PhysAddr page0(0, PG_WRITABLE);
-
-    VirtAddr base = cpu0_memmap.translate(page0);
-
-    if(base.addr == NULL)
-    {
-        base = virtLast1G.allocPage(1);
-        if(base.addr == NULL)
-            return Maybe<uint32_t>();
-        cpu0_memmap.addCommonPage(base, page0);
-        return Maybe<uint32_t>((uint32_t)(base.addr));
-    }
-    return Maybe<uint32_t>((uint32_t)(base.addr));
-}
-

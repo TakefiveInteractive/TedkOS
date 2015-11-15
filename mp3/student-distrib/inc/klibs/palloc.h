@@ -204,6 +204,10 @@ namespace palloc
         void stop(uint32_t* pageDir);
     };
 
+    // This function tries to find or create a virtual address for page 0MB - 4MB
+    // If it returns 0xffffffff, then memory is used up.
+    Maybe<uint32_t> virtOfPage0();
+
     // Assume the machine has at most 4080 MB memory.
     //  Also: the manager will scan the actual memory map provided by multiboot info
     //          to determine which parts of memory actually exist.
