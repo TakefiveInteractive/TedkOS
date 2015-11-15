@@ -76,7 +76,7 @@ class Stack {
         template<typename R> Maybe<R> first(size_t &in_idx, function<Maybe<R> (T x)> fn) const;
         template<typename R, typename S> Maybe<R> first(size_t &in_idx, function<Maybe<R> (T x, S y)> fn, S arg0) const;
 
-        bool firstTrue(size_t &in_idx, function<bool(T x)> fn)
+        bool firstTrue(size_t &in_idx, function<bool(T x)> fn) const
         {
             for (size_t i = 0; i < idx; i++)
             {
