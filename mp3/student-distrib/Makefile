@@ -4,7 +4,7 @@
 
 OUTDIR = output/
 
-release: CFLAGS_EXTRA = -flto -fuse-linker-plugin -O2
+release: CFLAGS_EXTRA = -flto -ffat-lto-objects -fwhole-program -O2
 release: bootimg
 
 # Flags to use when compiling, preprocessing, assembling, and linking
