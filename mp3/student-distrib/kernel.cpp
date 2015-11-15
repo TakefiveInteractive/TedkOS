@@ -247,9 +247,15 @@ _entry (unsigned long magic, unsigned long addr)
     proc.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
     proc.mainThreadInfo->pcb.isKernelThread = 1;
 
+    Maybe<uint32_t> vmemBase = virtOfPage0();
     char* vmemPage;
-    vmemPage = (char*) virtLast1G.allocPage(1);
-    cpu0_memmap.addCommonPage(VirtAddr(vmemPage), PhysAddr(PRE_INIT_VIDEO >> 22, PG_WRITABLE));
+    if(vmemBase)
+        vmemPage = (char*)(!vmemBase);
+    else
+    {
+        printf("Fail to allocate virtual mem space for VMEM\n");
+        asm volatile("1: hlt; jmp 1b;");
+    }
     video_mem = vmemPage + PRE_INIT_VIDEO;
 
     cpu0_memmap.start();
