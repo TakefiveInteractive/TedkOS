@@ -99,6 +99,7 @@ namespace vbe
         uint8_t  numPlanes;
         uint8_t  numImagePages;
         uint8_t  bitsPerPixel;
+        uint32_t physBase;                      // LFB (Linear Framebuffer) PHYSICAL addr
     };
 
     // WARNING: previously returned information is clobbered when calling any of 

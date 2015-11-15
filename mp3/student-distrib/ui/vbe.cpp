@@ -97,6 +97,7 @@ namespace vbe
         yRes = raw.YRes;
         numPlanes = raw.NumPlanes;
         numImagePages = raw.NumImagePages;
+        physBase = raw.PhysBase;
         bitsPerPixel = raw.BitsPerPixel;
         memset(RGBMask, 0, sizeof(RGBMask));
 
