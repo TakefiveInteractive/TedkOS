@@ -76,6 +76,9 @@ back_32bit_entry:
     popl  %ebx
     popl  %ebp
 
+    # restore idt
+    lidt  idtr_val
+
     # Up till now, we only have stack frame (for "leave") left
     leave
     ret

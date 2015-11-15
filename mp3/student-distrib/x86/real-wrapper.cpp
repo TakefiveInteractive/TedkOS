@@ -14,7 +14,8 @@ void legacyInt(int16_t interrupt_num, real_context_t& regs)
 {
     uint32_t flags;
     spin_lock_irqsave(&legacyInt_lock, flags);
-    legacyInt_noLock(interrupt_num, &regs);
+    legacyInt_noLock(interrupt_num);
+    memcpy(&regs, &cpu0_real_context, sizeof(real_context_t));
     spin_unlock_irqrestore(&legacyInt_lock, flags);
 }
 
