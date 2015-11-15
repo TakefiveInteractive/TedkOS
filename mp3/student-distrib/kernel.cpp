@@ -23,6 +23,7 @@
 #include <inc/x86/stacker.h>
 #include <inc/init.h>
 #include <inc/klibs/AutoSpinLock.h>
+#include <inc/x86/real.h>
 
 using namespace palloc;
 using arch::Stacker;
@@ -30,6 +31,8 @@ using arch::CPUArchTypes::x86;
 
 /* Initialize runtime library */
 extern "C" void _init(void);
+extern "C" int32_t rtc_read (void* fd, uint8_t* buf, int32_t nbytes);
+extern "C" int32_t rtc_open (void *fd);
 
 // Make sure usable_mem has at least 12KB memory (later it will be 5MB memory.)
 // It uses the two aligned arrays declared below.
@@ -96,6 +99,8 @@ _entry (unsigned long magic, unsigned long addr)
         ltr(KERNEL_TSS_SEL);
     }
 
+    prepareRealMode();
+
     /* Paging */
     kernel_enable_basic_paging();
 
@@ -120,7 +125,41 @@ _entry (unsigned long magic, unsigned long addr)
         printf(" ... OK!\n");
     }
 
+    // ---- TEST REAL MODE ----
+
+    cli();
+
+    // Change to VGA Page 1
+    real_context_t real_context;
+    real_context.ax=0x0501;
+    legacyInt(0x10, real_context);
+
+    // Write to VGA Page 1
+    real_context;
+    real_context.ax=0x0A59;
+    real_context.bx=0x0100;
+    real_context.cx=10;
+    legacyInt(0x10, real_context);
+
+    // Wait for 3 second
+    sti();
+    rtc_open(NULL);
+    for(int i=0; i<6; i++)
+        rtc_read(NULL, NULL, 0);
+    cli();
+
+    // Change back to original Page 0
+    real_context;
+    real_context.ax=0x0500;
+    legacyInt(0x10, real_context);
+
+    printf("\n\nBack to KERNEL!\n\n");
+
+    sti();
+
     // ----- START init as a KERNEL thread (because its code is in kernel code) -----
+
+    /*
 
     // should have loaded flags using cli_and_save or pushfl
     uint32_t flags = 0;
@@ -182,6 +221,8 @@ _entry (unsigned long magic, unsigned long addr)
     // This asm block changes everything but gcc should not worry about them.
 
     // This part should never be reached.
+
+    */
     printf("Halted.\n");
     asm volatile("1: hlt; jmp 1b;");
     init_main();
