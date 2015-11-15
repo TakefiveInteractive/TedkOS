@@ -43,6 +43,17 @@ void prepareRealMode()
     spin_unlock_irqrestore(&legacyInt_lock, flags);
 }
 
+extern "C" void __attribute__((used)) save_real_context(int16_t cpu, int16_t di, int16_t si, int16_t ax, int16_t bx, int16_t cx, int16_t dx)
+{
+    cpu0_real_context.ax = ax;
+    cpu0_real_context.bx = bx;
+    cpu0_real_context.cx = cx;
+    cpu0_real_context.dx = dx;
+    cpu0_real_context.di = di;
+    cpu0_real_context.si = si;
+    return;
+}
+
 extern "C" void __attribute__((used)) back_to_32bit()
 {
     printf("Hello from kernel!\n");
