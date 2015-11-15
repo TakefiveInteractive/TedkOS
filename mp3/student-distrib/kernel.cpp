@@ -164,6 +164,10 @@ _entry (unsigned long magic, unsigned long addr)
             printf("%c", vbeInfo.VbeSignature[i]);
         printf("\n");
         printf("\tVbeVersion = %d\n", vbeInfo.VbeVersion);
+        printf("\tVbeCapability = %d\n", vbeInfo.CapabilityFlags);
+
+        RealModePtr OEMString(vbeInfo.OemStringPtr);
+        printf("\tOEM = %s\n", (char*)OEMString.get32());
     }
 
     printf("\n\nBack to KERNEL!\n\n");

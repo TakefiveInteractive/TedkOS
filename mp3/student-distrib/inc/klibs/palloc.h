@@ -108,6 +108,7 @@ namespace palloc
         // Initialize an empty memory map;
         MemMap();
 
+        // Translating is only based on INDEX, NOT flags
         inline VirtAddr translate(const PhysAddr& addr);
         inline PhysAddr translate(const VirtAddr& addr);
 
@@ -181,6 +182,11 @@ namespace palloc
         spinlock_t* cpu_cr3_lock;
     public:
         MemMapManager(spinlock_t* cpu_cr3_lock);
+
+        // Translating is only based on INDEX, NOT flags
+        VirtAddr translate(const PhysAddr& addr);
+        PhysAddr translate(const VirtAddr& addr);
+
         bool addCommonPage(const VirtAddr& virt, const PhysAddr& phys);
 
         // delete the mapping ONLY.

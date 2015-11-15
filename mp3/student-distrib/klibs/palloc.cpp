@@ -305,4 +305,16 @@ namespace palloc
         RELOAD_CR3();
         isStarted = false;
     }
+
+    VirtAddr MemMapManager::translate(const PhysAddr& addr)
+    {
+        // << 22 turns index to the address of the 4MB (2^22) page
+        return spareMemMaps[loadedMap].translate(addr);
+    }
+
+    PhysAddr MemMapManager::translate(const VirtAddr& addr)
+    {
+        // >> 22 turns address of 4MB (2^22) page to the index
+        return spareMemMaps[loadedMap].translate(addr);
+    }
 }
