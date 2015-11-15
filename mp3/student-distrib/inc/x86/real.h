@@ -45,7 +45,7 @@ extern void prepareRealMode();
 extern void legacyInt(int16_t interrupt_num, real_context_t& regs);
 
 // This will CLI
-extern "C" void legacyInt_noLock(int16_t interrupt_num, real_context_t* regs);
+extern "C" void legacyInt_noLock(int16_t interrupt_num);
 
 extern spinlock_t legacyInt_lock;
 
