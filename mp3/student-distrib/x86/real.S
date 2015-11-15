@@ -136,7 +136,7 @@ real_mode_entry:
     movw  4+10, %di
     movw  4+12, %si
 
-    movw  4+16, %es
+    movw  4+14, %es
 
     # calls the jump table to call the correct interrupt NUMBER
     jmp %bp
