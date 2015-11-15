@@ -140,6 +140,22 @@ _entry (unsigned long magic, unsigned long addr)
     legacyInt(0x10, real_context);
     orig_mode = real_context.ax & 0x00ff;
 
+    LOAD_4MB_PAGE(0xFC000000>>22, 0xFC000000, PG_WRITABLE);
+    RELOAD_CR3();
+    for(int i=0; i < 512 * 768; i++)
+    {
+        uint8_t* pixel = (uint8_t*)(0xFC000000 + i * 3);
+        pixel[0] = 0xff;
+        pixel[1] = 0xff;
+        pixel[2] = 0x0;
+    }
+    for(int i=512*768; i < 1024 * 768; i++)
+    {
+        uint8_t* pixel = (uint8_t*)(0xFC000000 + i * 3);
+        pixel[0] = 0;
+        pixel[1] = 0xff;
+        pixel[2] = 0xff;
+    }
 
     // Change to HD Video Mode
     real_context.ax=0x4F02;
@@ -188,12 +204,11 @@ _entry (unsigned long magic, unsigned long addr)
             if(modeInfoMaybe)
             {
                 VideoModeInfo modeInfo(!modeInfoMaybe);
-                printf(" XRes=%d, YRes=%d, NumPlanes=%d, Color=%s, NumImagePages=%d\n", 
+                printf(" XRes=%d, YRes=%d, BaseAddr=%x, Color=%s\n", 
                     modeInfo.xRes,
                     modeInfo.yRes,
-                    modeInfo.numPlanes,
-                    modeInfo.RGBMask,
-                    modeInfo.numImagePages);
+                    modeInfo.physBase,
+                    modeInfo.RGBMask);
             }
             else printf("\t\tCan't get any information\n");
         }
