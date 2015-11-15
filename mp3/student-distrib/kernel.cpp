@@ -23,6 +23,7 @@
 #include <inc/init.h>
 #include <inc/klibs/AutoSpinLock.h>
 #include <inc/x86/real.h>
+#include <inc/ui/vbe.h>
 
 using namespace palloc;
 using arch::Stacker;
@@ -150,6 +151,18 @@ _entry (unsigned long magic, unsigned long addr)
     // Change back to original Page 0
     real_context.ax=0x0500;
     legacyInt(0x10, real_context);
+
+    auto vbeInfoMaybe = getVbeInfo();
+    if(vbeInfoMaybe)
+    {
+        VbeInfoBlock vbeInfo = !vbeInfoMaybe;
+        printf("VBE Information:\n");
+        printf("\tVbeSignature = ");
+        for(int i=0; i<4; i++)
+            printf("%c", vbeInfo.VbeSignature[i]);
+        printf("\n");
+        printf("\tVbeVersion = %d\n", vbeInfo.VbeVersion);
+    }
 
     printf("\n\nBack to KERNEL!\n\n");
 

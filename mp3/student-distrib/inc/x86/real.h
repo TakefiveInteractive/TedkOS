@@ -11,6 +11,9 @@
 #define REAL_MODE_CODE_BASE     0x7c0
 #define REAL_MODE_DATA_BASE     0x7d0
 
+// If you want to use %es, use this segment
+#define REAL_MODE_FREE_SEG      0x7e0
+
 #ifndef ASM
 
 #include <inc/x86/desc.h>
@@ -33,6 +36,7 @@ typedef struct
     int16_t si;
 
     // States that are WRITE-ONLY
+    // If you want to use %es, use REAL_MODE_FREE_SEG
     int16_t es;
 } real_context_t;
 
