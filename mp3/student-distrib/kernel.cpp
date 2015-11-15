@@ -24,10 +24,12 @@
 #include <inc/klibs/AutoSpinLock.h>
 #include <inc/x86/real.h>
 #include <inc/ui/vbe.h>
+#include <inc/klibs/stack.h>
 
 using namespace palloc;
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
+using namespace vbe;
 
 /* Initialize runtime library */
 extern "C" void _init(void);
@@ -141,7 +143,7 @@ _entry (unsigned long magic, unsigned long addr)
 
     // Change to HD Video Mode
     real_context.ax=0x4F02;
-    real_context.bx=0x811A;
+    real_context.bx=0x8118;
     legacyInt(0x10, real_context);
 
     // Wait for 3 second
@@ -158,32 +160,47 @@ _entry (unsigned long magic, unsigned long addr)
     auto vbeInfoMaybe = getVbeInfo();
     if(vbeInfoMaybe)
     {
-        VbeInfoBlock vbeInfo = !vbeInfoMaybe;
+        VbeInfo vbeInfo (!vbeInfoMaybe);
         printf("VBE Information:\n");
-        printf("\tVbeSignature = ");
+        if(vbeInfo.vbe2)
+            printf("\tSupports VBE 2.0\n");
+        if(vbeInfo.vbe3)
+            printf("\tSupports VBE 3.0\n");
+        printf("\tVbeCapability = %x\n", vbeInfo.capabilityFlags);
+        printf("\tOEM = %s\n", vbeInfo.oemString);
+        printf("\tTotal Memory = %d KB\n", ((uint32_t)(vbeInfo.totalMemory)) * 64);
+
+        // Wait for 2 second
+        sti();
+        rtc_open(NULL);
         for(int i=0; i<4; i++)
-            printf("%c", vbeInfo.VbeSignature[i]);
-        printf("\n");
-        printf("\tVbeVersion = %x\n", vbeInfo.VbeVersion);
-        printf("\tVbeCapability = %x\n", vbeInfo.CapabilityFlags);
+            rtc_read(NULL, NULL, 0);
+        cli();
 
-        RealModePtr OEMString(vbeInfo.OemStringPtr);
-        printf("\tOEM = %s\n", (char*)OEMString.get32());
+        printf("\tAvailable Video Modes:\n");
+        for(int i=0; vbeInfo.modeList[i]!=0xffff; i++)
+        {
+            uint16_t mode = vbeInfo.modeList[i];
+            printf("\t Mode %x:  ", mode);
 
-        printf("\tTotal Memory = %d KB\n", ((uint32_t)(vbeInfo.TotalMemory)) * 64);
-
-        printf("\t The following is valid only if VBE > 2.0\n");
-
-        printf("\tVendor Name = %s\n", (char*)RealModePtr(vbeInfo.VendorNamePtr).get32());
-
-        printf("\tAvailable Video Modes:\n\t\t");
-        uint16_t* modeList = (uint16_t*)RealModePtr(vbeInfo.VideoModePtr).get32();
-        for(int i=0; modeList[i]!=0xffff; i++)
-            printf("%x, ", modeList[i]);
+            // Query more about this mode
+            auto modeInfoMaybe = getVideoModeInfo(mode);
+            if(modeInfoMaybe)
+            {
+                VideoModeInfo modeInfo(!modeInfoMaybe);
+                printf(" XRes=%d, YRes=%d, NumPlanes=%d, Color=%s, NumImagePages=%d\n", 
+                    modeInfo.xRes,
+                    modeInfo.yRes,
+                    modeInfo.numPlanes,
+                    modeInfo.RGBMask,
+                    modeInfo.numImagePages);
+            }
+            else printf("\t\tCan't get any information\n");
+        }
         printf("\n");
     }
 
-    printf("\n\nBack to KERNEL!\n\n");
+    printf("Back to KERNEL!\n");
 
     sti();
 

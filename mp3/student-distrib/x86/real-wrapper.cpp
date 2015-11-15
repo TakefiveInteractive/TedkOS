@@ -68,7 +68,7 @@ extern "C" void __attribute__((used)) back_to_32bit()
     asm volatile("1: hlt; jmp 1b;");
 }
 
-RealModePtr::RealModePtr(uint16_t ptr_arr[])
+RealModePtr::RealModePtr(const uint16_t ptr_arr[])
 {
     off = ptr_arr[0];
     seg = ptr_arr[1];

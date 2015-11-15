@@ -38,7 +38,7 @@ public:
     // an array of two elements representing a far pointer.
     // This kind of arrays MUST come from VBE
     // It follows the little-endian rule
-    RealModePtr(uint16_t ptr_arr[]);
+    RealModePtr(const uint16_t ptr_arr[]);
 
     RealModePtr(uint16_t segment, uint16_t offset);
 
