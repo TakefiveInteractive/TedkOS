@@ -22,11 +22,17 @@ namespace palloc
 
     inline uint16_t PhysAddr::index() const
     {
+        // & 0xffc00000 >> 2 extracts the LOWEST 10 bits of the index of a 4MB page from PDE
+        // pde & 0x6000 extracts the HIGHER 2 bits of the index of a 4MB page from PDE
+        //      THUS: this operation extracts the index as a whole
         return ((pde & 0xffc00000) >> 22) | ((pde & 0x00006000) >> 3);
     }
 
     inline uint32_t PhysAddr::flags() const
     {
+        // all flags lie in the lower 13 bits of PDE
+        //  all information about index lies in higher 19 bits
+        //  Thus & 0x1fff extracts only the flags
         return pde & 0x1fff;
     }
 
@@ -40,17 +46,22 @@ namespace palloc
         memset(phys2virt, 0, sizeof(phys2virt));
         memset((void*)virt2phys, 0, sizeof(virt2phys));
         // load in the kernel code page.
+        // That is, map 4MB ~ 8MB (index 1) in virtual memory to 4MB ~ 8MB in Physical memory
+        //   We do not do the same thing for 0MB~4MB, because it is not needed,
+        //      and because if we do that it will cause *NULL to run without exception.
         phys2virt[1] = 1;
         virt2phys[1] = PhysAddr(1, 0).pde;
     }
 
     inline VirtAddr MemMap::translate(const PhysAddr& addr)
     {
+        // << 22 turns index to the address of the 4MB (2^22) page
         return VirtAddr((void*)(phys2virt[addr.index()] << 22));
     }
 
     inline PhysAddr MemMap::translate(const VirtAddr& addr)
     {
+        // >> 22 turns address of 4MB (2^22) page to the index
         return PhysAddr(virt2phys[((uint32_t)addr.addr)>>22]);
     }
 
@@ -59,6 +70,7 @@ namespace palloc
     //      This will return false. Otherwise returns true.
     bool MemMap::add(const VirtAddr& virt, const PhysAddr& phys)
     {
+        // >> 22 turns address of 4MB (2^22) page to the index
         uint16_t vidx = ((uint32_t)virt.addr) >> 22;
         if((virt2phys[vidx] & PAGING_PRESENT) || phys2virt[phys.index()] != 0)
             return false;
@@ -77,11 +89,15 @@ namespace palloc
     //      This will return false. Otherwise returns true.
     bool MemMap::operator -= (const VirtAddr& addr)
     {
+        // >> 22 turns address of 4MB (2^22) page to the index
         uint16_t vidx = ((uint32_t)addr.addr) >> 22;
         if(!(virt2phys[vidx] & PAGING_PRESENT))
             return false;
         uint16_t pidx = PhysAddr(virt2phys[vidx]).index();
 
+        // We ban mappings with virtual index = 0, they will enable dereferencing NULL
+        // We ban mappings with virtual index = 1, except for the ones we hard coded in
+        //      constructor. Otherwise kmalloc may use space where kernel code resides.
         if(vidx == 0 || vidx == 1)
             return false;
 
@@ -97,6 +113,9 @@ namespace palloc
             return false;
         uint16_t vidx = phys2virt[pidx];
 
+        // We ban mappings with virtual index = 0, they will enable dereferencing NULL
+        // We ban mappings with virtual index = 1, except for the ones we hard coded in
+        //      constructor. Otherwise kmalloc may use space where kernel code resides.
         if(vidx == 0 || vidx == 1)
             return false;
 
@@ -160,8 +179,10 @@ namespace palloc
 
     bool TinyMemMap::add(const VirtAddr& virt, const PhysAddr& phys)
     {
+        // >> 22 turns address of 4MB (2^22) page to the index
         if(isVirtAddrUsed.test(((uint32_t)virt.addr)>>22))
             return false;
+        // >> 22 turns address of 4MB (2^22) page to the index
         isVirtAddrUsed.set(((uint32_t)virt.addr)>>22);
         TinyMemMap::Mapping map(phys, virt);
         pdStack.push(map);
@@ -171,6 +192,10 @@ namespace palloc
     TinyMemMap::Mapping::Mapping(const PhysAddr& p, const VirtAddr& v)
         : phys (p), virt(v) {}
 
+    // physical address with index = 0xffff (our pde only uses 12 bits),
+    //  AND virtual address with addr = NULL ARE INVALID.
+    // we use the invalid values to initialize an entry of mapping,
+    //      unless user specifies more information (using the method above)
     TinyMemMap::Mapping::Mapping()
         : phys (0xffff, 0), virt(NULL) {}
 
@@ -191,6 +216,8 @@ namespace palloc
             commonMemMap -= virt;
             return false;
         }
+
+        // >> 22 turns address of 4MB (2^22) page to the index
         if(!isStarted)
             global_cr3val[((uint32_t)virt.addr) >> 22] = phys.pde;
         RELOAD_CR3();
@@ -208,6 +235,7 @@ namespace palloc
             commonMemMap.add(virt, phys);
             return false;
         }
+        // >> 22 turns address of 4MB (2^22) page to the index
         if(!isStarted)
             global_cr3val[((uint32_t)virt.addr) >> 22] = 0;
         RELOAD_CR3();
@@ -225,6 +253,7 @@ namespace palloc
             commonMemMap.add(virt, phys);
             return false;
         }
+        // >> 22 turns address of 4MB (2^22) page to the index
         if(!isStarted)
             global_cr3val[((uint32_t)virt.addr) >> 22] = 0;
         RELOAD_CR3();
@@ -236,6 +265,9 @@ namespace palloc
         if(!isStarted)
             return false;
         AutoSpinLock lock(cpu_cr3_lock);
+        // We START FROM 2, to ignore Kernel at 4MB ~ 8MB
+        //              and 0MB ~ 4MB is NOT PRESENT
+        //                  (UNLIKE kernel init stage where vmem -> somewhere 1MB)
         for(uint16_t i = 2; i < PD_NUM_ENTRIES; i++)
         {
             bool ours   = commonMemMap.virt2phys[i] & PAGING_PRESENT;
