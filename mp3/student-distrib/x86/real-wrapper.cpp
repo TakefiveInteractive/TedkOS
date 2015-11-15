@@ -1,4 +1,6 @@
 #include <inc/x86/real.h>
+#include <inc/klibs/palloc.h>
+using namespace palloc;
 
 // Don't call this.
 extern "C" void legacyInt_16bit_entry();
@@ -65,3 +67,44 @@ extern "C" void __attribute__((used)) back_to_32bit()
     printf("Hello from kernel!\n");
     asm volatile("1: hlt; jmp 1b;");
 }
+
+RealModePtr::RealModePtr(uint16_t ptr_arr[])
+{
+    off = ptr_arr[0];
+    seg = ptr_arr[1];
+}
+
+RealModePtr::RealModePtr(uint16_t segment, uint16_t offset)
+{
+    off = offset;
+    seg = segment;
+}
+
+void* RealModePtr::get32() const
+{
+    Maybe<uint32_t> base = virtOfPage0();
+    if(base)
+        return (void*)(!base + ((uint32_t) seg << 4) + (uint32_t) off);
+    else return NULL;
+}
+
+// This function tries to find or create a virtual address for page 0MB - 4MB
+// If it returns 0xffffffff, then memory is used up.
+Maybe<uint32_t> RealModePtr::virtOfPage0() const
+{
+    // Search for a page from 0MB - 4MB (index=0)
+    PhysAddr page0(0, PG_WRITABLE);
+
+    VirtAddr base = cpu0_memmap.translate(page0);
+
+    if(base.addr == NULL)
+    {
+        base = virtLast1G.allocPage(1);
+        if(base.addr == NULL)
+            return Maybe<uint32_t>();
+        cpu0_memmap.addCommonPage(base, page0);
+        return Maybe<uint32_t>((uint32_t)(base.addr));
+    }
+    return Maybe<uint32_t>((uint32_t)(base.addr));
+}
+

@@ -21,6 +21,30 @@
 #include <inc/klibs/lib.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/klibs/maybe.h>
+
+// Real Mode Pointer converter
+// It will automatically allocate virtual address if 0-4M is not mapped.
+class RealModePtr
+{
+private:
+    uint16_t seg, off;
+
+    // This function tries to find or create a virtual address for page 0MB - 4MB
+    // If it returns 0xffffffff, then memory is used up.
+    Maybe<uint32_t> virtOfPage0() const;
+public:
+
+    // an array of two elements representing a far pointer.
+    // This kind of arrays MUST come from VBE
+    // It follows the little-endian rule
+    RealModePtr(uint16_t ptr_arr[]);
+
+    RealModePtr(uint16_t segment, uint16_t offset);
+
+    // If it returns NULL, then memory is used up.
+    void* get32() const;
+};
 
 // !!!!! DO NOT CHANGE the order, content OF THIS STRUCT !!!!!
 typedef struct
