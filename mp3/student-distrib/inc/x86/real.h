@@ -20,10 +20,10 @@
 // !!!!! DO NOT CHANGE the order, content OF THIS STRUCT !!!!!
 typedef struct
 {
-    // 32-bit states
+    // 32-bit states    (DO NOT TOUCH!)
     int32_t esp;
 
-    // real mode states
+    // real mode states (READ & WRITE)
     int16_t ax;
     int16_t bx;
     int16_t cx;
@@ -31,6 +31,9 @@ typedef struct
 
     int16_t di;
     int16_t si;
+
+    // States that are WRITE-ONLY
+    int16_t es;
 } real_context_t;
 
 // Prepare Real Mode:
