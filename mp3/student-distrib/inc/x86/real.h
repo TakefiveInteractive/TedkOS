@@ -19,6 +19,8 @@
 #include <inc/x86/desc.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/klibs/lib.h>
+#include <stddef.h>
+#include <stdint.h>
 
 // !!!!! DO NOT CHANGE the order, content OF THIS STRUCT !!!!!
 typedef struct
