@@ -78,7 +78,7 @@ namespace vbe
     }
     VbeInfo::~VbeInfo()
     {
-        delete oemString;
+        delete[] oemString;
         delete[] modeList;
     }
 
