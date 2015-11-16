@@ -16,7 +16,7 @@ void legacyInt(int16_t interrupt_num, real_context_t& regs)
 {
     uint32_t flags;
     spin_lock_irqsave(&legacyInt_lock, flags);
-    
+
     // Pass in the parameters.
     *(int16_t*)(RealModePtr(REAL_MODE_DATA_BASE, 0).get32()) = interrupt_num;
     *(real_context_t*)(RealModePtr(REAL_MODE_DATA_BASE, sizeof(int16_t)).get32()) = regs;

@@ -13,12 +13,6 @@ using namespace boost;
 using syscall_exec::sysexec;
 using syscall_halt::syshalt;
 
-// int32_t sysHalt(uint32_t p)
-// {
-//     printf("Ooo.. Halt with %d\n", p);
-//     return 0;
-// }
-
 template<typename F>
 F super_cast(uint32_t input)
 {
