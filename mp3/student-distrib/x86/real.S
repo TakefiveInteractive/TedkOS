@@ -21,15 +21,14 @@ legacyInt_noLock:
     pushl %esi
     pushl %edi
 
-    movl  %cr0, %eax
-    pushl %eax
+    movl  %cr3, %eax
+    movl  %eax, 14+4+cpu0_real_context
 
     movl  %cr4, %eax
-    pushl %eax
+    movl  %eax, 14+4+4+cpu0_real_context
 
-    movl  %cr3, %eax
-    pushl %eax
-
+    movl  %cr0, %eax
+    movl  %eax, 14+4+8+cpu0_real_context
 
     # Currently the kernel stack looks like:
     # [ leave, ebp (ours), ebx, esi, edi, cr0, cr4, cr3 -> 
@@ -63,13 +62,13 @@ back_32bit_entry:
     movw  %dx, 10+cpu0_real_context
     movw  %di, 12+cpu0_real_context
     movw  %si, 14+cpu0_real_context
-
-    popl  %eax
-    popl  %ecx
-    popl  %edx
+    movl  14+4+cpu0_real_context, %eax
+    movl  14+4+4+cpu0_real_context, %ecx
+    movl  14+4+8+cpu0_real_context, %edx
     movl  %eax, %cr3
     movl  %ecx, %cr4
     movl  %edx, %cr0
+
     popl  %edi
     popl  %esi
     popl  %ebx

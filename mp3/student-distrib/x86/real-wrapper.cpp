@@ -18,8 +18,8 @@ void legacyInt(int16_t interrupt_num, real_context_t& regs)
     spin_lock_irqsave(&legacyInt_lock, flags);
     
     // Pass in the parameters.
-    *(int16_t*)(REAL_MODE_DATA_BASE << 4) = interrupt_num;
-    *(real_context_t*)((REAL_MODE_DATA_BASE << 4) + sizeof(int16_t)) = regs;
+    *(int16_t*)(RealModePtr(REAL_MODE_DATA_BASE, 0).get32()) = interrupt_num;
+    *(real_context_t*)(RealModePtr(REAL_MODE_DATA_BASE, sizeof(int16_t)).get32()) = regs;
     legacyInt_noLock(interrupt_num);
     memcpy(&regs, &cpu0_real_context, sizeof(real_context_t));
     spin_unlock_irqrestore(&legacyInt_lock, flags);
@@ -45,7 +45,7 @@ void prepareRealMode()
     */
 
     // Then we copy legacyInt_16bit_entry to somewhere < 1MB
-    memcpy((void*)(REAL_MODE_CODE_BASE << 4), (void*)legacyInt_16bit_entry, REAL_MODE_SEG_LEN);
+    memcpy((void*)RealModePtr(REAL_MODE_CODE_BASE, 0).get32(), (void*)legacyInt_16bit_entry, REAL_MODE_SEG_LEN);
 
     spin_unlock_irqrestore(&legacyInt_lock, flags);
 }
@@ -59,13 +59,6 @@ extern "C" void __attribute__((used)) save_real_context(int16_t cpu, int16_t di,
     cpu0_real_context.di = di;
     cpu0_real_context.si = si;
     return;
-}
-
-extern "C" void __attribute__((used)) back_to_32bit()
-{
-    printf("Hello from kernel!\n");
-    printf("Hello from kernel!\n");
-    asm volatile("1: hlt; jmp 1b;");
 }
 
 RealModePtr::RealModePtr(const uint16_t ptr_arr[])
