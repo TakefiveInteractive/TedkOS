@@ -85,15 +85,13 @@ __attribute__((used)) void init_main()
     LOAD_4MB_PAGE(Mode118Mem>>22, Mode118Mem, PG_WRITABLE);
     RELOAD_CR3();
 
-    //LOAD_4MB_PAGE(0x800000 >> 22, 0x800000, PG_WRITABLE);
-    //LOAD_4MB_PAGE(0xC00000 >> 22, 0xC00000, PG_WRITABLE);
-
     if(!cpu0_memmap.addCommonPage(VirtAddr((void *)0x800000), PhysAddr(2, PG_WRITABLE)))
         printf("fail to allocate memory");
     if(!cpu0_memmap.addCommonPage(VirtAddr((void *)0xC00000), PhysAddr(3, PG_WRITABLE)))
         printf("fail to allocate memory");
 
     LOAD_4MB_PAGE(0x1000000 >> 22, 0x1000000, PG_WRITABLE);
+    RELOAD_CR3();
     uint8_t *nikita = (uint8_t *)0x1000000;
 
     dentry_t dentry;
