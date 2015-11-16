@@ -60,6 +60,11 @@ typedef struct
     // States that are WRITE-ONLY
     // If you want to use %es, use REAL_MODE_FREE_SEG
     int16_t es;
+
+    // 32-bit states    (DO NOT TOUCH!)
+    int32_t cr3;
+    int32_t cr4;
+    int32_t cr0;
 } real_context_t;
 
 // Prepare Real Mode:

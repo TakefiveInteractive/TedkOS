@@ -270,7 +270,7 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
             // This is an available memory.
             if(mmap->type == 1)
             {
-                for(uint32_t idx = start_idx; idx < end_idx; idx++)
+                for(uint32_t idx = start_idx; idx < end_idx; idx++) if(idx != 0 && idx != 1)
                 {
                     if(!isPhysAddrFree.test(idx))
                     {
