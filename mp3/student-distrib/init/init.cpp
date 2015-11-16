@@ -8,6 +8,7 @@
 #include <inc/ui/vbe.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <inc/fs/kiss_wrapper.h>
 
 using namespace vbe;
 using namespace palloc;
@@ -49,7 +50,7 @@ __attribute__((used)) void init_main()
             if(modeInfoMaybe)
             {
                 VideoModeInfo modeInfo(!modeInfoMaybe);
-                printf(" XRes=%d, YRes=%d, BaseAddr=%x, Color=%s\n", 
+                printf(" XRes=%d, YRes=%d, BaseAddr=%x, Color=%s\n",
                     modeInfo.xRes,
                     modeInfo.yRes,
                     modeInfo.physBase,
@@ -83,19 +84,33 @@ __attribute__((used)) void init_main()
 
     LOAD_4MB_PAGE(Mode118Mem>>22, Mode118Mem, PG_WRITABLE);
     RELOAD_CR3();
-    for(int i=0; i < 512 * 768; i++)
+
+    //LOAD_4MB_PAGE(0x800000 >> 22, 0x800000, PG_WRITABLE);
+    //LOAD_4MB_PAGE(0xC00000 >> 22, 0xC00000, PG_WRITABLE);
+
+    if(!cpu0_memmap.addCommonPage(VirtAddr((void *)0x800000), PhysAddr(2, PG_WRITABLE)))
+        printf("fail to allocate memory");
+    if(!cpu0_memmap.addCommonPage(VirtAddr((void *)0xC00000), PhysAddr(3, PG_WRITABLE)))
+        printf("fail to allocate memory");
+
+    LOAD_4MB_PAGE(0x1000000 >> 22, 0x1000000, PG_WRITABLE);
+    uint8_t *nikita = (uint8_t *)0x1000000;
+
+    dentry_t dentry;
+    filesystem::read_dentry((uint8_t*)"landscape", &dentry);
+    filesystem::read_data(dentry.inode, 0, nikita, 3145728);
+
+    printf("Read file\n");
+
+    for (size_t row = 0; row < 768; row++)
     {
-        uint8_t* pixel = (uint8_t*)(Mode118Mem + i * 3);
-        pixel[0] = 0xff;
-        pixel[1] = 0xff;
-        pixel[2] = 0x0;
-    }
-    for(int i=512*768; i < 1024 * 768; i++)
-    {
-        uint8_t* pixel = (uint8_t*)(Mode118Mem + i * 3);
-        pixel[0] = 0;
-        pixel[1] = 0xff;
-        pixel[2] = 0xff;
+        for (size_t col = 0; col < 1024; col++)
+        {
+            uint8_t *pixel = (uint8_t *)(Mode118Mem + (col + row * 1024) * 3);
+            pixel[2] = nikita[(col + row * 1024) * 4];
+            pixel[1] = nikita[(col + row * 1024) * 4 + 1];
+            pixel[0] = nikita[(col + row * 1024) * 4 + 2];
+        }
     }
 
     // Change to HD Video Mode
