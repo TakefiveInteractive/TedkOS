@@ -138,7 +138,7 @@ real_mode_entry:
     movw  4+14, %es
 
     # calls the jump table to call the correct interrupt NUMBER
-    jmp %bp
+    jmp *%bp
 
 start_return_to_protected:
     # ----- From now on: Working on returning to protected mode -----
