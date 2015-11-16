@@ -250,13 +250,23 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
                 end_high++;
             end_low = start_low + mmap->length_low;
 
+            // Avoid addition overflow.
             if(((1 - (1<<10)) << 22) & start_high)
+                continue;
+
+            // Avoid memory larger than 4GB
+            if(start_high > 0)
                 continue;
             start_idx = (start_low >> 22) | (start_high << 10);
 
+            // Avoid addition overflow.
             if(((1 - (1<<10)) << 22) & end_high)
                 continue;
-            end_idx = (end_low >> 22) | (end_high << 10);
+
+            // Avoid memory larger than 4GB
+            if(end_high == 0)
+                end_idx = (end_low >> 22) | (end_high << 10);
+            else end_idx = 0xffc;
 
             // This is an available memory.
             if(mmap->type == 1)
