@@ -49,13 +49,15 @@ uint32_t basicPageTable0[1024] __attribute__((aligned (4096)));
 _entry (unsigned long magic, unsigned long addr)
 {
     /* First thing we do is to assign the global MBI */
-    MultiBootInfoAddress = reinterpret_cast<multiboot_info_t *>(addr);
+    MultiBootInfoAddress = (multiboot_info_t *) addr;
 
     /* Clear the screen. */
     clear();
 
+    printf ("mbi = 0x%#x\n", (uint32_t) addr);
+
     /* Print boot info */
-    mbi_info(magic, addr);
+    //mbi_info(magic, addr);
 
     /* Construct an LDT entry in the GDT */
     {
@@ -101,8 +103,6 @@ _entry (unsigned long magic, unsigned long addr)
         ltr(KERNEL_TSS_SEL);
     }
 
-    prepareRealMode();
-
     /* Paging */
     kernel_enable_basic_paging();
 
@@ -130,6 +130,10 @@ _entry (unsigned long magic, unsigned long addr)
 
     // ---- TEST REAL MODE ----
 
+
+    // Call this only after C++ intialization has been completed.
+    prepareRealMode();
+
     cli();
 
     auto vbeInfoMaybe = getVbeInfo();
@@ -144,13 +148,6 @@ _entry (unsigned long magic, unsigned long addr)
         printf("\tVbeCapability = %x\n", vbeInfo.capabilityFlags);
         printf("\tOEM = %s\n", vbeInfo.oemString);
         printf("\tTotal Memory = %d KB\n", ((uint32_t)(vbeInfo.totalMemory)) * 64);
-
-        // Wait for 2 second
-        sti();
-        rtc_open(NULL);
-        for(int i=0; i<4; i++)
-            rtc_read(NULL, NULL, 0);
-        cli();
 
         printf("\tAvailable Video Modes:\n");
         for(int i=0; vbeInfo.modeList[i]!=0xffff; i++)

@@ -232,10 +232,9 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
     if (CHECK_FLAG (mbi->flags, 6))
     {
         memory_map_t *mmap;
-
         for (mmap = (memory_map_t *) mbi->mmap_addr;
-                (unsigned long) mmap < mbi->mmap_addr + mbi->mmap_length;
-                mmap = (memory_map_t *) ((unsigned long) mmap
+                (uint32_t) mmap < mbi->mmap_addr + mbi->mmap_length;
+                mmap = (memory_map_t *) ((uint32_t) mmap
                     + mmap->size + sizeof (mmap->size)))
         {
             uint32_t start_low, start_high, end_low, end_high;
@@ -243,6 +242,11 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
             // [start, end)
             start_low = mmap->base_addr_low;
             start_high = mmap->base_addr_high;
+
+            // Avoid memory larger than 4GB
+            if(start_high > 0)
+                continue;
+                
             if(mmap->length_high > (0xffffffff - start_high))
                 continue;
             end_high = start_high + mmap->length_high;
@@ -250,13 +254,8 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
                 end_high++;
             end_low = start_low + mmap->length_low;
 
-            // Avoid addition overflow.
-            if(((1 - (1<<10)) << 22) & start_high)
-                continue;
+            printf("start = %x %x\n", start_high, start_low);
 
-            // Avoid memory larger than 4GB
-            if(start_high > 0)
-                continue;
             start_idx = (start_low >> 22) | (start_high << 10);
 
             // Avoid addition overflow.
@@ -273,8 +272,11 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
             {
                 for(uint32_t idx = start_idx; idx < end_idx; idx++)
                 {
-                    isPhysAddrFree.set(idx);
-                    freePhysAddr.push(idx);
+                    if(!isPhysAddrFree.test(idx))
+                    {
+                        isPhysAddrFree.set(idx);
+                        freePhysAddr.push(idx);
+                    }
                 }
             }
         }
