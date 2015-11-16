@@ -10,7 +10,7 @@ spinlock_t legacyInt_lock = SPINLOCK_UNLOCKED;
 // Allocate 1KB for real_mode stack
 volatile uint16_t real_mode_stack[512] __attribute__((aligned (1024)));
 
-real_context_t cpu0_real_context;
+real_context_t cpu0_real_context __attribute__((used));
 
 void legacyInt(int16_t interrupt_num, real_context_t& regs)
 {
