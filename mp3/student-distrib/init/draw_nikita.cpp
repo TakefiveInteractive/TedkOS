@@ -10,10 +10,23 @@
 using namespace vbe;
 using namespace palloc;
 
+void paint_screen(uint8_t *pixel, uint8_t *source)
+{
+    for (size_t x = 0; x < 1024 * 768; x++)
+    {
+        pixel[2] = source[0];
+        pixel[1] = source[1];
+        pixel[0] = source[2];
+        pixel += 3;
+        source += 4;
+    }
+}
+
 void draw_nikita()
 {
     int32_t keyb = fs_open("/dev/keyb");
-    char buf[2];
+    int32_t rtc =fs_open("/dev/rtc");
+    char buf[32];
 
     printf("keyboard opened\n");
 
@@ -54,11 +67,6 @@ void draw_nikita()
         printf("\n");
     }
 
-    // Wait for user
-    sti();
-    fs_read(keyb, buf, 1);
-    cli();
-
 
     //------------- Try to draw 1024 * 768 HD Graphics ----------------
     auto Mode118Maybe = getVideoModeInfo(0x118);
@@ -93,20 +101,9 @@ void draw_nikita()
     filesystem::read_dentry((uint8_t*)"landscape", &dentry);
     filesystem::read_data(dentry.inode, 0, nikita, 1024 * 768 * 4);
 
-    printf("Read file\n");
+    uint8_t *pixel = (uint8_t *) Mode118Mem;
 
-    uint8_t *pixel = (uint8_t *)Mode118Mem;
-
-    for (volatile size_t row = 0; row < 768; row++)
-    {
-        for (size_t col = 0; col < 1024; col++)
-        {
-            size_t idx = (col + row * 1024) * 3;
-            pixel[idx + 2] = nikita[(col + row * 1024) * 4];
-            pixel[idx + 1] = nikita[(col + row * 1024) * 4 + 1];
-            pixel[idx + 0] = nikita[(col + row * 1024) * 4 + 2];
-        }
-    }
+    paint_screen(pixel, nikita);
 
     // Change to HD Video Mode
     real_context.ax=0x4F02;
@@ -127,4 +124,5 @@ void draw_nikita()
     sti();
 
     fs_close(keyb);
+    fs_close(rtc);
 }
