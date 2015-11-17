@@ -83,24 +83,28 @@ void draw_nikita()
     if(!cpu0_memmap.addCommonPage(VirtAddr((void *)0xC00000), PhysAddr(3, PG_WRITABLE)))
         printf("fail to allocate memory");
 
-    LOAD_4MB_PAGE(0x1000000 >> 22, 0x1000000, PG_WRITABLE);
+    auto physAddr = physPages.allocPage(1);
+
+    LOAD_4MB_PAGE(physAddr, physAddr << 22, PG_WRITABLE);
     RELOAD_CR3();
-    uint8_t *nikita = (uint8_t *)0x1000000;
+    uint8_t *nikita = (uint8_t *)((uint32_t)physAddr << 22);
 
     dentry_t dentry;
     filesystem::read_dentry((uint8_t*)"landscape", &dentry);
-    filesystem::read_data(dentry.inode, 0, nikita, 3145728);
+    filesystem::read_data(dentry.inode, 0, nikita, 1024 * 768 * 4);
 
     printf("Read file\n");
 
-    for (size_t row = 0; row < 768; row++)
+    uint8_t *pixel = (uint8_t *)Mode118Mem;
+
+    for (volatile size_t row = 0; row < 768; row++)
     {
         for (size_t col = 0; col < 1024; col++)
         {
-            uint8_t *pixel = (uint8_t *)(Mode118Mem + (col + row * 1024) * 3);
-            pixel[2] = nikita[(col + row * 1024) * 4];
-            pixel[1] = nikita[(col + row * 1024) * 4 + 1];
-            pixel[0] = nikita[(col + row * 1024) * 4 + 2];
+            size_t idx = (col + row * 1024) * 3;
+            pixel[idx + 2] = nikita[(col + row * 1024) * 4];
+            pixel[idx + 1] = nikita[(col + row * 1024) * 4 + 1];
+            pixel[idx + 0] = nikita[(col + row * 1024) * 4 + 2];
         }
     }
 

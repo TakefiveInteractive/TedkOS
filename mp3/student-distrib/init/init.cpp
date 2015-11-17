@@ -7,8 +7,6 @@
 #include <stddef.h>
 #include "draw_nikita.h"
 
-using namespace palloc;
-
 __attribute__((used)) void init_main()
 {
     printf("Hello!\nI am the idle process!\nI am a kernel process!\nI am every other process's parent!\n");
@@ -18,7 +16,7 @@ __attribute__((used)) void init_main()
     /* Enable interrupts */
     sti();
 
-    while(1)
+    for (;;)
     {
         printf("Starting shell ...\n");
 
