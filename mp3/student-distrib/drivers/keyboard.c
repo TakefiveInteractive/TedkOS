@@ -103,8 +103,6 @@ DEFINE_DRIVER_REMOVE(kb) {
  */
 int kb_handler(int irq, unsigned int saved_reg){
 
-    printf("asdss\n");
-
 	uint8_t keyboard_scancode;
     uint32_t flag;
     spin_lock_irqsave(&keyboard_lock, flag);
