@@ -1,4 +1,5 @@
 
+#include <inc/drivers/mouse.h>
 #include <inc/drivers/common.h>
 #include <inc/drivers/rtc.h>
 #include <inc/drivers/keyboard.h>
@@ -16,7 +17,8 @@
 driver_t known_drivers[] = {
     ADD_DRIVER(term, "Terminal driver"),
 	ADD_DRIVER(rtc, "Real Time Clock driver"),
-	ADD_DRIVER(kb, "Keyboard")
+	ADD_DRIVER(kb, "Keyboard"),
+	ADD_DRIVER(mouse,"Mouse")
 	/*, ADD_DRIVER(keyboard)*/
 };
 
