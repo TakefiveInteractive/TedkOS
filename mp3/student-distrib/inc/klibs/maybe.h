@@ -14,7 +14,7 @@ public:
     Maybe() : exists(false) { }
     Maybe(const T& bla) { val = bla; exists = true; }
 
-    const T operator ! () const {
+    const T operator + () const {
         if (!exists)
         {
             // Trigger an exception

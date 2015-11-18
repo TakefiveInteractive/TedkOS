@@ -329,9 +329,10 @@ namespace palloc
 
         if(base.addr == NULL)
         {
-            base = virtLast1G.allocPage(1);
-            if(base.addr == NULL)
+            auto newAddr = virtLast1G.allocPage(true);
+            if (!newAddr)
                 return Maybe<uint32_t>();
+            base.addr = +newAddr;
             cpu0_memmap.addCommonPage(base, page0);
             return Maybe<uint32_t>((uint32_t)(base.addr));
         }

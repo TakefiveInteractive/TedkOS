@@ -16,5 +16,15 @@ extern const unsigned long int ErrorCodeInExceptionBitField;
  */
 extern "C" void exception_handler_with_number(size_t index, unsigned long int code, idt_stack_t *info);
 
+template <uint32_t idx>
+void trigger_exception()
+{
+    __asm__ __volatile__ (
+        "int %0;\n"
+        :
+        : "i" (idx)
+        : "cc");
+}
+
 #endif
 

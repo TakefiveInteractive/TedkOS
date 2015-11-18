@@ -6,6 +6,7 @@
 #include <inc/klibs/bitset.h>
 #include <inc/klibs/stack.h>
 #include <inc/klibs/maybe.h>
+#include <inc/klibs/memory.h>
 
 #ifdef __cplusplus
 namespace memory {
@@ -28,8 +29,6 @@ class ObjectPool {
         void* operator new(size_t s, void* addr) { return addr; }
 };
 
-constexpr size_t operator "" _KB(unsigned long long len) { return len * 1024; }
-constexpr size_t operator "" _MB(unsigned long long len) { return len * 1024 * 1024; }
 
 template<size_t ElementSize>
 constexpr size_t PageSizeOf =
