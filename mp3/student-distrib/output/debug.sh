@@ -23,8 +23,9 @@ case "$(uname -s)" in
                 rm -rf ~/mnt/tedkos
             fi
             mkdir -p ~/mnt/tedkos
-            disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount -section 63 ./osx/tedkos.img)
-            mount -w -t msdos $disk ~/mnt/tedkos
+            disk=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount ./osx/tedkos.img)
+            disk=$(echo $disk | awk '{print $1}')
+            mount -w -t msdos ${disk}s1 ~/mnt/tedkos
             cp ./bootimg ~/mnt/tedkos/
             cp ./filesys_img ~/mnt/tedkos/
             sync
