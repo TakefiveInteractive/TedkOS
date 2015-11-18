@@ -6,6 +6,7 @@
 #include <inc/x86/real.h>
 #include <inc/klibs/palloc.h>
 #include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/x86/err_handler.h>
 
 using namespace vbe;
 using namespace palloc;
@@ -35,7 +36,7 @@ void draw_nikita()
     auto vbeInfoMaybe = getVbeInfo();
     if(vbeInfoMaybe)
     {
-        VbeInfo vbeInfo (!vbeInfoMaybe);
+        VbeInfo vbeInfo (+vbeInfoMaybe);
         printf("VBE Information:\n");
         if(vbeInfo.vbe2)
             printf("\tSupports VBE 2.0\n");
@@ -55,7 +56,7 @@ void draw_nikita()
             auto modeInfoMaybe = getVideoModeInfo(mode);
             if(modeInfoMaybe)
             {
-                VideoModeInfo modeInfo(!modeInfoMaybe);
+                VideoModeInfo modeInfo(+modeInfoMaybe);
                 printf(" XRes=%d, YRes=%d, BaseAddr=%x, Color=%s\n",
                     modeInfo.xRes,
                     modeInfo.yRes,
@@ -72,7 +73,7 @@ void draw_nikita()
     auto Mode118Maybe = getVideoModeInfo(0x118);
     if(Mode118Maybe) ;
     else printf("1024*768 24bits mode is NOT supported.\n");
-    VideoModeInfo Mode118(!Mode118Maybe);
+    VideoModeInfo Mode118(+Mode118Maybe);
     uint32_t Mode118Mem = Mode118.physBase;
 
     uint16_t orig_mode;
@@ -86,16 +87,12 @@ void draw_nikita()
     LOAD_4MB_PAGE(Mode118Mem>>22, Mode118Mem, PG_WRITABLE);
     RELOAD_CR3();
 
-    if(!cpu0_memmap.addCommonPage(VirtAddr((void *)0x800000), PhysAddr(2, PG_WRITABLE)))
-        printf("fail to allocate memory");
-    if(!cpu0_memmap.addCommonPage(VirtAddr((void *)0xC00000), PhysAddr(3, PG_WRITABLE)))
-        printf("fail to allocate memory");
+    auto physAddr = physPages.allocPage(true);
+    if (!physAddr) trigger_exception<27>();
 
-    auto physAddr = physPages.allocPage(1);
-
-    LOAD_4MB_PAGE(physAddr, physAddr << 22, PG_WRITABLE);
+    LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
     RELOAD_CR3();
-    uint8_t *nikita = (uint8_t *)((uint32_t)physAddr << 22);
+    uint8_t *nikita = (uint8_t *)((uint32_t)(+physAddr) << 22);
 
     dentry_t dentry;
     filesystem::read_dentry((uint8_t*)"landscape", &dentry);

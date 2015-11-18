@@ -1,18 +1,18 @@
 #include <inc/fs/kiss.h>
 #include <inc/mbi_info.h>
+#include <inc/klibs/memory.h>
+#include <inc/x86/err_handler.h>
+#include <inc/klibs/palloc.h>
+#include <boost/unique_ptr.hpp>
+
+using boost::unique_ptr;
+using memory::operator "" _MB;
 
 namespace filesystem {
 
 static const int SPECIAL_DEVICE = 0;
 static const int DIRECTORY = 1;
 static const int NORMAL_FILE = 2;
-
-uint32_t fsceil(uint32_t len, uint32_t blkSize)
-{
-    uint32_t remainder = len % blkSize;
-    if (remainder > 0) return len / blkSize + 1;
-    return len / blkSize;
-}
 
 void KissFS::init()
 {
@@ -85,7 +85,7 @@ int32_t KissFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf,
 
 bool KissFS::close(FsSpecificData *fdData)
 {
-    //TODO: clean up memory
+    // TODO: clean up memory
     return true;
 }
 
@@ -93,8 +93,38 @@ struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
 
 void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
 {
-    this->imageStartingAddress = startingAddr;
-    Reader reader(startingAddr);
+    // map the module to virtual addresses
+    uint32_t numPages = memory::ceil((uint32_t)(endingAddr - startingAddr), 4_MB);
+    unique_ptr<uint16_t[]> physPageIndices(new uint16_t[numPages]);
+    for (size_t i = 0; i < numPages; i++)
+    {
+        auto physAddr = palloc::physPages.allocPage(true);
+        if (physAddr)
+        {
+            physPageIndices[i] = +physAddr;
+        }
+        else
+        {
+            trigger_exception<27>();
+        }
+    }
+    auto virtAddr = palloc::virtLast1G.allocConsPage(numPages, true);
+    if (virtAddr)
+    {
+        // Establish mapping
+        for (size_t i = 0; i < numPages; i++)
+        {
+            LOAD_4MB_PAGE(physPageIndices[i], (uint32_t)((uint8_t *)+virtAddr + i * 4_MB), PG_WRITABLE);
+        }
+        RELOAD_CR3();
+    }
+    else
+    {
+        trigger_exception<27>();
+    }
+
+    this->imageStartingAddress = (uint8_t *) +virtAddr;
+    Reader reader(this->imageStartingAddress);
     // Read boot block
     reader >> numDentries >> numInodes >> numTotalDataBlocks >> Reader::skip<52>();
     if (numDentries > MaxNumFiles) numDentries = MaxNumFiles;
@@ -115,7 +145,7 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
     {
         reader.reposition(BlockSize * (i + 1));
         reader >> inodes[i].size;
-        inodes[i].numDataBlocks = fsceil(inodes[i].size, BlockSize);
+        inodes[i].numDataBlocks = memory::ceil(inodes[i].size, BlockSize);
         for (size_t j = 0; j < inodes[i].numDataBlocks; j++)
         {
             reader >> inodes[i].datablocks[j];

@@ -67,8 +67,8 @@ int32_t do_exec(const char* arg0)
     ProcessDesc& child = ProcessDesc::get(child_upid);
 
     // Allocate the page at 128MB virt. addr. for child
-    uint16_t physIdx = physPages.allocPage(0);
-    if(physIdx == 0xffff)
+    auto physIdx = physPages.allocPage(false);
+    if(!physIdx)
     {
         restore_flags(flags);
         // "terminated by exception"
@@ -76,7 +76,7 @@ int32_t do_exec(const char* arg0)
     }
 
     // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
-    PhysAddr physAddr = PhysAddr(physIdx, PG_WRITABLE | PG_USER);
+    PhysAddr physAddr = PhysAddr(+physIdx, PG_WRITABLE | PG_USER);
 
     if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
     {
