@@ -4,6 +4,6 @@
 .text
 
 getCurrentThreadInfo:
-    movl %eax, %esp
+    movl %esp, %eax
     andl $THREAD_ESP_TO_PCB, %eax
     ret

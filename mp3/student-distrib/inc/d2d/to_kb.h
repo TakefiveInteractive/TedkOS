@@ -11,8 +11,14 @@
 //      But in CP2 we only have 1 terminal, so terminal_id = 0 (for CP2)
 // !!!!!!!!!! DO NOT PUSH '\n' in this func !!! terminal already PUSHED one !!!!!
 // !!!! Warning: this function does NOT lock term_lock !!!!
-void term2kb_readover(int terminal_id);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+void term2kb_readover(int terminal_id);
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* _DRIVER_TO_KEYBOARD_H */

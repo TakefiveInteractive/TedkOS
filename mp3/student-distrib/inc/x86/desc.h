@@ -16,17 +16,27 @@
  *	Remeber: index of the selector = selector's value >> 3 !!!
  */
 /* Segment SELECTOR values */
-#define KERNEL_CS_SEL 0x0010
-#define KERNEL_DS_SEL 0x0018
-#define USER_CS_SEL 0x0023
-#define USER_DS_SEL 0x002B
-#define KERNEL_TSS_SEL 0x0030
-#define KERNEL_LDT_SEL 0x0038
+#define KERNEL_CS_SEL   0x0010
+#define KERNEL_DS_SEL   0x0018
+#define USER_CS_SEL     0x0023
+#define USER_DS_SEL     0x002B
+#define KERNEL_TSS_SEL  0x0030
+#define KERNEL_LDT_SEL  0x0038
+#define CS_16BIT_SEL    0x0040
+#define DS_16BIT_SEL    0x0048
+
+#define CS_16BIT_IDX    8
+#define DS_16BIT_IDX    9
+#define NUM_GDT_SEG     10
 
 /* Size of the task state segment (TSS) */
 #define TSS_SIZE 104
 
 #ifndef ASM
+
+#include <inc/x86/desc_interrupts.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /* This structure is used to load descriptor base registers
  * like the GDTR and IDTR
@@ -40,6 +50,18 @@
  *      GDTR and LDTR's values are not in the format of SELECTOR,
  *       but IDTR and TR (TSS register)'s values ARE.
  */
+
+typedef struct __attribute__((packed)) {
+    int32_t edi;
+    int32_t esi;
+    uint32_t ebp;
+    uint32_t esp;
+    int32_t ebx;
+    int32_t edx;
+    int32_t ecx;
+    int32_t eax;
+} pushal_t;
+
 typedef struct {
 	uint16_t padding;
 	uint16_t size;
@@ -179,6 +201,29 @@ typedef union idt_desc_t {
 		uint16_t offset_31_16;
 	} __attribute__((packed));
 } idt_desc_t;
+
+typedef union gdt_desc_t {
+    uint32_t val[2];
+    struct {
+        uint8_t base_31_24;
+        uint8_t granularity     :1;
+        uint8_t is_32_bit       :1;
+        uint8_t is_64_bit       :1;
+        uint8_t avl             :1;
+        uint8_t seg_limit_19_16 :4;
+
+        uint8_t present         :1;
+        uint8_t dpl             :2;
+        uint8_t sys_code_or_data:1;
+        uint8_t type            :4;
+        uint8_t base_23_16;
+
+        uint16_t base_15_0;
+        uint16_t seg_limit_15_0;
+    } __attribute__((packed));
+} gdb_desc_t;
+
+extern gdt_desc_t gdt[NUM_GDT_SEG];
 
 /* The IDT itself (declared in /x86/desc.S */
 extern idt_desc_t idt[NUM_VEC];

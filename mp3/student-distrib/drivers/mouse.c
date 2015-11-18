@@ -1,9 +1,9 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/klibs/spinlock.h>
-#include <inc/mouse.h>
+#include <inc/drivers/mouse.h>
 #include <inc/d2d/k2m.h>
-#include <inc/keyboard.h>
+#include <inc/drivers/keyboard.h>
 
 
 #define KD_POLICY 0
@@ -108,7 +108,7 @@ DEFINE_DRIVER_REMOVE(mouse) {
 }
 
 void init_mouse() {
-    send_command(0xFF, MOUSE_PORT);// send reset cmd
+    send_command(0xFF, MOUSE_PORT);//rest
     // send "Get Compaq Status Byte" command
 	send_command(0x20, MOUSE_ENABLE_PORT);
 	uint8_t compaq_status = read_byte();

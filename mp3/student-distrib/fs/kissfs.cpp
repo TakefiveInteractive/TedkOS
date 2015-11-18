@@ -97,6 +97,8 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
     Reader reader(startingAddr);
     // Read boot block
     reader >> numDentries >> numInodes >> numTotalDataBlocks >> Reader::skip<52>();
+    if (numDentries > MaxNumFiles) numDentries = MaxNumFiles;
+    dentries = new dentry_t[numDentries];
     for (size_t i = 0; i < numDentries; i++)
     {
         name_tmp ntmp;
@@ -107,6 +109,8 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
         }
     }
     // Read inodes
+    if (numInodes > MaxNumFiles) numInodes = MaxNumFiles;
+    inodes = new inode_t[numInodes];
     for (size_t i = 0; i < numInodes; i++)
     {
         reader.reposition(BlockSize * (i + 1));

@@ -13,9 +13,23 @@
 #include <inc/debug.h>
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
-#include <inc/tests.h>
 #include <inc/fs/kiss_wrapper.h>
 #include <inc/mbi_info.h>
+#include <inc/klibs/palloc.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
+#include <inc/x86/desc.h>
+#include <inc/x86/stacker.h>
+#include <inc/init.h>
+#include <inc/klibs/AutoSpinLock.h>
+#include <inc/x86/real.h>
+#include <inc/ui/vbe.h>
+#include <inc/klibs/stack.h>
+
+using namespace palloc;
+using arch::Stacker;
+using arch::CPUArchTypes::x86;
+using namespace vbe;
 
 /* Initialize runtime library */
 extern "C" void _init(void);
@@ -33,13 +47,15 @@ uint32_t basicPageTable0[1024] __attribute__((aligned (4096)));
 _entry (unsigned long magic, unsigned long addr)
 {
     /* First thing we do is to assign the global MBI */
-    MultiBootInfoAddress = reinterpret_cast<multiboot_info_t *>(addr);
+    MultiBootInfoAddress = (multiboot_info_t *) addr;
 
     /* Clear the screen. */
     clear();
 
+    printf ("mbi = 0x%#x\n", (uint32_t) addr);
+
     /* Print boot info */
-    mbi_info(magic, addr);
+    //mbi_info(magic, addr);
 
     /* Construct an LDT entry in the GDT */
     {
@@ -79,6 +95,9 @@ _entry (unsigned long magic, unsigned long addr)
         tss.ldt_segment_selector = KERNEL_LDT_SEL;
         tss.ss0 = KERNEL_DS_SEL;
         tss.esp0 = 0x800000;
+
+        // should load kernel ds,es,fs,gs so that at interrupt we have correct data access
+        tss.ds = tss.es = tss.fs = tss.gs = KERNEL_DS_SEL;
         ltr(KERNEL_TSS_SEL);
     }
 
@@ -95,10 +114,11 @@ _entry (unsigned long magic, unsigned long addr)
     _init();
 
     /* Initialize file system */
-    filesystem::dispatcher.mountAll();
+    filesystem::Dispatcher::init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+
     for(size_t i = 0; i < num_known_drivers; i++)
     {
         printf("Loading driver '%s' ...", known_drivers[i].name);
@@ -106,49 +126,91 @@ _entry (unsigned long magic, unsigned long addr)
         printf(" ... OK!\n");
     }
 
-    /* Enable interrupts */
-    sti();
+    // Call this only after C++ intialization has been completed.
+    prepareRealMode();
 
-    /* Execute the first program (`shell') ... */
-    dentry_t dentry;
-    read_dentry_by_index(0, &dentry);
-    printf("First file: %s\n", dentry.filename);
+    // ----- START init as a KERNEL thread (because its code is in kernel code) -----
 
-    read_dentry_by_name((const uint8_t *)"frame0.txt", &dentry);
-    uint8_t buf[200] = {};
-    size_t len = read_data(dentry.inode, 0, buf, sizeof(buf));
-    printf("Loading frame0.txt, size = %d\n", len);
-    puts((const char *)buf);
+    // should have loaded flags using cli_and_save or pushfl
+    uint32_t flags = 0;
+    int32_t child_upid = newPausedProcess(-1);
 
-    read_dentry_by_name((const uint8_t *)"frame1.txt", &dentry);
-    uint8_t buf1[200] = {};
-    size_t len1 = read_data(dentry.inode, 0, buf1, sizeof(buf1));
-    printf("Loading frame1.txt, size = %d\n", len1);
-    puts((const char *)buf1);
-
-    //while(1)
+    if(child_upid < 0)
     {
-        int rval;
-        printf("trying to start test programs... ");
-        rval = kshell_main();
-        if(rval)
-            printf("FAILED.\n");
+        printf("Weird Error: Out of PIDs\n");
+        asm volatile("1: hlt; jmp 1b;");
     }
 
-    /* Spin (nicely, so we don't chew up cycles) */
-    asm volatile(".1: hlt; jmp .1;");
+    ProcessDesc& proc = ProcessDesc::get(child_upid);
+
+    // Here we do NOT use any more memory than PCB & kstack.
+    // Because no stack exchange happens for kthread during interrupts.
+
+    // Initialize stack and ESP
+    // compatible with x86 32-bit iretl. KTHREAD mode.
+    // always no error code on stack before iretl
+    Stacker<x86> kstack((uint32_t)proc.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
+
+    // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
+    // Set Interrupt Enable Flag. IOPL = 3
+    kstack << ((flags & (~0x24100)) | 0x3200);
+
+    kstack << (uint32_t) KERNEL_CS_SEL;
+    kstack << (uint32_t) init_main;
+
+    pushal_t regs;
+    regs.esp = (uint32_t) kstack.getESP();
+    regs.ebp = 0;
+    regs.eax = -1;
+    regs.ebx = regs.ecx = regs.edx = 0;
+    regs.edi = regs.esi = 0;
+
+    kstack << regs;
+
+    proc.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
+    proc.mainThreadInfo->pcb.isKernelThread = 1;
+
+    Maybe<uint32_t> vmemBase = virtOfPage0();
+    char* vmemPage = NULL;
+    if(vmemBase)
+        vmemPage = (char*)(!vmemBase);
+    else
+    {
+        printf("Fail to allocate virtual mem space for VMEM\n");
+        asm volatile("1: hlt; jmp 1b;");
+    }
+    video_mem = vmemPage + PRE_INIT_VIDEO;
+
+    cpu0_memmap.start();
+    cpu0_memmap.loadProcessMap(proc.memmap);
+
+
+    // refresh TSS so that later interrupts use this new kstack
+    tss.esp0 = (uint32_t)kstack.getESP();
+    // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
+
+    asm volatile (
+        "movl %0, %%esp         ;\n"
+        "popal                  ;\n"
+        "iretl                  ;\n"
+        : : "rm" (kstack.getESP()) : "cc");
+    // This asm block changes everything but gcc should not worry about them.
+
+    // This part should never be reached.
+    printf("Halted.\n");
+    asm volatile("1: hlt; jmp 1b;");
+
 }
 
 void kernel_enable_basic_paging()
 {
+    AutoSpinLock lock(&cpu0_paging_lock);
     int32_t i;
     uint32_t* pageDir   = basicPageDir;
     uint32_t* pageTable = basicPageTable0;
-    uint32_t flag;
-    spin_lock_irqsave(&cpu0_paging_lock, flag);
     memset(pageDir  , 0, 0x1000);
     memset(pageTable, 0, 0x1000);
-    REDIRECT_PAGE_DIR(pageDir, 0);
+    REDIRECT_PAGE_DIR(pageDir);
     LOAD_4MB_PAGE(1, 1 << 22, PG_WRITABLE);
     LOAD_PAGE_TABLE(0, pageTable, PT_WRITABLE);
 
@@ -158,12 +220,10 @@ void kernel_enable_basic_paging()
         LOAD_4KB_PAGE(0, i, i << 12, PG_WRITABLE);
     }
     enable_paging();
-    spin_unlock_irqrestore(&cpu0_paging_lock, flag);
 }
 
-extern "C" void
+extern "C" void __attribute__((externally_visible))
 entry (unsigned long magic, unsigned long addr)
 {
     _entry(magic, addr);
 }
-
