@@ -108,17 +108,17 @@ DEFINE_DRIVER_REMOVE(mouse) {
 }
 
 void init_mouse() {
-    send_command(0xFF, 0x60);
+    send_command(0xFF, MOUSE_PORT);// send reset cmd
     // send "Get Compaq Status Byte" command
-	send_command(0x20, 0x64);
+	send_command(0x20, MOUSE_ENABLE_PORT);
 	uint8_t compaq_status = read_byte();
 	// enable IRQ 12
 	compaq_status |= 0x2;
 	// clear Disable Mouse Click
 	compaq_status &= ~(0x20);
     // "Send Compaq Status"
-	send_command(0x60, 0x64);
-	write_byte(compaq_status, 0x60);
+	send_command(0x60, MOUSE_ENABLE_PORT);
+	write_byte(compaq_status, MOUSE_PORT);
 
     int i;
     for (i = 0; i < MAX_HANDLERS; i++) {
