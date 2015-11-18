@@ -39,6 +39,10 @@ public:
     // Currently no multithread
     union _thread_kinfo * mainThreadInfo;
     TinyMemMap memmap;
+
+    // For get args
+    char *fileName;
+    char *arg;
 };
 
 

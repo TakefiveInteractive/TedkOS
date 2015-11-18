@@ -8,6 +8,7 @@
 #include <inc/x86/idt_init.h>
 #include "exec.h"
 #include "halt.h"
+#include "getargs.h"
 
 using namespace boost;
 using syscall_exec::sysexec;
@@ -104,7 +105,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
         case SYS_WRITE:         retval = systemCallRunner(fs_write, p1, p2, p3); break;
         case SYS_OPEN:          retval = systemCallRunner(fs_open, p1, p2, p3); break;
         case SYS_CLOSE:         retval = systemCallRunner(fs_close, p1, p2, p3); break;
-        case SYS_GETARGS:       retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_GETARGS:       retval = systemCallRunner(getargs, p1, p2, p3); break;
         case SYS_VIDMAP:        retval = systemCallRunner(syshalt, p1, p2, p3); break;
         case SYS_SET_HANDLER:   retval = systemCallRunner(syshalt, p1, p2, p3); break;
         case SYS_SIGRETURN:     retval = systemCallRunner(syshalt, p1, p2, p3); break;
