@@ -114,7 +114,8 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
         trigger_exception<27>();
     }
 
-    this->imageStartingAddress = (uint8_t *) +virtAddr + ((uint32_t)startingAddr - ((uint32_t)startingAddr & ALIGN_4MB_ADDR));
+    this->imageStartingAddress = (uint8_t *) +virtAddr
+        + ((uint32_t)startingAddr - ((uint32_t)startingAddr & ALIGN_4MB_ADDR));
     Reader reader(this->imageStartingAddress);
     // Read boot block
     reader >> numDentries >> numInodes >> numTotalDataBlocks >> Reader::skip<52>();
