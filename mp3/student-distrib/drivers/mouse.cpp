@@ -30,8 +30,12 @@
 
 typedef void (*click_handler)(int32_t, int32_t);
 
+extern "C" int mouse_handler(int irq, unsigned int saved_reg);
+
 click_handler left_click_handler[MAX_HANDLERS];
 click_handler right_click_handler[MAX_HANDLERS];
+
+uint8_t mouse_enable_scancode;
 
 enum read_status {
      ReadSuccess,
@@ -131,7 +135,7 @@ void init_mouse() {
 }
 
 
-int mouse_handler() {
+int mouse_handler(int irq, unsigned int saved_reg) {
 
     uint32_t flag;
 
