@@ -72,14 +72,16 @@ namespace palloc
     {
         // >> 22 turns address of 4MB (2^22) page to the index
         uint16_t vidx = ((uint32_t)virt.addr) >> 22;
-        if((virt2phys[vidx] & PAGING_PRESENT) || phys2virt[phys.index()] != 0)
+
+        if(phys.index() != 1 // Special handling for double-mapping the kernel page
+            && ((virt2phys[vidx] & PAGING_PRESENT) || phys2virt[phys.index()] != 0))
             return false;
 
         if(vidx == 0 || vidx == 1)
             return false;
 
-        virt2phys[     vidx     ] = phys.pde;
-        phys2virt[ phys.index() ] = vidx;
+        if (phys.index() != 1) phys2virt[phys.index()] = vidx;
+        virt2phys[vidx] = phys.pde;
         return true;
     }
 
