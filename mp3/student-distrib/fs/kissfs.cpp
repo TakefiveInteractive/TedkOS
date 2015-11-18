@@ -4,6 +4,7 @@
 #include <inc/x86/err_handler.h>
 #include <inc/klibs/palloc.h>
 #include <boost/unique_ptr.hpp>
+#include <inc/x86/paging.h>
 
 using boost::unique_ptr;
 using memory::operator "" _MB;
@@ -96,18 +97,6 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
     // map the module to virtual addresses
     uint32_t numPages = memory::ceil((uint32_t)(endingAddr - startingAddr), 4_MB);
     unique_ptr<uint16_t[]> physPageIndices(new uint16_t[numPages]);
-    for (size_t i = 0; i < numPages; i++)
-    {
-        auto physAddr = palloc::physPages.allocPage(true);
-        if (physAddr)
-        {
-            physPageIndices[i] = +physAddr;
-        }
-        else
-        {
-            trigger_exception<27>();
-        }
-    }
     auto virtAddr = palloc::virtLast1G.allocConsPage(numPages, true);
     if (virtAddr)
     {
@@ -116,7 +105,7 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
         {
             palloc::cpu0_memmap.addCommonPage(
                     palloc::VirtAddr((uint8_t *)(+virtAddr) + i * 4_MB),
-                    palloc::PhysAddr(physPageIndices[i], PG_WRITABLE));
+                    palloc::PhysAddr((uint32_t)(startingAddr + i * 4_MB) >> 22, PG_WRITABLE));
         }
         RELOAD_CR3();
     }
@@ -125,7 +114,7 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
         trigger_exception<27>();
     }
 
-    this->imageStartingAddress = (uint8_t *) +virtAddr;
+    this->imageStartingAddress = (uint8_t *) +virtAddr + ((uint32_t)startingAddr - ((uint32_t)startingAddr & ALIGN_4MB_ADDR));
     Reader reader(this->imageStartingAddress);
     // Read boot block
     reader >> numDentries >> numInodes >> numTotalDataBlocks >> Reader::skip<52>();
