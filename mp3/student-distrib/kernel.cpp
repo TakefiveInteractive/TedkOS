@@ -184,7 +184,6 @@ _entry (unsigned long magic, unsigned long addr)
     cpu0_memmap.start();
     cpu0_memmap.loadProcessMap(proc.memmap);
 
-
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();
     // ltr(KERNEL_TSS_SEL);     WILL CAUSE GENERAL PROTECTION ERROR
