@@ -1,5 +1,6 @@
-#ifndef _KB_DRIVER_H
-#define _KB_DRIVER_H
+#ifndef _MOUSE_DRIVER_H
+#define _MOUSE_DRIVER_H
+
 
 #include <stdint.h>
 #include <stddef.h>
@@ -8,10 +9,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/i8259.h>
 
-extern spinlock_t keyboard_lock;
-
-DEFINE_DRIVER_INIT(kb);
-DEFINE_DRIVER_REMOVE(kb);
-
+DEFINE_DRIVER_INIT(mouse);
+DEFINE_DRIVER_REMOVE(mouse);
 
 #endif
