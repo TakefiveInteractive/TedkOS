@@ -24,11 +24,12 @@ namespace syscall_halt {
     int32_t syshalt( uint32_t retval)
     {
         thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
-        if(prevInfo == NULL){
+        if (prevInfo == NULL)
+        {
             printf("Init Process, cannot halt!\n");
-            return -1;// is init process, return -1
+            return -1;  // is init process, return -1
         }
-        else//has prev
+        else    // has prev
         {
             printf("Halt process with retval=%d!\n", retval);
 
@@ -36,14 +37,10 @@ namespace syscall_halt {
             fs_close(0);
             fs_close(1);
 
-            *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7*4) = retval;
+            *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7 * 4) = retval;
             prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
 
-            // asm volatile (
-            //     "movl %0, %%esp         ;\n"
-            //     "popal                  ;\n"
-            //     "iretl                  ;\n"
-            //     : : "rm" (prevInfo->pcb.esp0) : "cc");
+            // Clean up process
         }
         return retval;
     }
