@@ -5,6 +5,6 @@
 #include <stddef.h>
 
 #define MOUSE_ENABLE_PORT 0x64
-uint8_t mouse_enable_scancode;
+extern uint8_t mouse_enable_scancode;
 
 #endif
