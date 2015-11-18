@@ -1,5 +1,6 @@
 #include <inc/keyboard.h>
 #include <inc/d2d/to_term.h>
+#include <inc/d2d/k2m.h>
 #include <inc/klibs/spinlock.h>
 
 #define KB_PORT 0x60
@@ -98,10 +99,18 @@ DEFINE_DRIVER_REMOVE(kb) {
  *      print keyboard character to terminal
  */
 int kb_handler(int irq, unsigned int saved_reg){
+
+    printf("asdss\n");
+
 	uint8_t keyboard_scancode;
     uint32_t flag;
     spin_lock_irqsave(&keyboard_lock, flag);
 
+    if ( (mouse_enable_scancode=inb(MOUSE_ENABLE_PORT) ) == 0x20) //should be handle by ms
+    {
+        spin_unlock_irqrestore(&keyboard_lock, flag);
+        return 0;
+    }
  	keyboard_scancode = inb(KB_PORT);                           //read the input
 
     //!!! WARNING: We should not use "keyboard_scancode & 0x80" anymore

@@ -2,12 +2,12 @@
 #include <stddef.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/mouse.h>
+#include <inc/d2d/k2m.h>
 #include <inc/keyboard.h>
 
 
 #define KD_POLICY 0
 #define MOUSE_PORT 0x60
-#define MOUSE_ENABLE_PORT 0x64
 #define MOUSE_INT_NUM 0x21
 #define MOUSE_IRQ_NUM 1
 #define MOUSE_ID 1
@@ -42,6 +42,7 @@ enum read_status last_read;
 void write_byte(uint8_t data, uint8_t port);
 uint8_t read_byte();
 uint8_t  try_read_byte();
+uint8_t try_read_byte_afterkb();
 void send_command(uint8_t command, uint8_t port);
 void init_mouse();
 int mouse_handler();
@@ -65,6 +66,16 @@ uint8_t read_byte() {
 
 uint8_t try_read_byte() {
     if ( (inb(MOUSE_ENABLE_PORT) & 0x1) == 0 ) {
+        last_read = ReadFailure;
+        return 0;
+    } else {
+        last_read = ReadSuccess;
+        return inb(MOUSE_PORT);
+    }
+}
+
+uint8_t try_read_byte_afterkb() {
+    if ( (mouse_enable_scancode & 0x1) == 0 ) {
         last_read = ReadFailure;
         return 0;
     } else {
@@ -109,15 +120,6 @@ void init_mouse() {
 	send_command(0x60, 0x64);
 	write_byte(compaq_status, 0x60);
 
-    // these positions need to be different so that the mouse cursor is not
-    // restored to prev_pos
-    // mouse_pos.x = 0;
-    // mouse_pos.y = 0;
-    // prev_pos.x = 0;
-    // prev_pos.y = 1;
-    // prev_attrib = get_char_attrib(prev_pos.x, prev_pos.y);
-    // add_attrib_observer(attrib_changed);
-
     int i;
     for (i = 0; i < MAX_HANDLERS; i++) {
         left_click_handler[i] = NULL;
@@ -131,16 +133,20 @@ void init_mouse() {
 
 int mouse_handler() {
 
-    //printf("asd\n");
+    printf("asd\n");
 
-    //registers_t regs;
-	//save_regs(regs);
     uint32_t flag;
 
     spin_lock_irqsave(&keyboard_lock, flag);
 
+
+    if (mouse_enable_scancode != 0x20) //should be handle by ms
+    {
+        spin_unlock_irqrestore(&keyboard_lock, flag);
+        return 0;
+    }
     //init_mouse();
-    uint8_t flags = try_read_byte();
+    uint8_t flags = try_read_byte_afterkb();
     if (last_read == ReadSuccess) {
         if (flags == 0xFA) {
             // ack
