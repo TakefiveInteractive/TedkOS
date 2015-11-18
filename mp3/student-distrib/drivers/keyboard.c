@@ -1,4 +1,6 @@
-#include <inc/keyboard.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <inc/drivers/keyboard.h>
 #include <inc/d2d/to_term.h>
 #include <inc/d2d/k2m.h>
 #include <inc/klibs/spinlock.h>
@@ -9,10 +11,9 @@
 #define KB_ID 1
 #define KD_POLICY 0
 
-
 /*
-* See http://wiki.osdev.org/PS/2_Keyboard
-*/
+ * See http://wiki.osdev.org/PS/2_Keyboard
+ */
 uint32_t KBascii[128] =
 {
     /* keycode here is all pressed keycode */
@@ -59,6 +60,8 @@ uint32_t KBascii[128] =
 
 //--------------- Special key Prefix is 0xE0 ---------------
 #define SPECIAL_PREFIX      0xE0
+#define RELEASE_OFFSET      0x80
+
 int8_t  pending_special = 0;
 spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
 int kb_handler(int irq, unsigned int saved_reg);
@@ -135,13 +138,13 @@ int kb_handler(int irq, unsigned int saved_reg){
         return 0;
     }
     pending_special = 0;
-    if ((keyboard_scancode & 0x80) == 0 ) {                     //pressed
+    if ((keyboard_scancode & RELEASE_OFFSET) == 0 ) {                     //pressed
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
  		kb_to_term(kernel_keycode|KKC_PRESS);
  	}
 
- 	if (keyboard_scancode & 0x80) {                             //released
- 		uint32_t kernel_keycode = KBascii[keyboard_scancode & (~0x80)];
+ 	if (keyboard_scancode & RELEASE_OFFSET) {                             //released
+ 		uint32_t kernel_keycode = KBascii[keyboard_scancode & (~RELEASE_OFFSET)];
  		kb_to_term(kernel_keycode|KKC_RELEASE);
  	}
 

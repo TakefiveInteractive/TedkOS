@@ -14,6 +14,8 @@
 #define ALIGN_4KB_ADDR      0xFFFFF000  // Use '&'. This will help make sure flags are not affected by address.
 #define ALIGN_4MB_ADDR      0xFFC00000  // Use '&'. This will help make sure flags are not affected by address.
 
+#define PAGING_PRESENT      0x1         // Applies to all structures in paging. Test present with & present.
+
 // APPLIES TO ALL MACRO FUNCTIONS:
 //      *_BASE must be applied in all situations!!!!
 
@@ -120,16 +122,13 @@ extern uint32_t* global_cr3val;
 //     Description:     (set cr3 = global_cr3val = ACTUAL_PAGE_DIR_ADDR)
 //        This function changes the global_cr3val and sets pd_flags too
 //        Thus it will NOT load global_cr3val to CR3 OR FLUSH TLB.
-//     Default effects: (set pd_flags = 0 to use default)
-//        Actually you can set the WHOLE MEMORY  as not cached
-//      and write-through. But we default to enable caching and
-//      disable write-through on such a level.
+//      !!!!! FLAGS is disabled so that we use global_cr3val LIKE ARRAY !!!!!
 //     OUTPUT:
 //        update the global var: global_cr3val
 //     WARNING:
 //        the ACTUAL_PAGE_DIR_ADDR pointer uses PHYSICAL address
-#define REDIRECT_PAGE_DIR(ACTUAL_PAGE_DIR_ADDR, FLAGS) {                                 \
-    global_cr3val = (uint32_t*)(((uint32_t)PD_BASE) | ((uint32_t)(ACTUAL_PAGE_DIR_ADDR) & ALIGN_4KB_ADDR) | ((uint32_t) FLAGS));  \
+#define REDIRECT_PAGE_DIR(ACTUAL_PAGE_DIR_ADDR) {                                 \
+    global_cr3val = (uint32_t*)(((uint32_t)PD_BASE) | ((uint32_t)(ACTUAL_PAGE_DIR_ADDR) & ALIGN_4KB_ADDR));  \
 }
 
 // enable_paging

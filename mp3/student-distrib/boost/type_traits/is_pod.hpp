@@ -18,7 +18,7 @@
 #include <boost/type_traits/is_function.hpp>
 #endif
 
-#include <cstddef>
+#include <stdint.h>
 
 #ifndef BOOST_IS_POD
 #define BOOST_INTERNAL_IS_POD(T) false
@@ -36,7 +36,7 @@ template <typename T> struct is_pod
 {};
 
 #if !defined(BOOST_NO_ARRAY_TYPE_SPECIALIZATIONS)
-template <typename T, std::size_t sz> struct is_pod<T[sz]> : public is_pod<T>{};
+template <typename T, size_t sz> struct is_pod<T[sz]> : public is_pod<T>{};
 #endif
 
 

@@ -3,20 +3,20 @@
  */
 
 #include <inc/klibs/lib.h>
-#define VIDEO 0xB8000
+// After we initialized, we directly assign a COMMON virtual address (for kernel to use) to video_mem.
 #define NUM_COLS 80
 #define NUM_ROWS 25
 #define ATTRIB 0x7
 
 static int screen_x;
 static int screen_y;
-static char* video_mem = (char *)VIDEO;
+char* video_mem = (char *)PRE_INIT_VIDEO;
 
 // using LEGACY_PUTC is HIGHLY NOT recommended!!!!!
 //  It WILL NOT affect terminal's write fops, though.
 //  Use it ONLY WHEN terminal driver is not working at all.
 #ifndef LEGACY_PUTC
-#include <inc/terminal.h>
+#include <inc/drivers/terminal.h>
 #endif
 
 void clear(void)

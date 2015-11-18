@@ -1,5 +1,5 @@
-#include <inc/terminal.h>
-#include <inc/fops_term.h>
+#include <inc/drivers/terminal.h>
+#include <inc/drivers/fops_term.h>
 #include <inc/error.h>
 
 // Terminal and keyboard's "sharing" policy:

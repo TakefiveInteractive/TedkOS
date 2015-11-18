@@ -1,25 +1,34 @@
 #include <stdint.h>
 #include <inc/syscalls/syscalls.h>
+#include <inc/syscalls/filesystem_wrapper.h>
 #include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
+#include <inc/x86/desc.h>
+#include <inc/klibs/spinlock.h>
+#include <inc/x86/idt_init.h>
+#include "exec.h"
+#include "halt.h"
 
 using namespace boost;
+using syscall_exec::sysexec;
+using syscall_halt::syshalt;
 
-#define SYS_HALT    1
-#define SYS_EXECUTE 2
-#define SYS_READ    3
-#define SYS_WRITE   4
-#define SYS_OPEN    5
-#define SYS_CLOSE   6
-#define SYS_GETARGS 7
-#define SYS_VIDMAP  8
-#define SYS_SET_HANDLER  9
-#define SYS_SIGRETURN  10
+// int32_t sysHalt(uint32_t p)
+// {
+//     printf("Ooo.. Halt with %d\n", p);
+//     return 0;
+// }
 
-int32_t sysHalt(uint32_t p)
+template<typename F>
+F super_cast(uint32_t input)
 {
-    printf("Ooo.. Halt with %d\n", p);
-    return 0;
+    return reinterpret_cast<F>(input);
+}
+
+template<>
+int32_t super_cast<int32_t>(uint32_t input)
+{
+    return static_cast<int32_t>(input);
 }
 
 template<unsigned N>
@@ -41,7 +50,7 @@ public:
     template<typename F>
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
     {
-        return fptr(reinterpret_cast<typename function_traits<F>::arg1_type>(p1));
+        return fptr(super_cast<typename function_traits<F>::arg1_type>(p1));
     }
 };
 
@@ -52,8 +61,8 @@ public:
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
     {
         return fptr(
-                    reinterpret_cast<typename function_traits<F>::arg1_type>(p1),
-                    reinterpret_cast<typename function_traits<F>::arg2_type>(p2)
+                    super_cast<typename function_traits<F>::arg1_type>(p1),
+                    super_cast<typename function_traits<F>::arg2_type>(p2)
                  );
     }
 };
@@ -65,9 +74,9 @@ public:
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
     {
         return fptr(
-                    reinterpret_cast<typename function_traits<F>::arg1_type>(p1),
-                    reinterpret_cast<typename function_traits<F>::arg2_type>(p2),
-                    reinterpret_cast<typename function_traits<F>::arg3_type>(p3)
+                    super_cast<typename function_traits<F>::arg1_type>(p1),
+                    super_cast<typename function_traits<F>::arg2_type>(p2),
+                    super_cast<typename function_traits<F>::arg3_type>(p3)
                  );
     }
 };
@@ -81,27 +90,38 @@ static int32_t systemCallRunner(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
 extern "C"
 int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, uint32_t p2, uint32_t p3)
 {
+    int32_t retval;
+    uint32_t flag;
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val++;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
+
     switch (idx)
     {
-        case SYS_HALT:          return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_EXECUTE:       return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_READ:          return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_WRITE:         return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_OPEN:          return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_CLOSE:         return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_GETARGS:       return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_VIDMAP:        return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_SET_HANDLER:   return systemCallRunner(sysHalt, p1, p2, p3);
-        case SYS_SIGRETURN:     return systemCallRunner(sysHalt, p1, p2, p3);
+        case SYS_HALT:          retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_EXECUTE:       retval = systemCallRunner(sysexec, p1, p2, p3); break;
+        case SYS_READ:          retval = systemCallRunner(fs_read, p1, p2, p3); break;
+        case SYS_WRITE:         retval = systemCallRunner(fs_write, p1, p2, p3); break;
+        case SYS_OPEN:          retval = systemCallRunner(fs_open, p1, p2, p3); break;
+        case SYS_CLOSE:         retval = systemCallRunner(fs_close, p1, p2, p3); break;
+        case SYS_GETARGS:       retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_VIDMAP:        retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_SET_HANDLER:   retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_SIGRETURN:     retval = systemCallRunner(syshalt, p1, p2, p3); break;
 
         /* Unknown syscall */
-        default: return -1;
+        default: retval = -1; break;
     }
+
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val--;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
+    return retval;
 }
 
 /*
  * Basic idea about switching kernel stacks:
- *     Both syscall and PIT ensures that currPCB.esp0 points to: [ pushal, eax, iret info ]
+ *     Both syscall and PIT ensures that currPCB.esp0 points to: [ pushal, iretl info ]
  *          IF and ONLY IF their helper functions decide to SWITCH TO OTHER THREADs.
  *
  *     IF schedDispatchDecision() wants to SWITCH TO OTHER THREADs,
@@ -109,7 +129,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
  *          AND syscall and PIT must assign that value directly to $esp
  *
  *     Thus whether a SWITCH happens or NOT, AFTER changing ESP, syscall and PIT always have:
- *          [ pushal, eax, iret info ]  on stack.
+ *          [ pushal, iretl info ]  on stack.
  *
  *     Syscall/PIC Implementation functions' responsibility:
  *          1. Call Scheduler's functions to prepare a task switch.
@@ -127,33 +147,24 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
 #ifndef __OPTIMIZE__
         "leave; \n"
 #endif
-        "pushl %%eax;   \n"
         "pushal;        \n"
+        "pushl %%ecx               ;\n"
+        "movl %0, %%ecx            ;\n"
+        "movw %%cx, %%ds           ;\n"
+        "movw %%cx, %%es           ;\n"
+        "movw %%cx, %%fs           ;\n"
+        "movw %%cx, %%gs           ;\n"
+        "popl %%ecx                ;\n"
 
         "pushl %%edx;   \n"
         "pushl %%ecx;   \n"
         "pushl %%ebx;   \n"
         "pushl %%eax;   \n"
-        "call systemCallDispatcher ;\n"
-        "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.
+        "call systemCallDispatcher ;\n"         // Responsibility to increment the nested counter goes to systemCallDispatcher
         "addl $16, %%esp           ;\n"
-
-        "call getCurrentThreadInfo ;\n"         // BACKUP ESP0 in case we do CONTEXT SWITCH.
-        "movl %%esp, (%%eax)       ;\n"         // Save the stack state where switch_to_esp0 has just been allocated.
-
-        "call schedDispatchDecision;\n"         // return NULL or *** the esp0 to switch to ***
-
-        "testl %%eax, %%eax        ;\n"
-        "jz 1f                     ;\n"         // Jump if no kernel stack switching.
-
-        "movl %%eax, %%esp         ;\n"         // Switch the kernel stack!
-
-        "1:                         \n"
-        "popal; \n"
-        "popl %%eax;    \n"
-        "iret;  \n"
+        "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.
+        "jmp iret_sched_policy     ;\n"
         :
-        :
+        : "i" ((uint32_t)KERNEL_DS_SEL), "i" ((uint32_t)USER_DS_SEL)
         : "cc");
 }
-
