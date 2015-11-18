@@ -133,8 +133,6 @@ void init_mouse() {
 
 int mouse_handler() {
 
-    printf("asd\n");
-
     uint32_t flag;
 
     spin_lock_irqsave(&keyboard_lock, flag);
