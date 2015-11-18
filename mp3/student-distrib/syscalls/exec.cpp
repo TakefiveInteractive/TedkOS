@@ -36,6 +36,35 @@ int32_t sysexec(const char* file)
     return 0;
 }
 
+// return arg index in a filename, return -1 if no argument
+int32_t get_arg_position(unique_ptr<char[]>& filename, uint32_t filename_len)
+{
+    uint32_t i = 0;
+    int32_t arg_index = -1;
+    for (; i < filename_len; i++)
+    {
+        if (filename[i] == ' ')
+        {
+            uint32_t j = i;
+            for (; filename[j] == ' '; j++);
+            if (filename[j] != '\0')
+                arg_index = j;
+            filename[i] = '\0';
+            break;
+        }
+    }
+    return arg_index;
+}
+
+void store_arg(unique_ptr<char[]>& filename, uint32_t filename_len, uint32_t arg_index, ProcessDesc& pd)
+{
+    uint32_t arg_len = filename_len - arg_index;
+    pd.arg = new char[arg_len + 1];
+    for (uint32_t i = 0; i < arg_len; i++)
+        pd.arg[i] = filename[i + arg_index];
+    pd.arg[arg_len] = '\0';
+}
+
 // Returns the uniq_pid of new process.
 int32_t do_exec(const char* arg0)
 {
@@ -48,6 +77,8 @@ int32_t do_exec(const char* arg0)
     // We need to copy filename into kernel because later we will switch page table
     for (size_t i = 0; i < filename_len; i++) file[i] = arg0[i];
     file[filename_len] = '\0';
+
+    int32_t arg_index = get_arg_position(file, filename_len);
 
     if(!is_kiss_executable(file))
     {
@@ -65,6 +96,11 @@ int32_t do_exec(const char* arg0)
     }
 
     ProcessDesc& child = ProcessDesc::get(child_upid);
+
+    if (arg_index != -1)
+    {
+        store_arg(file, filename_len, arg_index, child);
+    }
 
     // Allocate the page at 128MB virt. addr. for child
     auto physIdx = physPages.allocPage(false);
