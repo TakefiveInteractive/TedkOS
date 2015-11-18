@@ -370,7 +370,7 @@ Maybe<void*> VirtualMemRegion<startAddr, MaxSize>::allocConsPage(size_t num, boo
             freeVirtAddr.drop(idxInStack);
             if (isCommonPage) this->isCommonPage.set(i);
         }
-        return Maybe<void*>((void*)(startIdx << 22));
+        return Maybe<void*>((void*)(startIdx * 4_MB + startAddr));
     }
     else
     {
@@ -388,7 +388,7 @@ Maybe<void*> VirtualMemRegion<startAddr, MaxSize>::allocPage(bool isCommonPage)
     isVirtAddrUsed.set(top);
     if (isCommonPage) this->isCommonPage.set(top);
 
-    return Maybe<void*>((void*)(top << 22));
+    return Maybe<void*>((void*)(top * 4_MB + startAddr));
 }
 
 template <uint32_t startAddr, uint32_t MaxSize>

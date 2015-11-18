@@ -77,7 +77,7 @@ void* RealModePtr::get32() const
 {
     Maybe<uint32_t> base = virtOfPage0();
     if(base)
-        return (void*)(!base + ((uint32_t) seg << 4) + (uint32_t) off);
+        return (void*)(+base + ((uint32_t) seg << 4) + (uint32_t) off);
     else return NULL;
 }
 

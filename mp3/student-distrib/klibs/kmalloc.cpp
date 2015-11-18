@@ -306,7 +306,7 @@ void operator delete[](void *p) {
 }
 
 void operator delete(void *p, size_t sz) {
-    if (+memory::KMemory::freeImpl(p, sz))
+    if (!memory::KMemory::freeImpl(p, sz))
     {
         // Trigger an exception
         trigger_exception<25>();
@@ -314,7 +314,7 @@ void operator delete(void *p, size_t sz) {
 }
 
 void operator delete[](void *p, size_t sz) {
-    if (+memory::KMemory::freeImpl(p, sz))
+    if (!memory::KMemory::freeImpl(p, sz))
     {
         // Trigger an exception
         trigger_exception<25>();
