@@ -35,6 +35,7 @@ public:
         }
     }
 
+    bool operator ! () const { return !exists; }
     explicit operator bool() const { return exists; }
 };
 

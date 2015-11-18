@@ -47,7 +47,7 @@ void draw_nikita()
         printf("\tTotal Memory = %d KB\n", ((uint32_t)(vbeInfo.totalMemory)) * 64);
 
         printf("\tAvailable Video Modes:\n");
-        for(int i=0; vbeInfo.modeList[i]!=0xffff; i++)
+        for(int i = 0; vbeInfo.modeList[i] != 0xffff; i++)
         {
             uint16_t mode = vbeInfo.modeList[i];
             printf("\t Mode %x:  ", mode);

@@ -114,7 +114,9 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
         // Establish mapping
         for (size_t i = 0; i < numPages; i++)
         {
-            LOAD_4MB_PAGE(physPageIndices[i], (uint32_t)((uint8_t *)+virtAddr + i * 4_MB), PG_WRITABLE);
+            palloc::cpu0_memmap.addCommonPage(
+                    palloc::VirtAddr((uint8_t *)(+virtAddr) + i * 4_MB),
+                    palloc::PhysAddr(physPageIndices[i], PG_WRITABLE));
         }
         RELOAD_CR3();
     }

@@ -173,7 +173,7 @@ _entry (unsigned long magic, unsigned long addr)
     Maybe<uint32_t> vmemBase = virtOfPage0();
     char* vmemPage = NULL;
     if(vmemBase)
-        vmemPage = (char*)(!vmemBase);
+        vmemPage = (char*)(+vmemBase);
     else
     {
         printf("Fail to allocate virtual mem space for VMEM\n");
