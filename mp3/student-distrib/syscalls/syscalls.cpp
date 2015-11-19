@@ -99,8 +99,6 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
     num_nest_int_val++;
     spin_unlock_irqrestore(&num_nest_int_lock, flag);
 
-    printf("Syscall %d\n", idx);
-
     switch (idx)
     {
         case SYS_HALT:          retval = systemCallRunner(syshalt, p1, p2, p3); break;
