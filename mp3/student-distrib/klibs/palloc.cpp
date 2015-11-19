@@ -182,13 +182,25 @@ namespace palloc
     bool TinyMemMap::add(const VirtAddr& virt, const PhysAddr& phys)
     {
         // >> 22 turns address of 4MB (2^22) page to the index
-        if(isVirtAddrUsed.test(((uint32_t)virt.addr)>>22))
+        auto idx = ((uint32_t) virt.addr) >> 22;
+        if (isVirtAddrUsed.test(idx))
             return false;
-        // >> 22 turns address of 4MB (2^22) page to the index
-        isVirtAddrUsed.set(((uint32_t)virt.addr)>>22);
+        isVirtAddrUsed.set(idx);
         TinyMemMap::Mapping map(phys, virt);
         pdStack.push(map);
         return true;
+    }
+
+    bool TinyMemMap::remove(const VirtAddr& virt, const PhysAddr& physIdx)
+    {
+        auto idx = ((uint32_t) virt.addr) >> 22;
+        if (isVirtAddrUsed.test(idx))
+        {
+            isVirtAddrUsed.clear(idx);
+            // Kill the corresponding entry from stack
+            return pdStack.dropFirst([&physIdx](auto mapping) { return mapping.phys == physIdx; });
+         }
+        return false;
     }
 
     TinyMemMap::Mapping::Mapping(const PhysAddr& p, const VirtAddr& v)
