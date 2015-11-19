@@ -11,6 +11,11 @@ export PATH=$PATH:`pwd`
 cd ..
 
 cd userland
+
+cd syscall
+i686-tedkos-gcc -nostdlib -static ece391syscall.S -c -o ece391syscall.o
+cd ..
+
 mkdir -p build-newlib
 
 cd build-newlib

@@ -9,10 +9,12 @@
 #include "exec.h"
 #include "halt.h"
 #include "getargs.h"
+#include "sbrk.h"
 
 using namespace boost;
 using syscall_exec::sysexec;
 using syscall_halt::syshalt;
+using syscall::sbrk::syssbrk;
 
 // int32_t sysHalt(uint32_t p)
 // {
@@ -97,6 +99,8 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
     num_nest_int_val++;
     spin_unlock_irqrestore(&num_nest_int_lock, flag);
 
+    printf("Syscall %d\n", idx);
+
     switch (idx)
     {
         case SYS_HALT:          retval = systemCallRunner(syshalt, p1, p2, p3); break;
@@ -109,6 +113,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
         case SYS_VIDMAP:        retval = systemCallRunner(syshalt, p1, p2, p3); break;
         case SYS_SET_HANDLER:   retval = systemCallRunner(syshalt, p1, p2, p3); break;
         case SYS_SIGRETURN:     retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_SBRK:          retval = systemCallRunner(syssbrk, p1, p2, p3); break;
 
         /* Unknown syscall */
         default: retval = -1; break;
