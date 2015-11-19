@@ -34,6 +34,7 @@ namespace syscall_halt {
             printf("Halt process with retval=%d!\n", retval);
 
             // close stdin and stdout
+            // TODO: close ALL fds, instead of only some of them.
             fs_close(0);
             fs_close(1);
 
