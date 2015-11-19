@@ -21,6 +21,11 @@ ProcessDesc::ProcessDesc(int32_t _upid) : fileDescs(), numFilesInDescs(0)
     init_fs_desc(*this);
 }
 
+ProcessDesc::~ProcessDesc()
+{
+    delete mainThreadInfo;
+}
+
 ProcessDesc** ProcessDesc::all()
 {
     return all_processes;
@@ -31,6 +36,15 @@ ProcessDesc& ProcessDesc::get(size_t uniq_pid)
     if(!all_processes[uniq_pid])
         all_processes[uniq_pid] = new ProcessDesc(uniq_pid);
     return *all_processes[uniq_pid];
+}
+
+void ProcessDesc::remove(size_t uniq_pid)
+{
+    if (all_processes[uniq_pid])
+    {
+        delete all_processes[uniq_pid];
+        all_processes[uniq_pid] = nullptr;
+    }
 }
 
 int32_t ProcessDesc::getUniqPid()
