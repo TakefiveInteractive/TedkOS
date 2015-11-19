@@ -270,19 +270,25 @@ namespace palloc
         // We START FROM 2, to ignore Kernel at 4MB ~ 8MB
         //              and 0MB ~ 4MB is NOT PRESENT
         //                  (UNLIKE kernel init stage where vmem -> somewhere 1MB)
-        for(uint16_t i = 2; i < PD_NUM_ENTRIES; i++)
-        {
-            bool ours   = commonMemMap.virt2phys[i] & PAGING_PRESENT;
-            bool theirs = map.isVirtAddrUsed.test(i);
-            if(ours && theirs)
-                return false;
-        }
         spareMemMaps[1 - loadedMap].clear();
+        auto conflict = map.pdStack.template first<int>([this, &map](auto val)
+        {
+            uint16_t virtIdx = ((uint32_t) val.virt.addr) >> 22;
+            bool ours = commonMemMap.virt2phys[virtIdx] & PAGING_PRESENT;
+            bool theirs = map.isVirtAddrUsed.test(virtIdx);
+            // Skip kernel pages
+            if (virtIdx >= 2 && ours && theirs && commonMemMap.virt2phys[virtIdx] != val.phys.pde)
+                return Maybe<int>(0);
+            return Maybe<int>();
+        });
+        if (conflict) return false;
+
         map.pdStack.template first<bool>([this](auto val)
         {
             spareMemMaps[1 - loadedMap].add(val.virt, val.phys);
-            return Maybe<bool>(true);
+            return Maybe<bool>();
         });
+
         spareMemMaps[1 - loadedMap] += commonMemMap;
         spareMemMaps[1 - loadedMap].loadToCR3();
         loadedMap = 1 - loadedMap;

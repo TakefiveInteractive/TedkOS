@@ -47,9 +47,11 @@ void* ProcessDesc::sbrk(int32_t delta)
     {
         // append a page
         auto physAddr = physPages.allocPage(true);
-        cpu0_memmap.addCommonPage(
+        if (!physAddr) return NULL;
+        if (!memmap.add(
             VirtAddr((uint8_t *)((heapStartingPageIdx + numHeapPages) * 4_MB)),
-            PhysAddr(+physAddr, PG_WRITABLE));
+            PhysAddr(+physAddr, PG_WRITABLE))) return NULL;
+        if (!cpu0_memmap.loadProcessMap(memmap)) return NULL;
         numHeapPages++;
     }
     while (heapSize + 4_MB <= numHeapPages * 4_MB)
