@@ -37,9 +37,21 @@ namespace palloc
     public:
         PhysAddr(uint32_t _pde);
         PhysAddr(uint16_t pageIndex, uint32_t flags);
-        inline uint16_t index() const;
-        inline uint32_t flags() const;
+        uint16_t index() const;
+        uint32_t flags() const;
         uint32_t pde;
+
+        bool operator == (const PhysAddr& other) const
+        {
+            // CPU may touch the access or dirty bit
+            return (pde & PG_NOT_ACCESSED & PG_NOT_DIRTY) == (other.pde & PG_NOT_ACCESSED & PG_NOT_DIRTY);
+        }
+
+        bool operator != (const PhysAddr& other) const
+        {
+            return !(*this == other);
+        }
+
     };
 
     // MaxMemory must be divisible by 4MB
@@ -62,6 +74,8 @@ namespace palloc
 
         // if this page is NOT in use, do nothing.
         void freePage(uint16_t pageIndex);
+
+        void freePage(PhysAddr page);
     };
 
     // MaxSize and startAddr must be divisible by 4MB
@@ -170,6 +184,7 @@ namespace palloc
         util::BitSet<1_KB> isVirtAddrUsed;
     public:
         bool add(const VirtAddr& virt, const PhysAddr& phys);
+        bool remove(const VirtAddr& virt, const PhysAddr& physIdx);
     };
 
     // This mamanger manages a whole cpu's process map and common map
@@ -337,6 +352,11 @@ void PhysPageManager<MaxMemory>::freePage(uint16_t pageIndex)
     freePhysAddr.push(pageIndex);
 }
 
+template <uint32_t MaxMemory>
+void PhysPageManager<MaxMemory>::freePage(PhysAddr page)
+{
+    freePage(page.index());
+}
 
 template <uint32_t startAddr, uint32_t MaxSize>
 VirtualMemRegion<startAddr, MaxSize>::VirtualMemRegion()
