@@ -21,7 +21,7 @@ using arch::CPUArchTypes::x86;
 
 namespace syscall_halt {
 
-    int32_t syshalt( uint32_t retval)
+    int32_t syshalt(uint32_t retval)
     {
         thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
         if (prevInfo == NULL)
@@ -41,6 +41,7 @@ namespace syscall_halt {
             prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
 
             // Clean up process
+            ProcessDesc::remove(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
         }
         return retval;
     }

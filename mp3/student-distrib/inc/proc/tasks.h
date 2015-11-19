@@ -32,7 +32,9 @@ private:
 public:
     static ProcessDesc** all();
     static ProcessDesc& get(size_t uniq_pid);
+    static void remove(size_t uniq_pid);
     static size_t newProcess();
+    ~ProcessDesc();
     int32_t getUniqPid();
     filesystem::File *fileDescs[FD_ARRAY_LENGTH];
     int32_t numFilesInDescs;

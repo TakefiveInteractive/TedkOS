@@ -139,7 +139,8 @@ int32_t do_exec(const char* arg0)
     Stacker<x86> kstack((uint32_t)child.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
 
     kstack << (uint32_t) USER_DS_SEL;
-    kstack << (uint32_t) code_page_vaddr_base + (1<<22) - 8;
+    // Set up ESP for child process
+    kstack << (uint32_t) code_page_vaddr_base + (1 << 22) - 8;
 
     // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
     // Set Interrupt Enable Flag. IOPL = 3
