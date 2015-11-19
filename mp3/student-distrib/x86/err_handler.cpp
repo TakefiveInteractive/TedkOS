@@ -95,7 +95,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
 
     // Test num_nest_int() against 0 (exception handler does not increment that counter)
     //      if non-zero then a system program crashed, otherwise a user program crashed.
-    if(exception_metadata[vec].type == Fault && num_nest_int() == 0)
+    if (exception_metadata[vec].type == Fault && num_nest_int() == 0)
     {
         thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
         printf("\n");
@@ -124,7 +124,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
             return;
         }
     }
-   
+
     __asm__("1: hlt; jmp 1b;");
 }
 
