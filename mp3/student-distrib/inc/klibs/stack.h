@@ -68,6 +68,8 @@ class Stack {
             return mem;
         }
 
+        Maybe<T> dropFirst(function<bool (T x)> fn);
+
         T get(size_t x) const { return arr[x]; }
 
         template<typename R> Maybe<R> first(function<Maybe<R> (T x)> fn) const;
@@ -131,6 +133,30 @@ Maybe<R> Stack<T, Num>::first(size_t &in_idx, function<Maybe<R> (T x, S y)> fn, 
         if (x) return x;
     }
     return Maybe<R>();
+}
+
+template<typename T, size_t Num>
+Maybe<T> Stack<T, Num>::dropFirst(function<bool (T x)> fn)
+{
+    size_t in_idx = 0;
+    Maybe<int> res = this->template first<int>(in_idx, [&fn](T x) {
+        if (fn(x))
+        {
+            return Maybe<int>(0);
+        }
+        else
+        {
+            return Maybe<int>();
+        }
+    });
+    if (res)
+    {
+        return Maybe<T>(drop(in_idx));
+    }
+    else
+    {
+        return Maybe<T>();
+    }
 }
 
 }
