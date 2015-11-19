@@ -11,11 +11,12 @@
 void _exit(int code)
 {
     ece391_halt(code);
+    for (;;);
 }
 
 int close(int file)
 {
-    ece391_close(file);
+    return ece391_close(file);
 }
 
 char *__env[1] = { 0 };
@@ -52,7 +53,7 @@ int lseek(int file, int ptr, int dir)
 
 int open(const char *name, int flags, ...)
 {
-    return ece391_open(filename);
+    return ece391_open(name);
 }
 
 int read(int file, char *ptr, int len)
@@ -62,17 +63,7 @@ int read(int file, char *ptr, int len)
 
 caddr_t sbrk(int incr)
 {
-    extern char _end;   /* Defined by the linker */
-    static char *heap_end;
-    char *prev_heap_end;
-
-    if (heap_end == 0) {
-        heap_end = &_end;
-    }
-    prev_heap_end = heap_end;
-
-    heap_end += incr;
-    return (caddr_t) prev_heap_end;
+    return (caddr_t) ece391_sbrk(incr);
 }
 
 int stat(const char *file, struct stat *st);
@@ -88,7 +79,7 @@ int write(int file, char *ptr, int len)
     return ece391_write(file, ptr, len);
 }
 
-int gettimeofday(struct timeval *p, struct timezone *z)
+int gettimeofday(struct timeval *p, void *z)
 {
     return -1;
 }

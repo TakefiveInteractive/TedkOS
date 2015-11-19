@@ -1,10 +1,5 @@
-#include "ece391sysnum.h"
+#include "../../shared/ece391sysnum.h"
 
-/* 
- * Rather than create a case for each number of arguments, we simplify
- * and use one macro for up to three arguments; the system calls should
- * ignore the other registers, and they're caller-saved anyway.
- */
 #define DO_CALL(name,number)   \
 .GLOBL name                   ;\
 name:   PUSHL	%EBX          ;\
@@ -27,6 +22,7 @@ DO_CALL(ece391_getargs,SYS_GETARGS)
 DO_CALL(ece391_vidmap,SYS_VIDMAP)
 DO_CALL(ece391_set_handler,SYS_SET_HANDLER)
 DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
+DO_CALL(ece391_sbrk,SYS_SBRK)
 
 
 /* Call the main() function, then halt with its return value. */
@@ -34,8 +30,6 @@ DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 .GLOBAL _start
 _start:
 	CALL	main
-    PUSHL   $0
-    PUSHL   $0
 	PUSHL	%EAX
-	CALL	ece391_halt
+	CALL	exit
 

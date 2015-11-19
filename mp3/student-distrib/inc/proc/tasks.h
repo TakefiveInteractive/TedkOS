@@ -29,18 +29,28 @@ private:
     static ProcessDesc** all_processes;
     ProcessDesc(int32_t _upid);
     int32_t upid;
+
 public:
     static ProcessDesc** all();
     static ProcessDesc& get(size_t uniq_pid);
     static void remove(size_t uniq_pid);
     static size_t newProcess();
+
     ~ProcessDesc();
     int32_t getUniqPid();
     filesystem::File *fileDescs[FD_ARRAY_LENGTH];
     int32_t numFilesInDescs;
+
     // Currently no multithread
     union _thread_kinfo * mainThreadInfo;
     TinyMemMap memmap;
+
+    util::Stack<uint16_t, 1024> heapPhysicalPages;
+    uint16_t heapStartingPageIdx;
+    size_t heapSize;
+    uint16_t numHeapPages;
+
+    void *sbrk(int32_t delta);
 
     // For get args
     char *fileName;

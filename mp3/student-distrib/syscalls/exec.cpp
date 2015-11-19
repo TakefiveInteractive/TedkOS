@@ -121,6 +121,8 @@ int32_t do_exec(const char* arg0)
         return 256;          // child virt addr space became weird.
     }
 
+    child.heapStartingPageIdx = (code_page_vaddr_base >> 22) + 2;   // gap between heap and stack
+
     // Temporarily mount the address space to CURRENT context's virtual 128MB address.
     uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
     global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
