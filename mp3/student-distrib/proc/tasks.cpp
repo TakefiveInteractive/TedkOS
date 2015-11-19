@@ -51,7 +51,6 @@ void* ProcessDesc::sbrk(int32_t delta)
         if (!memmap.add(
             VirtAddr((uint8_t *)((heapStartingPageIdx + numHeapPages) * 4_MB)),
             PhysAddr(+physAddr, PG_WRITABLE | PG_USER))) return NULL;
-        if (!cpu0_memmap.loadProcessMap(memmap)) return NULL;
         heapPhysicalPages.push(+physAddr);
         numHeapPages++;
     }
@@ -59,8 +58,16 @@ void* ProcessDesc::sbrk(int32_t delta)
     {
         // free top most page
         numHeapPages--;
-        cpu0_memmap.delCommonPage(VirtAddr((uint8_t *)((heapStartingPageIdx + numHeapPages) * 4_MB)));
+        auto virtAddr = (VirtAddr((uint8_t *)((heapStartingPageIdx + numHeapPages) * 4_MB)));
+        auto physAddr = cpu0_memmap.translate(virtAddr);
+        auto ourPhysAddr = heapPhysicalPages.pop();
+        // physical addresses don't match up
+        if (physAddr != ourPhysAddr) return NULL;
+        physPages.freePage(physAddr);
+        // Delete it from paging system
+        // memmap.remove(virtAddr, physAddr);
     }
+    if (!cpu0_memmap.loadProcessMap(memmap)) return NULL;
     return reinterpret_cast<void *>(heapStartingPageIdx * 4_MB + oldHeapSize);
 }
 

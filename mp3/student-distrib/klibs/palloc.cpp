@@ -20,7 +20,7 @@ namespace palloc
         pde  = PG_4MB_BASE | ((pageIndex & 0x3ff) << 22) | ((pageIndex & 0xc00) << 3) | flags;
     }
 
-    inline uint16_t PhysAddr::index() const
+    uint16_t PhysAddr::index() const
     {
         // & 0xffc00000 >> 2 extracts the LOWEST 10 bits of the index of a 4MB page from PDE
         // pde & 0x6000 extracts the HIGHER 2 bits of the index of a 4MB page from PDE
@@ -28,7 +28,7 @@ namespace palloc
         return ((pde & 0xffc00000) >> 22) | ((pde & 0x00006000) >> 3);
     }
 
-    inline uint32_t PhysAddr::flags() const
+    uint32_t PhysAddr::flags() const
     {
         // all flags lie in the lower 13 bits of PDE
         //  all information about index lies in higher 19 bits
@@ -62,7 +62,7 @@ namespace palloc
     inline PhysAddr MemMap::translate(const VirtAddr& addr)
     {
         // >> 22 turns address of 4MB (2^22) page to the index
-        return PhysAddr(virt2phys[((uint32_t)addr.addr)>>22]);
+        return PhysAddr(virt2phys[((uint32_t)addr.addr) >> 22]);
     }
 
     // Add an entry of mapping to this map.
@@ -277,7 +277,8 @@ namespace palloc
             bool ours = commonMemMap.virt2phys[virtIdx] & PAGING_PRESENT;
             bool theirs = map.isVirtAddrUsed.test(virtIdx);
             // Skip kernel pages
-            if (virtIdx >= 2 && ours && theirs && commonMemMap.virt2phys[virtIdx] != val.phys.pde)
+            if (virtIdx >= 2 && ours && theirs
+            && commonMemMap.translate(val.virt) != val.phys)
                 return Maybe<int>(0);
             return Maybe<int>();
         });
