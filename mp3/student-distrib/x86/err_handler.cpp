@@ -106,11 +106,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
         }
         else    // has prev
         {
-            printf("Smashing process %d ...\n", getCurrentThreadInfo()->pcb.to_process->getUniqPid());
-
-            // TODO: close ALL fds, instead of only some of them.
-            fs_close(0);
-            fs_close(1);
+            printf("Squashing process %d ...\n", getCurrentThreadInfo()->pcb.to_process->getUniqPid());
 
             // Notify parent process that child crashed.
             *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7 * 4) = 256;

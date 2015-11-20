@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
-namespace syscall_halt {
+namespace syscall { namespace halt {
 
 int32_t syshalt(uint32_t retval);
 
-}
+} }
 
 #endif /* _SYSCALL_HALT */

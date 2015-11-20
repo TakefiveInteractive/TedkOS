@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <boost/unique_ptr.hpp>
 
-namespace syscall_exec {
+namespace syscall { namespace exec {
 
 const uint32_t code_page_vaddr_base = 0x08000000;
 const uint32_t program_image_offset = 0x00048000;
@@ -25,6 +25,6 @@ int32_t sysexec(const char* file);
 
 int32_t __attribute__((used)) do_exec(const char* file);
 
-}
+} }
 
 #endif /* _SYSCALL_EXEC */

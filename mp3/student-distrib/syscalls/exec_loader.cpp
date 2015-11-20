@@ -1,14 +1,15 @@
-#include "exec.h"
+#include <inc/syscalls/exec.h>
 #include <inc/error.h>
 #include <inc/fs/kiss_wrapper.h>
 
 namespace fs = filesystem;
 
-namespace syscall_exec {
+namespace syscall { namespace exec {
 
-//   Load "file", an executable, to "program_image_addr"
-//   You can assume that CR3 already points the page table of this process.
-// Return 0 if success. Return -ENOMEM if file is too large (not possible, though)
+/* Load "file", an executable, to "program_image_addr"
+ * You can assume that CR3 already points the page table of this process.
+ * Return 0 if success. Return -ENOMEM if file is too large (not possible, though)
+ */
 void* kiss_loader(const boost::unique_ptr<char[]> &file)
 {
     dentry_t dentry;
@@ -26,4 +27,4 @@ void* kiss_loader(const boost::unique_ptr<char[]> &file)
     return *(uint32_t**)(program_image_addr + 24);
 }
 
-}
+} }
