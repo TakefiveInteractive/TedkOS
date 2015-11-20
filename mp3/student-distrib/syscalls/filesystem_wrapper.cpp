@@ -9,8 +9,7 @@ namespace syscall { namespace fops {
 
 bool check_valid_fd(int32_t fd, ProcessDesc *processDesc)
 {
-    if (fd >= FD_ARRAY_LENGTH || fd < 0)
-        return false;
+    if (fd >= FD_ARRAY_LENGTH || fd < 0) return false;
     if (!processDesc->fileDescs[fd]) return false;
     return true;
 }
@@ -47,6 +46,9 @@ int32_t open(const char *filename)
 
 int32_t close(int32_t fd)
 {
+    // Disallow closing STDIN or STDOUT
+    if (fd == 0 || fd == 1) return -1;
+
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     if (!check_valid_fd(fd, processDesc)) return -1;
     bool res = theDispatcher->close(*processDesc->fileDescs[fd]);
@@ -70,7 +72,8 @@ int32_t init_fs_desc(ProcessDesc& proc)
     File *fd = new File;
 
     bool res = theDispatcher->open(*fd, "/dev/keyb");
-    if (!res) {
+    if (!res)
+    {
         delete fd;
         return -1;
     }
@@ -78,7 +81,8 @@ int32_t init_fs_desc(ProcessDesc& proc)
 
     fd = new File;
     res = theDispatcher->open(*fd, "/dev/term");
-    if (!res) {
+    if (!res)
+    {
         delete fd;
         return -1;
     }
