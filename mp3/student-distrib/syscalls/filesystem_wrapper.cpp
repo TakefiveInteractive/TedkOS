@@ -5,6 +5,8 @@
 using namespace filesystem;
 using namespace palloc;
 
+namespace syscall { namespace fops {
+
 bool check_valid_fd(int32_t fd, ProcessDesc *processDesc)
 {
     if (fd >= FD_ARRAY_LENGTH || fd < 0)
@@ -13,7 +15,7 @@ bool check_valid_fd(int32_t fd, ProcessDesc *processDesc)
     return true;
 }
 
-int32_t fs_read(int32_t fd, void *buf, int32_t nbytes)
+int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
     sti();
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
@@ -21,14 +23,14 @@ int32_t fs_read(int32_t fd, void *buf, int32_t nbytes)
     return theDispatcher->read(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
-int32_t fs_write(int32_t fd, const void *buf, int32_t nbytes)
+int32_t write(int32_t fd, const void *buf, int32_t nbytes)
 {
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     if (!check_valid_fd(fd, processDesc)) return -1;
     return theDispatcher->write(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
-int32_t fs_open(const char *filename)
+int32_t open(const char *filename)
 {
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     File *fd = new File;
@@ -43,7 +45,7 @@ int32_t fs_open(const char *filename)
     return processDesc->numFilesInDescs++;
 }
 
-int32_t fs_close(int32_t fd)
+int32_t close(int32_t fd)
 {
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     if (!check_valid_fd(fd, processDesc)) return -1;
@@ -56,6 +58,8 @@ int32_t fs_close(int32_t fd)
     }
     return 0;
 }
+
+} }
 
 // Helps initializes the file descriptors of uniq_pid:
 //  It assumes that the fd array in the process is
@@ -82,3 +86,4 @@ int32_t init_fs_desc(ProcessDesc& proc)
 
     return 0;
 }
+

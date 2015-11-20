@@ -25,8 +25,7 @@ void paint_screen(uint8_t *pixel, uint8_t *source)
 
 void draw_nikita()
 {
-    int32_t keyb = fs_open("/dev/keyb");
-    int32_t rtc =fs_open("/dev/rtc");
+    int32_t keyb = syscall::fops::open("/dev/keyb");
     char buf[32];
 
     printf("keyboard opened\n");
@@ -71,8 +70,15 @@ void draw_nikita()
 
     //------------- Try to draw 1024 * 768 HD Graphics ----------------
     auto Mode118Maybe = getVideoModeInfo(0x118);
-    if(Mode118Maybe) ;
-    else printf("1024*768 24bits mode is NOT supported.\n");
+    if (Mode118Maybe)
+    {
+        // Nothing
+    }
+    else
+    {
+        printf("1024*768 24bits mode is NOT supported.\n");
+        return;
+    }
     VideoModeInfo Mode118(+Mode118Maybe);
     uint32_t Mode118Mem = Mode118.physBase;
 
@@ -109,7 +115,7 @@ void draw_nikita()
 
     // Wait for user
     sti();
-    fs_read(keyb, buf, 1);
+    syscall::fops::read(keyb, buf, 1);
     cli();
 
     // Change back to original mode
@@ -120,6 +126,5 @@ void draw_nikita()
 
     sti();
 
-    fs_close(keyb);
-    fs_close(rtc);
+    syscall::fops::close(keyb);
 }
