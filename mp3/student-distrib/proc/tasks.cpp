@@ -14,7 +14,8 @@ ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 
 ProcessDesc::ProcessDesc(int32_t _upid)
     : fileDescs(), numFilesInDescs(0),
-    heapPhysicalPages(), heapStartingPageIdx(0), heapSize(0), numHeapPages(0)
+    heapPhysicalPages(), heapStartingPageIdx(0), heapSize(0), numHeapPages(0),
+    fileName(nullptr), arg(nullptr)
 {
     mainThreadInfo = new thread_kinfo;
 
