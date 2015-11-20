@@ -22,9 +22,7 @@ namespace syscall { namespace exec {
 // Main entry to implementation of exec syscall
 int32_t sysexec(const char* file)
 {
-    printf("Executing: %s\n", file);
-    if(!file)
-        return -1;
+    if(!file) return -1;
 
     int32_t child_upid = do_exec(file);
     if(child_upid < 0)
