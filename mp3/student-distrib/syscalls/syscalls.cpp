@@ -96,10 +96,10 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
     {
         case SYS_HALT:          retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
         case SYS_EXECUTE:       retval = systemCallRunner(exec::sysexec, p1, p2, p3); break;
-        case SYS_READ:          retval = systemCallRunner(fs_read, p1, p2, p3); break;
-        case SYS_WRITE:         retval = systemCallRunner(fs_write, p1, p2, p3); break;
-        case SYS_OPEN:          retval = systemCallRunner(fs_open, p1, p2, p3); break;
-        case SYS_CLOSE:         retval = systemCallRunner(fs_close, p1, p2, p3); break;
+        case SYS_READ:          retval = systemCallRunner(fops::read, p1, p2, p3); break;
+        case SYS_WRITE:         retval = systemCallRunner(fops::write, p1, p2, p3); break;
+        case SYS_OPEN:          retval = systemCallRunner(fops::open, p1, p2, p3); break;
+        case SYS_CLOSE:         retval = systemCallRunner(fops::close, p1, p2, p3); break;
         case SYS_GETARGS:       retval = systemCallRunner(getargs, p1, p2, p3); break;
         case SYS_VIDMAP:        retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
         case SYS_SET_HANDLER:   retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
