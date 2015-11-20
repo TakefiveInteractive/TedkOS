@@ -1,4 +1,4 @@
-#include "exec.h"
+#include <inc/syscalls/exec.h>
 #include <inc/error.h>
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
@@ -17,8 +17,7 @@ using namespace boost;
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
 
-namespace syscall_exec
-{
+namespace syscall { namespace exec {
 
 // Main entry to implementation of exec syscall
 int32_t sysexec(const char* file)
@@ -170,4 +169,4 @@ int32_t do_exec(const char* arg0)
     return child_upid;
 }
 
-}
+} }

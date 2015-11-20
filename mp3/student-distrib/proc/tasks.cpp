@@ -2,7 +2,9 @@
 #include <inc/klibs/lib.h>
 #include <inc/klibs/new.h>
 #include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/fs/filesystem.h>
 #include <inc/klibs/memory.h>
+#include <inc/syscalls/exec.h>
 
 using memory::operator "" _MB;
 
@@ -35,6 +37,19 @@ ProcessDesc::~ProcessDesc()
         auto idx = heapPhysicalPages.pop();
         physPages.freePage(idx);
     }
+    // Close all files
+    for (size_t i = 0; i < FD_ARRAY_LENGTH; i++)
+    {
+        if (fileDescs[i])
+        {
+            filesystem::theDispatcher->close(*fileDescs[i]);
+            delete fileDescs[i];
+            fileDescs[i] = nullptr;
+        }
+    }
+    // Free program memory
+    auto idx = cpu0_memmap.translate(VirtAddr((void *) syscall::exec::code_page_vaddr_base));
+    physPages.freePage(idx);
 }
 
 void* ProcessDesc::sbrk(int32_t delta)
