@@ -55,9 +55,9 @@ ProcessDesc::~ProcessDesc()
 void* ProcessDesc::sbrk(int32_t delta)
 {
     auto oldHeapSize = heapSize;
-    heapSize += delta;
     // Contracting heap beyond its starting address?
     if (delta < 0 && heapSize < (size_t)(-delta)) return NULL;
+    heapSize += delta;
     while (heapSize > numHeapPages * 4_MB)
     {
         // append a page
@@ -75,7 +75,7 @@ void* ProcessDesc::sbrk(int32_t delta)
         numHeapPages--;
         auto virtAddr = (VirtAddr((uint8_t *)((heapStartingPageIdx + numHeapPages) * 4_MB)));
         auto physAddr = cpu0_memmap.translate(virtAddr);
-        auto ourPhysAddr = heapPhysicalPages.pop();
+        auto ourPhysAddr = PhysAddr(heapPhysicalPages.pop(), PG_WRITABLE | PG_USER);
         // physical addresses don't match up
         if (physAddr != ourPhysAddr) return NULL;
         physPages.freePage(physAddr);
