@@ -3,6 +3,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 typedef uint32_t _DWORD;
 typedef uint16_t _WORD;
@@ -20,62 +23,49 @@ typedef int16_t __int16;
 //-------------------------------------------------------------------------
 // Data declarations
 
-extern char s[]; // idb
-extern char s2[]; // idb
-extern char format[]; // idb
-extern char aOpenOutputFile[]; // idb
-extern char aOpendirDirecto[]; // idb
-extern char src[]; // idb
-extern char asc_8049648[]; // idb
-extern char aStat[]; // idb
-extern char aCouldNotCreate[]; // idb
-extern char aReaddir[]; // idb
-extern char aWrite[]; // idb
-extern char aLseek[]; // idb
-extern pheader_root_t inode_list; // idb
-extern int _JCR_LIST__; // weak
-extern FILE *stderr; // idb
-extern char bblock[4096]; // weak
+char bblock[4096]; // weak
 
 //-------------------------------------------------------------------------
 // Function declarations
 
-typedef struct pheader_list_t {
-    struct pheader_list_t *prev;
-    struct pheader_list_t *next;
+typedef struct inode_list_t {
+    struct inode_list_t *prev;
+    struct inode_list_t *next;
     void *data;
-} pheader_list_t;
+} inode_list_t;
 
-typedef struct pheader_root_t {
-    struct pheader_list_t *head;
-    struct pheader_list_t *tail;
+typedef struct inode_root_t {
+    struct inode_list_t *head;
+    struct inode_list_t *tail;
     uint32_t data;
     uint32_t count;
-} pheader_root_t;
+} inode_root_t;
+
+inode_root_t inode_list = { .head = &inode_list, .tail = &inode_list, .data = 0, .count = 0 };
 
 int main(int a1, int a2);
 signed int create_dentry(const char *src, int a2, void *dest);
 void *create_file(const char *file, int a2);
 void *create_device();
-int list_insert_after(pheader_root_t *a1, pheader_list_t *element, void *data);
-int list_insert_before(pheader_root_t *a1, pheader_list_t *element, void *data);
+int * __errno_location(void);
+int list_insert_after(inode_root_t *a1, inode_list_t *element, void *data);
+int list_insert_before(inode_root_t *a1, inode_list_t *element, void *data);
 int list_remove(int, void *ptr); // idb
-int list_remove_tail(pheader_root_t *root);
-int list_remove_head(pheader_root_t *root);
-int list_insert_at_head(pheader_root_t *root, void *data);
-int list_insert_at_tail(pheader_root_t *root, void *data);
+int list_remove_tail(inode_root_t *root);
+int list_remove_head(inode_root_t *root);
+int list_insert_at_head(inode_root_t *root, void *data);
+int list_insert_at_tail(inode_root_t *root, void *data);
 int init_freemap(int a1, int a2);
 int get_inode_block(int a1);
 int get_data_block(int a1);
 int get_size(int a1);
 int get_num_datablocks(int a1);
 int get_num_inodes(int a1);
-int stat(const char *filename, struct stat *a2);
+int do_stat(const char *filename, struct stat *a2);
 
 //----- (080488B4) --------------------------------------------------------
 int main(int a1, int a2)
 {
-  void *v2; // esp@1
   size_t v3; // eax@5
   size_t v4; // ebx@18
   size_t v5; // ebx@18
@@ -93,7 +83,6 @@ int main(int a1, int a2)
   char *src; // [sp+98h] [bp-10h]@12
   char *file; // [sp+9Ch] [bp-Ch]@2
 
-  v2 = alloca(0);
   if ( a1 == 2 )
   {
     file = strdup("fs.out");
@@ -147,7 +136,7 @@ int main(int a1, int a2)
     strcpy(ptr, src);
     strcat(ptr, "/");
     strcat(ptr, v15->d_name);
-    if ( stat(ptr, (struct stat *)&v8) )
+    if ( do_stat(ptr, (struct stat *)&v8) )
     {
       perror("stat");
       exit(1);
@@ -181,13 +170,13 @@ int main(int a1, int a2)
   v12 = init_freemap(*(int *)&bblock[4], *(int *)&bblock[8]);
   *(_DWORD *)&bblock[4] = get_num_inodes(v12);
   *(_DWORD *)&bblock[8] = get_num_datablocks(v12);
-  for ( i = inode_list.head; (pheader_root_t *)i != &inode_list; i = *(_DWORD *)i )
+  for ( i = inode_list.head; (inode_root_t *)i != &inode_list; i = *(_DWORD *)i )
   {
     buf = *(void **)(i + 8);
     *((_DWORD *)buf + 2049) = get_inode_block(v12);
     *(_DWORD *)(*((_DWORD *)buf + 2047) + 36) = *((_DWORD *)buf + 2049);
   }
-  for ( i = inode_list.head; (pheader_root_t *)i != &inode_list; i = *(_DWORD *)i )
+  for ( i = inode_list.head; (inode_root_t *)i != &inode_list; i = *(_DWORD *)i )
   {
     buf = *(void **)(i + 8);
     for ( ptr = 0; (signed int)ptr < *((_DWORD *)buf + 2048); ++ptr )
@@ -198,7 +187,7 @@ int main(int a1, int a2)
     perror("write");
     exit(1);
   }
-  for ( i = inode_list.head; (pheader_root_t *)i != &inode_list; i = *(_DWORD *)i )
+  for ( i = inode_list.head; (inode_root_t *)i != &inode_list; i = *(_DWORD *)i )
   {
     buf = *(void **)(i + 8);
     if ( lseek(fd, (*((_DWORD *)buf + 2049) << 12) + 4096, 0) == -1 )
@@ -212,7 +201,7 @@ int main(int a1, int a2)
       exit(1);
     }
   }
-  for ( i = inode_list.head; (pheader_root_t *)i != &inode_list; i = *(_DWORD *)i )
+  for ( i = inode_list.head; (inode_root_t *)i != &inode_list; i = *(_DWORD *)i )
   {
     buf = *(void **)(i + 8);
     for ( data = 0; (signed int)data < *((_DWORD *)buf + 2048); data = (char *)data + 1 )
@@ -308,12 +297,12 @@ void *create_device()
 }
 
 //----- (08049170) --------------------------------------------------------
-int list_insert_after(pheader_root_t *a1, pheader_list_t *element, void *data)
+int list_insert_after(inode_root_t *a1, inode_list_t *element, void *data)
 {
   int result; // eax@1
 
   ++a1->count;
-  result = (int)malloc(sizeof(pheader_list_t));
+  result = (int)malloc(sizeof(inode_list_t));
   *(_DWORD *)(result + 8) = data;
   *(_DWORD *)result = element->prev;
   *(_DWORD *)(result + 4) = element;
@@ -323,12 +312,12 @@ int list_insert_after(pheader_root_t *a1, pheader_list_t *element, void *data)
 }
 
 //----- (080491BF) --------------------------------------------------------
-int list_insert_before(pheader_root_t *a1, pheader_list_t *element, void *data)
+int list_insert_before(inode_root_t *a1, inode_list_t *element, void *data)
 {
   int result; // eax@1
 
   ++a1->count;
-  result = (int)malloc(sizeof(pheader_list_t));
+  result = (int)malloc(sizeof(inode_list_t));
   *(_DWORD *)(result + 8) = data;
   *(_DWORD *)result = element;
   *(_DWORD *)(result + 4) = element->next;
@@ -350,27 +339,27 @@ int list_remove(int a1, void *ptr)
 }
 
 //----- (0804924A) --------------------------------------------------------
-int list_remove_tail(pheader_root_t *root)
+int list_remove_tail(inode_root_t *root)
 {
   return list_remove((int)root, (void *)root->tail);
 }
 
 //----- (08049267) --------------------------------------------------------
-int list_remove_head(pheader_root_t *root)
+int list_remove_head(inode_root_t *root)
 {
   return list_remove((int)root, (void *)root->head);
 }
 
 //----- (08049283) --------------------------------------------------------
-int list_insert_at_head(pheader_root_t *root, void *data)
+int list_insert_at_head(inode_root_t *root, void *data)
 {
-  return list_insert_after(root, (pheader_list_t *)root, data);
+  return list_insert_after(root, (inode_list_t *)root, data);
 }
 
 //----- (080492A4) --------------------------------------------------------
-int list_insert_at_tail(pheader_root_t *root, void *data)
+int list_insert_at_tail(inode_root_t *root, void *data)
 {
-  return list_insert_before(root, (pheader_list_t *)root, data);
+  return list_insert_before(root, (inode_list_t *)root, data);
 }
 
 //----- (080492C8) --------------------------------------------------------
@@ -380,7 +369,7 @@ int init_freemap(int a1, int a2)
   int v3; // ST0C_4@1
   int v4; // ST10_4@1
 
-  v2 = (int)malloc(sizeof(pheader_list_t));
+  v2 = (int)malloc(sizeof(inode_list_t));
   v3 = v2;
   *(_DWORD *)v2 = 2 * a1;
   *(_DWORD *)(v2 + 4) = 2 * a2;
@@ -434,7 +423,7 @@ int get_num_inodes(int a1)
 }
 
 //----- (080494C0) --------------------------------------------------------
-int stat(const char *filename, struct stat *a2)
+int do_stat(const char *filename, struct stat *a2)
 {
   return __xstat(3, filename, a2);
 }
