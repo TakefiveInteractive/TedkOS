@@ -224,11 +224,11 @@ int32_t main(int32_t a1, char *argv[])
 int32_t create_dentry(const char *src, struct stat *a2, void *dest)
 {
   memset(dest, 0, 0x40u);
-  if ( (a2->st_mode & 0xF000) == 32768 )
+  if (S_ISREG(a2->st_mode))
   {
     *((_DWORD *)dest + 8) = 2;
   }
-  else if ( (a2->st_mode & 0xF000) == 8192 )
+  else if (S_ISDIR(a2->st_mode))
   {
     *((_DWORD *)dest + 8) = 0;
   }
@@ -261,11 +261,11 @@ void *create_file(const char *file, struct stat* a2)
     if ( a2->st_size & 0xFFF )
       ++v3;
     *((_DWORD *)ptr + 2048) = v3;
-    fd = open(file, 0);
+    fd = open(file, O_RDONLY);
     for ( i = 0; i < v3; ++i )
     {
       *((_DWORD *)ptr + i + 1024) = malloc(0x1008u);
-      if ( read(fd, *((void **)ptr + i + 1024), 0x1000u) < 0 )
+      if ( read(fd, *((_DWORD *)ptr + i + 1024), 0x1000u) < 0 )
       {
         for ( j = 0; j < i; ++j )
           free(*((void **)ptr + j + 1024));
