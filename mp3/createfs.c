@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 typedef uint32_t _DWORD;
 typedef uint16_t _WORD;
@@ -43,11 +44,10 @@ typedef struct inode_root_t {
 
 inode_root_t inode_list = { .head = &inode_list, .tail = &inode_list, .data = 0, .count = 0 };
 
-int main(int a1, int a2);
+int main(int a1, char * a2[]);
 signed int create_dentry(const char *src, int a2, void *dest);
 void *create_file(const char *file, int a2);
 void *create_device();
-int * __errno_location(void);
 int list_insert_after(inode_root_t *a1, inode_list_t *element, void *data);
 int list_insert_before(inode_root_t *a1, inode_list_t *element, void *data);
 int list_remove(int, void *ptr); // idb
@@ -61,10 +61,9 @@ int get_data_block(int a1);
 int get_size(int a1);
 int get_num_datablocks(int a1);
 int get_num_inodes(int a1);
-int do_stat(const char *filename, struct stat *a2);
 
 //----- (080488B4) --------------------------------------------------------
-int main(int a1, int a2)
+int main(int a1, char *argv[])
 {
   size_t v3; // eax@5
   size_t v4; // ebx@18
@@ -89,14 +88,14 @@ int main(int a1, int a2)
   }
   else
   {
-    if ( a1 != 4 || strcmp(*(const char **)(a2 + 8), "-o") )
+    if ( a1 != 4 || strcmp(argv[2], "-o") )
     {
       fprintf(stderr, "Usage: fscreate <directory> [-o <output file>]\n");
       exit(1);
     }
-    v3 = strlen(*(const char **)(a2 + 12));
+    v3 = strlen(argv[3]);
     file = (char *)malloc(v3 + 4);
-    strcpy(file, *(const char **)(a2 + 12));
+    strcpy(file, argv[3]);
   }
   fd = open(file, 194, 33188);
   if ( fd == -1 )
@@ -106,7 +105,7 @@ int main(int a1, int a2)
       exit(1);
     fd = open(file, 2, 33188);
   }
-  src = *(char **)(a2 + 4);
+  src = *(char **)(argv[1]);
   dirp = opendir(src);
   if ( !dirp )
     fprintf(stderr, "opendir: Directory %s does not exist\n", src);
@@ -117,11 +116,11 @@ int main(int a1, int a2)
   *(_DWORD *)bblock = 1;
   while ( dirp && *(_DWORD *)bblock <= 0x3Eu )
   {
-    *__errno_location() = 0;
+    errno = 0;
     v15 = readdir(dirp);
     if ( !v15 )
     {
-      if ( *__errno_location() )
+      if ( errno )
       {
         perror("readdir");
         exit(1);
@@ -136,7 +135,7 @@ int main(int a1, int a2)
     strcpy(ptr, src);
     strcat(ptr, "/");
     strcat(ptr, v15->d_name);
-    if ( do_stat(ptr, (struct stat *)&v8) )
+    if ( stat(ptr, (struct stat *)&v8) )
     {
       perror("stat");
       exit(1);
@@ -422,8 +421,3 @@ int get_num_inodes(int a1)
   return *(_DWORD *)a1;
 }
 
-//----- (080494C0) --------------------------------------------------------
-int do_stat(const char *filename, struct stat *a2)
-{
-  return __xstat(3, filename, a2);
-}
