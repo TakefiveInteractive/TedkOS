@@ -79,8 +79,6 @@ int32_t main(int32_t a1, char *argv[])
   char *src; // [sp+98h] [bp-10h]@12
   char *file; // [sp+9Ch] [bp-Ch]@2
 
-  uint8_t *dentries[128 * 64];
-
   if ( a1 == 2 )
   {
     file = strdup("fs.out");
@@ -96,13 +94,15 @@ int32_t main(int32_t a1, char *argv[])
     file = (char *)malloc(v3 + 4);
     strcpy(file, argv[3]);
   }
-  fd = open(file, 194, 33188);
+  fd = open(file, O_EXCL | O_CREAT | O_SYNC | O_WRONLY,
+        S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
   if ( fd == -1 )
   {
     fprintf(stderr, "open: Output file %s exists, do you want to overwrite?\n(y/n): ", file);
     if ( getchar() == 110 )
       exit(1);
-    fd = open(file, 2, 33188);
+    fd = open(file, O_CREAT | O_TRUNC | O_SYNC | O_WRONLY,
+        S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
   }
   src = argv[1];
   dirp = opendir(src);
@@ -139,7 +139,7 @@ int32_t main(int32_t a1, char *argv[])
       perror("stat");
       exit(1);
     }
-    v11 = create_dentry(v15->d_name, &v8, &dentries[*(_DWORD *)bblock]);
+    v11 = create_dentry(v15->d_name, &v8, bblock[0] * 64 + bblock + 64);
     if ( v11 )
     {
       fprintf(stderr, "Could not create an entry for %s, skipping it...\n", ptr);
@@ -153,7 +153,8 @@ int32_t main(int32_t a1, char *argv[])
         data = create_file(ptr, &v8);
       if ( data )
       {
-        *((_DWORD *)data + 2047) = &dentries[*(_DWORD *)bblock];
+        *((_DWORD *)data + 2047) = bblock[0] * 64 + bblock + 64;
+        (*(_DWORD *)bblock)++;
         ++*(_DWORD *)&bblock[4];
         *(_DWORD *)&bblock[8] += *((_DWORD *)data + 2048);
         list_insert_at_tail(&inode_list, data);
@@ -228,7 +229,7 @@ int32_t create_dentry(const char *src, struct stat *a2, void *dest)
   {
     *((_DWORD *)dest + 8) = 2;
   }
-  else if (S_ISDIR(a2->st_mode))
+  else if (S_ISCHR(a2->st_mode))
   {
     *((_DWORD *)dest + 8) = 0;
   }
@@ -344,7 +345,7 @@ int32_t init_freemap(int32_t a1, int32_t a2)
   uint8_t* v3; // ST0C_4@1
   int32_t v4; // ST10_4@1
 
-  v2 = malloc(0xC);
+  v2 = malloc(0x100);
   v3 = v2;
   *(_DWORD *)v2 = 2 * a1;
   *(_DWORD *)(v2 + 4) = 2 * a2;
