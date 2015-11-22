@@ -50,21 +50,6 @@ struct HashFunc {
 
 class AbstractFS;
 
-/*
-struct FsSpecificData {
-    uint8_t filetype;
-    union {
-        uint32_t inode;
-        struct {
-            uint8_t *base;
-            uint32_t idx;
-            uint32_t max;
-        } dentryData;
-        FOpsTable jtable;
-    };
-};      // Broken abstraction here... fix after kmalloc
-*/
-
 typedef void FsSpecificData;
 
 struct File {
