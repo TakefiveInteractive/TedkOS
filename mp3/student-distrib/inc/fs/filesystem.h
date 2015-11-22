@@ -50,6 +50,7 @@ struct HashFunc {
 
 class AbstractFS;
 
+/*
 struct FsSpecificData {
     uint8_t filetype;
     union {
@@ -62,17 +63,20 @@ struct FsSpecificData {
         FOpsTable jtable;
     };
 };      // Broken abstraction here... fix after kmalloc
+*/
+
+typedef void FsSpecificData;
 
 struct File {
     size_t offset;
     AbstractFS *fs;
-    FsSpecificData fsSpecificData;
+    FsSpecificData *fsSpecificData;
 };
 
 class AbstractFS {
 public:
     virtual void init() = 0;
-    virtual bool open(const char* filename, FsSpecificData *fdData) = 0;
+    virtual bool open(const char* filename, FsSpecificData *&fdData) = 0;
     virtual bool close(FsSpecificData *fdData) = 0;
     virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len) = 0;
     virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len) = 0;
