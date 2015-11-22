@@ -123,7 +123,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
  *     Both syscall and PIT ensures that currPCB.esp0 points to: [ pushal, iretl info ]
  *          IF and ONLY IF their helper functions decide to SWITCH TO OTHER THREADs.
  *
- *     IF schedDispatchDecision() wants to SWITCH TO OTHER THREADs,
+ *     IF schedDispatchExecution() wants to SWITCH TO OTHER THREADs,
  *          it can RETURN the PCB.esp0 of that thread, otherwise it should return NULL.
  *          AND syscall and PIT must assign that value directly to $esp
  *

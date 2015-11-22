@@ -21,10 +21,13 @@ extern "C" {
     // Currently all switches are blocking:
     //      Parent process will wait for child to finish
     void prepareSwitchTo(int32_t pid);
-    target_esp0 schedDispatchDecision(target_esp0 currentESP);
+
+    target_esp0 schedDispatchExecution(target_esp0 currentESP);
 #ifdef __cplusplus
 }
 #endif
 
+void enablePreemptiveScheduling();
+void schedMakeDecision();
 
 #endif /* _PROC_SCHED_H */

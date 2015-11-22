@@ -8,7 +8,7 @@
 iret_sched_policy:
 
     pushl %esp                         # current stack frame is important, should be saved by schedDispatchDecision
-    call schedDispatchDecision         # return NULL or *** the esp0 to switch to ***
+    call schedDispatchExecution        # return NULL or *** the esp0 to switch to ***
     addl $4, %esp
 
     testl %eax, %eax        

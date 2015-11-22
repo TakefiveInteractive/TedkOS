@@ -18,7 +18,6 @@ const static int PIT_MIN_FREQ = 19;
 const static int PIT_CMD_PORT = 0x43;
 
 int pit_handler(int irq, unsigned int saved_reg);
-int32_t pit_read (void* fd, uint8_t* buf, int32_t nbytes);
 int pit_config(int channel, int mode, int freq);
 int pit_init(int freq);
 

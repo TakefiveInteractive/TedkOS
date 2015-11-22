@@ -1,7 +1,7 @@
 #include <inc/drivers/pit.h>
 #include <inc/x86/idt_init.h>
+#include <inc/proc/sched.h>
 
-volatile int pit_interrupt_occurred = 0;
 spinlock_t pit_lock = SPINLOCK_UNLOCKED;
 
 int PIT_DATA_PORT(int channel) { return 0x40 + channel; }
@@ -47,8 +47,7 @@ int pit_init(int freq)
 int pit_handler(int irq, unsigned int saved_reg)
 {
     AutoSpinLock lock(&pit_lock);
-    //TODO need to call scheduler here
-    pit_interrupt_occurred = 1;
+    schedMakeDecision();
     return 0;
 }
 
