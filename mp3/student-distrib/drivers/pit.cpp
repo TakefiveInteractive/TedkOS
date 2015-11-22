@@ -6,7 +6,7 @@ spinlock_t pit_lock = SPINLOCK_UNLOCKED;
 int PIT_DATA_PORT(int channel) { return 0x40 + channel; }
 
 /**
- * interface to configure PITj
+ * interface to configure PIT
  * @param  channel 0 - sytem timer
  *                 2 - speaker
  * @param  mode    2 - rate generator
