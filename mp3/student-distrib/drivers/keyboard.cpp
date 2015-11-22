@@ -150,3 +150,106 @@ int kb_handler(int irq, unsigned int saved_reg)
 
     return 0;
 }
+
+//------------------------- This part of KeyB driver converts Hardware Keycode to KKC -----------------------
+
+// The entry point into C++ world for all keyboard events.
+/* The param is PARTIAL kernelKeycode, because keyboard does not combine keys.
+ *  'a' is ok. KKC_ENTER is ok,
+ *  but no one will pass in SHIFT|'a'.
+ */
+void BasicShortcutFilter::handle(uint32_t kernelKeycode)
+//void kb_to_term(uint32_t kernelKeycode)
+{
+    uint32_t flag;
+    uint32_t ascii_part, special_part, combine_part;
+
+    // *_part are booleans to represent the type of key being pressed, or released
+    // The rules to extract the type are explained in inc/driver/kkc.h
+    ascii_part   = kernelKeycode & 0x000000FF;
+    special_part = kernelKeycode & 0x0000FF00;
+    combine_part = kernelKeycode & 0x7FFF0000;
+
+    // If this event represents releasing a key
+    if((kernelKeycode & KKC_RELEASE) != 0)
+    {
+        // calculate change so that (pending_kc & change) is the NEW pending_kc
+        // If neither part exists, nothing should change, thus default to ~0x0
+        uint32_t change = 0xFFFFFFFF;
+
+        /* WE ASSUME keyboard supports auto-repeat interrupts. */
+
+        change &= ~combine_part;
+
+        pending_kc &= change;
+
+        for(size_t i = 0; i < numClients; i++)
+            clients[i].keyUp(kernelKeycode);
+    }
+    else
+    {
+        // A rule: everytime a new ascii/special key is pressed,
+        //     old pressed ascii/special key is discarded
+        if(combine_part)
+            pending_kc = pending_kc | combine_part;
+        else if(special_part)
+        {
+            kernelKeycode = 0;
+            if(!pending_kc)
+                sp_kkc_handler_table[special_part >> 8](special_part);
+            else if(special_part == KKC_CAPSLOCK)
+                sp_kkc_handler_table[KKC_CAPSLOCK >> 8](special_part);
+            // Currently we do NOT handle other cases of COMBINE+SPECIAL
+
+            if(!handleShortcut(special_part))
+                clients[currClient].keyDown(special_part);
+        }
+        else if(ascii_part)         // Avoid 0x0
+        {
+            if(!handleShortcut(pending_kc | ascii_part))
+                clients[currClient].keyDown(pending_kc | ascii_part);
+            // Currently this is the ONLY COMBINATION allowed.
+            if(pending_kc == KKC_CTRL && ascii_part == 'l')
+                clear_screen_nolock();
+            else if((pending_kc & (~KKC_SHIFT)) == 0 && term_buf_pos < TERM_BUFFER_SIZE - 1) //-1 because '\n' takes space
+            {
+                // In this case we have directly printable characters
+                char c = (char)ascii_part;
+                uint32_t old_x;
+                term_buf_item rec;
+                if(pending_kc & KKC_SHIFT)
+                {
+                    // If this ascii has a shift, then do shift.
+                    if(ascii_shift_table[ascii_part])
+                        c = ascii_shift_table[ascii_part];
+                }
+                if(caps_locked)
+                {
+                    if('a' <= c && c <= 'z')
+                        c = c - 'a' + 'A';
+                    else if('A' <=c && c <= 'Z')
+                        c = c - 'A' + 'a';
+                }
+                show_char_at_nolock(next_char_x, next_char_y, c);
+                rec.displayed_char = c;
+                old_x = next_char_x;
+                next_char_x++;
+                if(next_char_x == SCREEN_WIDTH)
+                {
+                    rec.x_offset = SCREEN_WIDTH - old_x;
+                    rec.y_offset = 1;
+                    next_char_x = 0;
+                    if(next_char_y < SCREEN_HEIGHT - 1)
+                        next_char_y++;
+                    else scroll_down_nolock();
+                }
+                else
+                {
+                    rec.x_offset = next_char_x - old_x;
+                    rec.y_offset = 0;
+                }
+                term_buf[term_buf_pos++] = rec;
+            }
+        }
+    }
+}

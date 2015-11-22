@@ -59,7 +59,7 @@ struct FsSpecificData {
             uint32_t idx;
             uint32_t max;
         } dentryData;
-        FOpsTable jtable;
+        IFOps* jtable;
     };
 };      // Broken abstraction here... fix after kmalloc
 
@@ -96,7 +96,7 @@ public:
     int32_t write(File &fd, const void *buf, int32_t nbytes);
     bool open(File &fd, const char *filename);
     bool close(File &fd);
-    void register_devfs(const char* path, const FOpsTable& jtable);
+    void register_devfs(const char* path, IFOps* jtable);
 
     static void init();
 };

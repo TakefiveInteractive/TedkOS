@@ -55,6 +55,9 @@ public:
     // For get args
     char *fileName;
     char *arg;
+
+    // For terminal and keyboard driver to find out current terminal.
+    Term::TermImpl* currTerm;
 };
 
 
