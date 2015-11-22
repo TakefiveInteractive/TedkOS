@@ -1,4 +1,5 @@
 #include <inc/drivers/pit.h>
+#include <inc/x86/idt_init.h>
 
 volatile int pit_interrupt_occurred = 0;
 spinlock_t pit_lock = SPINLOCK_UNLOCKED;
@@ -29,11 +30,11 @@ int pit_config(int channel, int mode, int freq)
 
     data = (channel << 6) | 0x30 | (mode << 1);
 
-    // NMI_disable();
-    outb(data, PIT_CMD_PORT);
-    outb(rate, PIT_DATA_PORT(channel));
-    outb(rate >> 8, PIT_DATA_PORT(channel));
-    // NMI_enable();
+    runWithoutNMI([data, rate, channel] () {
+        outb(data, PIT_CMD_PORT);
+        outb(rate, PIT_DATA_PORT(channel));
+        outb(rate >> 8, PIT_DATA_PORT(channel));
+    });
 
     return 0;
 }
@@ -41,17 +42,6 @@ int pit_config(int channel, int mode, int freq)
 int pit_init(int freq)
 {
     return pit_config(0, 2, freq);
-}
-
-int32_t pit_read (void* fd, uint8_t* buf, int32_t nbytes)
-{
-    unsigned int flag;
-    spin_lock_irqsave(&pit_lock, flag);
-    pit_interrupt_occurred = 0;
-    spin_unlock_irqrestore(&pit_lock, flag);
-
-    while (!pit_interrupt_occurred);
-    return 0;
 }
 
 int pit_handler(int irq, unsigned int saved_reg)

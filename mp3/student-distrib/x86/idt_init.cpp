@@ -6,6 +6,8 @@
 #include <inc/x86/idt_init.h>
 #include <inc/x86/idt_table.h>
 #include <inc/x86/err_handler.h>
+#include <inc/klibs/spinlock.h>
+#include <inc/klibs/AutoSpinLock.h>
 
 spinlock_t num_nest_int_lock = SPINLOCK_UNLOCKED;
 int32_t num_nest_int_val = 0;
@@ -16,6 +18,21 @@ int32_t num_nest_int_val = 0;
 int32_t num_nest_int()
 {
     return num_nest_int_val;
+}
+
+void runWithoutNMI(function<void()> fn)
+{
+    spinlock_t nmi_lock = SPINLOCK_UNLOCKED;
+    AutoSpinLock lock(&nmi_lock);
+
+    // Disable NMI
+    outb(inb(0x70) & 0x7F, 0x70);
+
+    // Run our function
+    fn();
+
+    // Enable NMI
+    outb(inb(0x70) | 0x80, 0x70);
 }
 
 void __attribute__((used)) interrupt_handler_with_number(size_t index)

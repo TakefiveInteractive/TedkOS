@@ -3,10 +3,14 @@
 
 #include <inc/x86/desc.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/klibs/function.h>
 
 // This function initializes IDT table,
 // And loads the table to IDTR
 extern void init_idt();
+
+// Runs a block of code that must not be interrupted by NMI.
+void runWithoutNMI(function<void()> fn);
 
 #ifdef __cplusplus
 extern "C" {
