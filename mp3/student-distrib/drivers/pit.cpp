@@ -57,7 +57,7 @@ int32_t pit_read (void* fd, uint8_t* buf, int32_t nbytes)
 int pit_handler(int irq, unsigned int saved_reg)
 {
     AutoSpinLock lock(&pit_lock);
-    // need to call scheduler here
+    //TODO need to call scheduler here
     pit_interrupt_occurred = 1;
     return 0;
 }
