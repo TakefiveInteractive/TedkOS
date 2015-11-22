@@ -3,6 +3,7 @@
 #include <inc/klibs/stack.h>
 #include <inc/klibs/palloc.h>
 #include <inc/syscalls/syscalls.h>
+#include <inc/proc/sched.h>
 #include <stdint.h>
 #include <stddef.h>
 #include "draw_nikita.h"
@@ -12,6 +13,8 @@ __attribute__((used)) void init_main()
     printf("Hello!\nI am the idle process!\nI am a kernel process!\nI am every other process's parent!\n");
 
     draw_nikita();
+
+    enablePreemptiveScheduling();
 
     /* Enable interrupts */
     sti();
