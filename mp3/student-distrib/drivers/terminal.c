@@ -17,12 +17,14 @@
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
 
+/*
 // This field is used to tell whether COMBINATION key is pressed
 //      If so, then it also contains all COMBINATION keys pressed.
 //      Note that pending_kc's MSB is never 1 (released)
 static uint32_t pending_kc = 0;
 
 static uint8_t caps_locked = 0;
+*/
 
 // The coordinate to display the next char at.
 static uint32_t next_char_x = 0;
@@ -127,6 +129,7 @@ extern char ascii_shift_table[128];
  *  'a' is ok. KKC_ENTER is ok,
  *  but SHIFT|'a' is not ok.
  */
+/*
 void kb_to_term(uint32_t kernelKeycode)
 {
     // This one is NOT a FINAL design.
@@ -144,7 +147,7 @@ void kb_to_term(uint32_t kernelKeycode)
         // If neither part exists, nothing should change, thus default to ~0x0
         uint32_t change = 0xFFFFFFFF;
 
-        /* WE ASSUME keyboard supports auto-repeat interrupts. */
+        // WE ASSUME keyboard supports auto-repeat interrupts. 
 
         change &= ~combine_part;
 
@@ -216,6 +219,7 @@ void kb_to_term(uint32_t kernelKeycode)
     }
     spin_unlock_irqrestore(&term_lock, flag);
 }
+*/
 
 //--------------- Definition of sp_kkc_handlers. These must match with terminal-asm.S !!! ----------------
 

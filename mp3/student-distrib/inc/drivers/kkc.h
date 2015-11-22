@@ -1,25 +1,10 @@
-#ifndef _DRIVER_TO_TERMINAL_H
-#define _DRIVER_TO_TERMINAL_H
+#ifndef _KENERL_KEYCODE_H
+#define _KENERL_KEYCODE_H
 
 #include <stdint.h>
 #include <stddef.h>
 
-// The keyboard drive should preprocess their hardware level keycode to
-//   convent them into kernel level keycode and pass the keycode here.
-/* IMPORTANT!! you can only pass one part at a time
- *  'a' is ok. KKC_ENTER is ok,
- *  but SHIFT|'a' is not ok.
- */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-void kb_to_term(uint32_t kernelKeycode);
-#ifdef __cplusplus
-}
-#endif
-
-// Definitions of kernel level keycodes are defined here as well.
+// Definitions of kernel level keycodes 
 // 0. KKC = 0 means no key is pressed or release, nothing happened.
 // 1. For keys that have a PRINTABLE character, their kernel keycode is equal to ASCII.
 // 2. Otherwise for keys that combine with other keys, their keycode starts
@@ -102,4 +87,4 @@ void kb_to_term(uint32_t kernelKeycode);
 
 // and so on
 
-#endif /* _DRIVER_TO_TERMINAL_H */
+#endif /* _KENERL_KEYCODE_H */
