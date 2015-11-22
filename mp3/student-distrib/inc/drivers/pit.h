@@ -8,7 +8,6 @@
 #include <inc/klibs/lib.h>
 #include <inc/i8259.h>
 
-
 const static int PIT_IRQ = 0;
 const static int PIT_ID = 0;
 const static int PIT_POLICY = 0;
