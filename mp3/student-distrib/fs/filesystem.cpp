@@ -38,7 +38,7 @@ void Dispatcher::mount(AbstractFS *fs, const char *path)
 
 int32_t Dispatcher::read(File &fd, void *buf, int32_t nbytes)
 {
-    int32_t result = fd.fs->read(&fd.fsSpecificData, fd.offset, static_cast<uint8_t*>(buf), nbytes);
+    int32_t result = fd.fs->read(fd.fsSpecificData, fd.offset, static_cast<uint8_t*>(buf), nbytes);
     if (result == -1) return -1;
     fd.offset += result;
     return result;
@@ -46,7 +46,7 @@ int32_t Dispatcher::read(File &fd, void *buf, int32_t nbytes)
 
 int32_t Dispatcher::write(File &fd, const void *buf, int32_t nbytes)
 {
-    int32_t result = fd.fs->write(&fd.fsSpecificData, fd.offset, static_cast<const uint8_t*>(buf), nbytes);
+    int32_t result = fd.fs->write(fd.fsSpecificData, fd.offset, static_cast<const uint8_t*>(buf), nbytes);
     if (result == -1) return -1;
     fd.offset += result;
     return result;
@@ -75,7 +75,7 @@ bool Dispatcher::open(File &fd, const char *filename)
         AbstractFS *_fs = x.val;
         fd = { .offset = 0, .fs = _fs };
         // Skip over x.len characters, trimming the mount point from fs
-        bool result = _fs->open(fn + x.len, &fd.fsSpecificData);
+        bool result = _fs->open(fn + x.len, fd.fsSpecificData);
         if (!result)
             return false;
         return true;
@@ -84,7 +84,7 @@ bool Dispatcher::open(File &fd, const char *filename)
 
 bool Dispatcher::close(File &fd)
 {
-    bool result = fd.fs->close(&fd.fsSpecificData);
+    bool result = fd.fs->close(fd.fsSpecificData);
     if (!result)
         return false;
     return true;

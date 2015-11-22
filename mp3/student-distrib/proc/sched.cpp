@@ -16,6 +16,8 @@ void enablePreemptiveScheduling()
 
 void schedMakeDecision()
 {
+    // Put whatever scheduling policy here
+    // call "prepareSwitchTo" to schedule a context switch
 }
 
 // Performs context switching
