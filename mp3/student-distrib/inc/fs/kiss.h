@@ -23,6 +23,18 @@ struct inode_t {
 #ifdef __cplusplus
 namespace filesystem {
 
+    struct KissFileDescriptorData {
+        uint8_t filetype;
+        union {
+            uint32_t inode;
+            struct {
+                uint8_t *base;
+                uint32_t idx;
+                uint32_t max;
+            } dentryData;
+        };
+    };
+
     static const uint32_t MaxNumFiles = 64;
     static const uint32_t BlockSize = 4096;
 
@@ -95,7 +107,7 @@ namespace filesystem {
 
     public:
         virtual void init();
-        virtual bool open(const char* filename, FsSpecificData *fdData);
+        virtual bool open(const char* filename, FsSpecificData *&fdData);
         virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len);
         virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len);
         virtual bool close(FsSpecificData *fdData);

@@ -21,7 +21,7 @@ void KissFS::init()
     initFromMemoryAddress((uint8_t *) mod->mod_start, (uint8_t *) mod->mod_end);
 }
 
-bool KissFS::open(const char* filename, FsSpecificData *data)
+bool KissFS::open(const char* filename, FsSpecificData *&fdData)
 {
     Filename fn((const char*)filename);
     bool found;
@@ -32,6 +32,7 @@ bool KissFS::open(const char* filename, FsSpecificData *data)
     }
     else
     {
+        auto data = new KissFileDescriptorData();
         data->filetype = dentries[dentryIdx].filetype;
         if (dentries[dentryIdx].filetype == DIRECTORY)
         {
@@ -45,12 +46,14 @@ bool KissFS::open(const char* filename, FsSpecificData *data)
             // File
             data->inode = dentries[dentryIdx].inode;
         }
+        fdData = data;
         return true;
     }
 }
 
-int32_t KissFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
+int32_t KissFS::read(FsSpecificData *fdData, uint32_t offset, uint8_t *buf, uint32_t len)
 {
+    auto data = reinterpret_cast<KissFileDescriptorData *>(fdData);
     if (data->filetype == DIRECTORY)
     {
         return readDir(data, offset, buf, len);
@@ -61,8 +64,9 @@ int32_t KissFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32
     }
 }
 
-int32_t KissFS::readDir(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
+int32_t KissFS::readDir(FsSpecificData *fdData, uint32_t offset, uint8_t *buf, uint32_t len)
 {
+    auto data = reinterpret_cast<KissFileDescriptorData *>(fdData);
     // Read directory
     dentry_t *dentries = reinterpret_cast<dentry_t *>(data->dentryData.base);
     if (data->dentryData.idx >= data->dentryData.max)
@@ -85,7 +89,8 @@ int32_t KissFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf,
 
 bool KissFS::close(FsSpecificData *fdData)
 {
-    // TODO: clean up memory
+    KissFileDescriptorData *data = reinterpret_cast<KissFileDescriptorData *>(fdData);
+    delete data;
     return true;
 }
 
