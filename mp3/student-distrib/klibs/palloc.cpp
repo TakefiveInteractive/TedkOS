@@ -283,7 +283,7 @@ namespace palloc
         //              and 0MB ~ 4MB is NOT PRESENT
         //                  (UNLIKE kernel init stage where vmem -> somewhere 1MB)
         spareMemMaps[1 - loadedMap].clear();
-        auto conflict = map.pdStack.template first<int>([this, &map](auto val)
+        auto conflict = map.pdStack.template first<int>([this, &map](auto val) -> Maybe<int>
         {
             uint16_t virtIdx = ((uint32_t) val.virt.addr) >> 22;
             bool ours = commonMemMap.virt2phys[virtIdx] & PAGING_PRESENT;
@@ -291,15 +291,15 @@ namespace palloc
             // Skip kernel pages
             if (virtIdx >= 2 && ours && theirs
             && commonMemMap.translate(val.virt) != val.phys)
-                return Maybe<int>(0);
-            return Maybe<int>();
+                return 0;
+            return Nothing;
         });
         if (conflict) return false;
 
         map.pdStack.template first<bool>([this](auto val)
         {
             spareMemMaps[1 - loadedMap].add(val.virt, val.phys);
-            return Maybe<bool>();
+            return Nothing;
         });
 
         spareMemMaps[1 - loadedMap] += commonMemMap;
@@ -348,15 +348,15 @@ namespace palloc
 
         VirtAddr base = cpu0_memmap.translate(page0);
 
-        if(base.addr == NULL)
+        if (base.addr == NULL)
         {
             auto newAddr = virtLast1G.allocPage(true);
             if (!newAddr)
-                return Maybe<uint32_t>();
+                return Nothing;
             base.addr = +newAddr;
             cpu0_memmap.addCommonPage(base, page0);
-            return Maybe<uint32_t>((uint32_t)(base.addr));
+            return (uint32_t) base.addr;
         }
-        return Maybe<uint32_t>((uint32_t)(base.addr));
+        return (uint32_t) base.addr;
     }
 }
