@@ -18,6 +18,10 @@
 #define NUM_SPECIAL_KKC 0xFF
 #define NUM_COMBINE_KKC 7
 
+#define KKC_ASCII_MASK      0x000000FF
+#define KKC_SPECIAL_MASK    0x0000FF00
+#define KKC_COMBINE_MASK    0x7FFF0000
+
 // define a = 'a'. define A = 'A'. define Ctrl+a = 'a' | KKC_CTRL
 
 // KKC is short for kernel keycode

@@ -284,10 +284,12 @@ void __attribute__((externally_visible)) term_backspace_handler(uint32_t keycode
     set_cursor_nolock(next_char_x, next_char_y);
 }
 
+/*
 void __attribute__((externally_visible)) term_capslock_handler(uint32_t keycode)
 {
     caps_locked = !caps_locked;
 }
+*/
 
 void __attribute__((externally_visible)) term_delete_handler(uint32_t keycode)
 {
@@ -484,3 +486,69 @@ void scroll_down_nolock(void)
         : "cc", "memory", "ecx", "eax"
     );
 }
+
+
+// -------- C++ classes ------------
+void TermImpl::key(uint32_t kkc, bool capslock)
+{
+    if(kkc & ~KKC_ASCII_MASK & ~KKC_SHIFT)
+    {
+        // Handle possible shortcuts here.
+    }
+    else
+    {
+        // Handle normal characters here.
+        // < SIZE -1 because '\n' takes space
+        if(term_buf_pos < TERM_BUFFER_SIZE - 1)
+        {
+            // In this case we have directly printable characters
+            char c = (char)(kkc & KKC_ASCII_MASK);
+            uint32_t old_x;
+            term_buf_item rec;
+            if(kkc & KKC_SHIFT)
+            {
+                // If this ascii has a shift, then do shift.
+                if(ascii_shift_table[ascii_part])
+                    c = ascii_shift_table[ascii_part];
+            }
+            if(capslock)
+            {
+                if('a' <= c && c <= 'z')
+                    c = c - 'a' + 'A';
+                else if('A' <=c && c <= 'Z')
+                    c = c - 'A' + 'a';
+            }
+
+            // TODO
+            // show_char_at_nolock(next_char_x, next_char_y, c);
+
+            rec.displayed_char = c;
+            old_x = next_char_x;
+            next_char_x++;
+            if(next_char_x == SCREEN_WIDTH)
+            {
+                rec.x_offset = SCREEN_WIDTH - old_x;
+                rec.y_offset = 1;
+                next_char_x = 0;
+                if(next_char_y < SCREEN_HEIGHT - 1)
+                    next_char_y++;
+                else scroll_down_nolock();
+            }
+            else
+            {
+                rec.x_offset = next_char_x - old_x;
+                rec.y_offset = 0;
+            }
+            term_buf[term_buf_pos++] = rec;
+        }
+    }
+}
+
+void TermImpl::keyDown(uint32_t kkc, bool capslock)
+{
+}
+
+void TermImpl::keyUp(uint32_t kkc, bool capslock)
+{
+}
+
