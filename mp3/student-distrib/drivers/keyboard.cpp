@@ -138,12 +138,12 @@ int kb_handler(int irq, unsigned int saved_reg)
     pending_special = 0;
     if ((keyboard_scancode & RELEASE_OFFSET) == 0 ) {                     //pressed
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
- 		kb_to_term(kernel_keycode|KKC_PRESS);
+ 		KeyB::BasicShortcutFilter::handle(kernel_keycode|KKC_PRESS);
  	}
 
  	if (keyboard_scancode & RELEASE_OFFSET) {                             //released
  		uint32_t kernel_keycode = KBascii[keyboard_scancode & (~RELEASE_OFFSET)];
- 		kb_to_term(kernel_keycode|KKC_RELEASE);
+ 		KeyB::BasicShortcutFilter::handle(kernel_keycode|KKC_RELEASE);
  	}
 
     spin_unlock_irqrestore(&keyboard_lock, flag);
@@ -161,14 +161,13 @@ int kb_handler(int irq, unsigned int saved_reg)
 void BasicShortcutFilter::handle(uint32_t kernelKeycode)
 //void kb_to_term(uint32_t kernelKeycode)
 {
-    uint32_t flag;
     uint32_t ascii_part, special_part, combine_part;
 
     // *_part are booleans to represent the type of key being pressed, or released
     // The rules to extract the type are explained in inc/driver/kkc.h
-    ascii_part   = kernelKeycode & 0x000000FF;
-    special_part = kernelKeycode & 0x0000FF00;
-    combine_part = kernelKeycode & 0x7FFF0000;
+    ascii_part   = kernelKeycode & KKC_ASCII_MASK;
+    special_part = kernelKeycode & KKC_SPECIAL_MASK;
+    combine_part = kernelKeycode & KKC_COMBINE_MASK;
 
     // If this event represents releasing a key
     if((kernelKeycode & KKC_RELEASE) != 0)
@@ -183,73 +182,46 @@ void BasicShortcutFilter::handle(uint32_t kernelKeycode)
 
         pending_kc &= change;
 
-        for(size_t i = 0; i < numClients; i++)
-            clients[i].keyUp(kernelKeycode);
+        clients[currClient].keyUp(kernelKeycode, caps_locked);
     }
     else
     {
         // A rule: everytime a new ascii/special key is pressed,
         //     old pressed ascii/special key is discarded
+        // Thus we only put combine_part in pending_kc
         if(combine_part)
             pending_kc = pending_kc | combine_part;
-        else if(special_part)
+        else if(ascii_part || special_part)             // avoid 0x0
         {
-            kernelKeycode = 0;
-            if(!pending_kc)
-                sp_kkc_handler_table[special_part >> 8](special_part);
-            else if(special_part == KKC_CAPSLOCK)
-                sp_kkc_handler_table[KKC_CAPSLOCK >> 8](special_part);
-            // Currently we do NOT handle other cases of COMBINE+SPECIAL
-
-            if(!handleShortcut(special_part))
-                clients[currClient].keyDown(special_part);
-        }
-        else if(ascii_part)         // Avoid 0x0
-        {
-            if(!handleShortcut(pending_kc | ascii_part))
-                clients[currClient].keyDown(pending_kc | ascii_part);
-            // Currently this is the ONLY COMBINATION allowed.
-            if(pending_kc == KKC_CTRL && ascii_part == 'l')
-                clear_screen_nolock();
-            else if((pending_kc & (~KKC_SHIFT)) == 0 && term_buf_pos < TERM_BUFFER_SIZE - 1) //-1 because '\n' takes space
-            {
-                // In this case we have directly printable characters
-                char c = (char)ascii_part;
-                uint32_t old_x;
-                term_buf_item rec;
-                if(pending_kc & KKC_SHIFT)
-                {
-                    // If this ascii has a shift, then do shift.
-                    if(ascii_shift_table[ascii_part])
-                        c = ascii_shift_table[ascii_part];
-                }
-                if(caps_locked)
-                {
-                    if('a' <= c && c <= 'z')
-                        c = c - 'a' + 'A';
-                    else if('A' <=c && c <= 'Z')
-                        c = c - 'A' + 'a';
-                }
-                show_char_at_nolock(next_char_x, next_char_y, c);
-                rec.displayed_char = c;
-                old_x = next_char_x;
-                next_char_x++;
-                if(next_char_x == SCREEN_WIDTH)
-                {
-                    rec.x_offset = SCREEN_WIDTH - old_x;
-                    rec.y_offset = 1;
-                    next_char_x = 0;
-                    if(next_char_y < SCREEN_HEIGHT - 1)
-                        next_char_y++;
-                    else scroll_down_nolock();
-                }
-                else
-                {
-                    rec.x_offset = next_char_x - old_x;
-                    rec.y_offset = 0;
-                }
-                term_buf[term_buf_pos++] = rec;
-            }
+            clients[currClient].keyDown(pending_kc | special_part | ascii_part, caps_locked);
+            if(!handleShortcut(pending_kc | special_part | ascii_part))
+                clients[currClient].key(pending_kc | special_part | ascii_part, caps_locked);
         }
     }
+}
+
+bool BasicShortcutFilter::handleShortcut(uint32_t kernelKeycode)
+{
+    uint32_t ascii_part, special_part, combine_part;
+
+    // *_part are booleans to represent the type of key being pressed, or released
+    // The rules to extract the type are explained in inc/driver/kkc.h
+    ascii_part   = kernelKeycode & KKC_ASCII_MASK;
+    special_part = kernelKeycode & KKC_SPECIAL_MASK;
+    combine_part = kernelKeycode & KKC_COMBINE_MASK;
+
+    if(special_part == KKC_CAPSLOCK)
+    {
+        caps_locked = !caps_locked;
+        return true;
+    }
+    // Currently we do NOT handle other cases of COMBINE+SPECIAL
+    else return false;
+}
+
+void BasicShortcutFilter::setCurrClient(size_t client)
+{
+    if(client < 0 || client >= numClients)
+        return;
+    currClient = client;
 }
