@@ -19,9 +19,9 @@ namespace vbe
         legacyInt(0x10, context);
 
         if(context.ax != 0x004f)
-            return Maybe<RawVbeInfoBlock>();
+            return Nothing;
 
-        return Maybe<RawVbeInfoBlock>(*(RawVbeInfoBlock*)RealModePtr(REAL_MODE_FREE_SEG, 0).get32());
+        return *(RawVbeInfoBlock*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
     }
 
     Maybe<RawVbeVideoModeInfo> getVideoModeInfo(uint16_t mode)
@@ -38,9 +38,9 @@ namespace vbe
         legacyInt(0x10, context);
 
         if(context.ax != 0x004f)
-            return Maybe<RawVbeVideoModeInfo>();
+            return Nothing;
 
-        return Maybe<RawVbeVideoModeInfo>(*(RawVbeVideoModeInfo*)RealModePtr(REAL_MODE_FREE_SEG, 0).get32());
+        return *(RawVbeVideoModeInfo*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
     }
 
     // classes

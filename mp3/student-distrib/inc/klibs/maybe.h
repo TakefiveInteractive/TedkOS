@@ -4,22 +4,35 @@
 #include <stddef.h>
 #include <stdint.h>
 
+namespace maybe_details {
+
+class NothingType {
+    uint8_t not_used;
+};
+
+}
+
+extern maybe_details::NothingType Nothing;
+
 template <typename T>
 class Maybe {
 private:
-    T val;
+    const T val;
     bool exists;
 
 public:
-    Maybe() : exists(false) { }
-    Maybe(const T& bla) { val = bla; exists = true; }
+    Maybe() : val(T{}), exists(false) { }
+    Maybe(const T& bla) : val(bla), exists(true) { }
+    Maybe(const maybe_details::NothingType nothing) : val(T{}), exists(false) { }
 
-    const T operator + () const {
+    const T& operator + () const {
         if (!exists)
         {
             // Trigger an exception
             __asm__ __volatile__("int $26;" : : );
-            return T();
+            for (;;) { }
+            // We'll never reach here
+            return val;
         }
         return val;
     }

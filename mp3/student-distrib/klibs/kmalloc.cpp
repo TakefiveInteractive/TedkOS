@@ -14,13 +14,13 @@ Maybe<void *> ObjectPool<ElementSize, PoolSize>::get()
 {
     if (freeStack.empty())
     {
-        return Maybe<void *>();
+        return Nothing;
     }
     else
     {
         void *addr = freeStack.pop();
         freeMap.clear(toMapIndex(addr));
-        return Maybe<void *>(addr);
+        return addr;
     }
 }
 
@@ -99,14 +99,14 @@ Maybe<void *> paraFindAndReleaseFreePool()
 {
     auto slot = PoolGetter<ElementSize>::val();
     size_t idx = 0;
-    auto x = slot->template first<PoolType<ElementSize> *>(idx, [](auto pool) {
+    auto x = slot->template first<PoolType<ElementSize> *>(idx, [](auto pool) -> Maybe<PoolType<ElementSize> *> {
         if (pool->empty())
         {
-            return Maybe<PoolType<ElementSize> *>(pool);
+            return pool;
         }
         else
         {
-            return Maybe<PoolType<ElementSize> *>();
+            return Nothing;
         }
     });
     if (x)
@@ -117,7 +117,7 @@ Maybe<void *> paraFindAndReleaseFreePool()
         (+x)->~PoolType<ElementSize>();
         return Maybe<void *>(+x);
     }
-    return Maybe<void *>();
+    return Nothing;
 }
 
 Maybe<void *> findAndReleaseFreePool()
@@ -142,7 +142,7 @@ Maybe<void *> paraAllocate()
         // Allocate another pool?
         if (slot->full())
         {
-            return Maybe<void *>();
+            return Nothing;
         }
         else
         {
@@ -175,7 +175,7 @@ Maybe<void *> paraAllocate()
                     }
                     physPages.freePage(+physAddr);
                 }
-                return Maybe<void *>();
+                return Nothing;
             }
         }
     }
@@ -208,7 +208,6 @@ bool paraFree(void *addr)
 
 Maybe<void *> allocImpl(size_t size)
 {
-    //printf("size: %d\n", size);
     if (size <= 16)
     {
         return paraAllocate<16>();
@@ -227,7 +226,7 @@ Maybe<void *> allocImpl(size_t size)
     }
     else
     {
-        return Maybe<void *>();
+        return Nothing;
     }
 }
 
@@ -262,7 +261,6 @@ bool freeImpl(void *addr, size_t size)
     {
         return false;
     }
-
 }
 
 }
