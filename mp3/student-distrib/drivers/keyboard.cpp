@@ -1,10 +1,12 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <inc/drivers/keyboard.h>
-#include <inc/d2d/to_term.h>
+#include <inc/drivers/kbterm.h>
+#include <inc/drivers/kkc.h>
 #include <inc/d2d/k2m.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/klibs/AutoSpinLock.h>
+#include <inc/fs/dev_wrapper.h>
+#include <inc/init.h>
 
 #define KB_PORT 0x60
 #define KB_INT_NUM 0x21
@@ -15,16 +17,14 @@
 //------------------------- DEFINE PRIVATE : BASIC KB handler, and HIGHEST SHORTCUT PARSER -----------------------
 // !!! All these private "static" functions will NOT lock the keyb_lock !!!
 
-// This filter is executed before any other IEvent.
-//  it will:
-//  1. prevent typing by not sending events to terminal,
-//          after too many chars are typed in.
-//  2. handler shortcuts
-//  3. Otherwise, pass event to all terminals
-//  4. It always handles the kb_read buffer.
-static spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
+namespace KeyB
+{
+    spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
+    KbClients clients;
+}
+using KeyB::clients;
+using KeyB::keyboard_lock;
 
-static KeyB::KbClients clients;
 static size_t currClient = 0;
 
 static bool caps_locked = false;
@@ -35,6 +35,14 @@ static bool caps_locked = false;
 static uint32_t pending_kc = 0;
 
 // Directly called by interrupt handler.
+
+// This filter is executed before any other IEvent.
+//  it will:
+//  1. prevent typing by not sending events to terminal,
+//          after too many chars are typed in.
+//  2. handler shortcuts
+//  3. Otherwise, pass event to all terminals
+//  4. It always handles the kb_read buffer.
 static void handle(uint32_t kernelKeycode);
 
 // Helper for "handle". true = this key should NOT be passed to IEvent::key()
@@ -43,6 +51,12 @@ static bool handleShortcut(uint32_t kernelKeycode);
 
 static void switchToTextTerm(size_t clientId);
 
+// -------------- An important helper      ------------------
+
+inline TextTerm* getFirstTextTerm()
+{
+    return (TextTerm*)(clients[0]);
+}
 
 // --------------- The only PUBLIC Function -----------------
 
@@ -112,13 +126,15 @@ int8_t  pending_special = 0;
 extern "C" int kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
-    uint32_t flag;
-    spin_lock_irqsave(&keyboard_lock, flag);
+    AutoSpinLock l(&keyboard_lock);
 
 	// bind handler to pic
 	bind_irq(KB_IRQ_NUM,KB_ID,kb_handler,KD_POLICY);
 
-    spin_unlock_irqrestore(&keyboard_lock, flag);
+    // register FOPS
+    register_devfs("term", fops_term);
+    register_devfs("keyb", fops_kb);
+
 	return;
 }
 
@@ -129,6 +145,9 @@ DEFINE_DRIVER_REMOVE(kb) {
 	//rm handler from pic
 	unbind_irq(KB_IRQ_NUM,KB_ID);
     pending_special = 0;
+
+    // reset terminals
+    clear_screen_nolock();
 
     spin_unlock_irqrestore(&keyboard_lock, flag);
     return;
@@ -264,16 +283,16 @@ bool handleShortcut(uint32_t kernelKeycode)
     }
     else switch(kernelKeycode)
     {
-    case KKC_ALT | '1':
+    case KKC_ALT | KKC_F1:
         switchToTextTerm(0);
         return true;
-    case KKC_ALT | '2':
+    case KKC_ALT | KKC_F2:
         switchToTextTerm(1);
         return true;
-    case KKC_ALT | '3':
+    case KKC_ALT | KKC_F3:
         switchToTextTerm(2);
         return true;
-    case KKC_ALT | '4':
+    case KKC_ALT | KKC_F4: 
         switchToTextTerm(3);
         return true;
     default:
@@ -284,8 +303,35 @@ bool handleShortcut(uint32_t kernelKeycode)
 
 void switchToTextTerm(size_t clientId)
 {
-    //TODO: FIXME: Should First use vbe.cpp to switch back to Text Mode .
-
     currClient = clientId;
     ((TextTerm*)(clients[clientId]))->show();
 }
+
+// -------- PUBLIC C functions used by printf --------
+
+// clear screen
+void term_cls(void)
+{
+    if(pcbLoadable)
+    {
+        getCurrentThreadInfo()->pcb.to_process->currTerm->cls();
+    }
+    else
+    {
+        getFirstTextTerm()->cls();
+    }
+}
+
+// Print one char. Must be either printable or newline character
+void term_putc(uint8_t c)
+{
+    if(pcbLoadable)
+    {
+        getCurrentThreadInfo()->pcb.to_process->currTerm->putc(c);
+    }
+    else
+    {
+        getFirstTextTerm()->putc(c);
+    }
+}
+

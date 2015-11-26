@@ -15,6 +15,8 @@
 #include <inc/fs/filesystem.h>
 #include <inc/fs/fops.h>
 
+#ifdef __cplusplus
+
 namespace KeyB
 {
     // By default, all functions do nothing.
@@ -30,8 +32,10 @@ namespace KeyB
     class FOps : public IFOps
     {
     public:
-        int32_t read(filesystem::File& fdEntity, uint8_t *buf, int32_t bytes);
-        int32_t write(filesystem::File& fdEntity, const uint8_t *buf, int32_t bytes);
+        virtual int32_t read(filesystem::File& fdEntity, uint8_t *buf, int32_t bytes);
+        virtual int32_t write(filesystem::File& fdEntity, const uint8_t *buf, int32_t bytes);
+        virtual int32_t open(filesystem::File& fdEntity);
+        virtual int32_t close(filesystem::File& fdEntity);
     };
 }
 
@@ -122,8 +126,10 @@ namespace Term
     class FOps : public IFOps
     {
     public:
-        int32_t read(filesystem::File& fdEntity, uint8_t *buf, int32_t bytes);
-        int32_t write(filesystem::File& fdEntity, const uint8_t *buf, int32_t bytes);
+        virtual int32_t open(filesystem::File& fdEntity);
+        virtual int32_t close(filesystem::File& fdEntity);
+        virtual int32_t read(filesystem::File& fdEntity, uint8_t *buf, int32_t bytes);
+        virtual int32_t write(filesystem::File& fdEntity, const uint8_t *buf, int32_t bytes);
     };
     class Term : public KeyB::IEvent
     {
@@ -154,6 +160,9 @@ namespace Term
 
         int32_t OwnedByPid = -1;
         bool UserWaitingRead = false;
+
+        virtual void nolock_putc(uint8_t c) final;
+        virtual void nolock_cls() final;
     public:
         Term();
 
@@ -169,11 +178,14 @@ namespace Term
         virtual int32_t write(filesystem::File& fdEntity, const uint8_t *buf, int32_t bytes) final;
 
         // Used by keyboard close fops setOwner will not block.
+        //   if upid = -1, then keyboard is owned by no body.
         virtual void setOwner(int32_t upid) final;
     };
 
     class TextTerm : public Term
     {
+    protected:
+        TextModePainter painter;
     public:
         TextTerm();
 
@@ -198,16 +210,11 @@ namespace KeyB
 
         IEvent* operator [] (size_t i);
     };
-
-    // The only "useful" public function from keyboard.cpp
-    Maybe<size_t> getFirstTextTerm();
 }
 
-#define NUM_TERMINALS           1
+extern "C" {
 
-DEFINE_DRIVER_INIT(term);
-DEFINE_DRIVER_REMOVE(term);
-
+#endif //ifdef __cplusplus
 
 // These implementation will make sure cursors are moved so that kernel's output fits well with user's input
 
@@ -215,12 +222,14 @@ DEFINE_DRIVER_REMOVE(term);
 // Change the macro redirection there to switch to old, given versions
 
 // clear screen
-void term_cls(void);
+extern void term_cls(void);
 
 // Print one char. Must be either printable or newline character
-void term_putc(uint8_t c);
+extern void term_putc(uint8_t c);
 
-extern spinlock_t keyboard_lock;
+#ifdef __cplusplus
+}
+#endif //ifdef __cplusplus
 
 DEFINE_DRIVER_INIT(kb);
 DEFINE_DRIVER_REMOVE(kb);

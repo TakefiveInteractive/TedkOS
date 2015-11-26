@@ -57,7 +57,7 @@ public:
     char *arg;
 
     // For terminal and keyboard driver to find out current terminal.
-    Term::TermImpl* currTerm;
+    Term::Term* currTerm;
 };
 
 
