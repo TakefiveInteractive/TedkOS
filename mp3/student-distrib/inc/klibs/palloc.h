@@ -199,7 +199,7 @@ namespace palloc
         int loadedMap;
         // If false, we are using the static plain old Page Dir
         // If true, this manager is in charge.
-        bool isStarted;
+        bool bIsStarted;
         MemMap commonMemMap;
         spinlock_t* cpu_cr3_lock;
     public:
@@ -216,6 +216,8 @@ namespace palloc
         bool delCommonPage(const VirtAddr& virt);
         bool delCommonPage(const PhysAddr& phys);
         bool loadProcessMap(const TinyMemMap& map);
+
+        bool isStarted();
 
         // Start service, and DICARD the old static map in kernel
         // This changes a lot of things, for example:

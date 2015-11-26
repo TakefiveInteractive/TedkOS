@@ -1,5 +1,4 @@
-#include <stdint.h>
-#include <stddef.h>
+#include <stdint.h>#include <stddef.h>
 #include <inc/drivers/terminal.h>
 #include <inc/drivers/common.h>
 #include <inc/klibs/lib.h>
@@ -12,10 +11,6 @@
 
 // The width must be an even number so that
 //      scroll_down_nolock can use rep movsd.
-#define TAB_WIDTH       4
-#define SCREEN_WIDTH    80
-#define SCREEN_HEIGHT   25
-#define TEXT_STYLE      0x7
 
 /*
 // This field is used to tell whether COMBINATION key is pressed
@@ -105,126 +100,18 @@ DEFINE_DRIVER_REMOVE(term)
     caps_locked = 0;
 
     clear_screen_nolock();
+    term_buf_pos = 0;
     next_char_x = 0;
     next_char_y = 0;
 
     spin_unlock_irqrestore(&term_lock, flag);
 }
 
-//********** DEFINE HANDLERS and DISPATCHER for keycodes **********
-
-// special kernel keycode (but not combine-able) handler
-// such as ENTER, BACKSPACE, DELETE
-// actually we will declere one handler per key
-// But incase we need to differentiate KEY_DOWN and KEY_UP,
-//      We still passes the kernelKeycode to handler
-typedef void (*sp_kkc_handler)(uint32_t kernelKeycode);
-
-// jump table composed of sp_kkc_handler, defined in terminal-asm.S
-// Warning: these handlers DO NOT LOCK spinlocks !!!
-extern sp_kkc_handler sp_kkc_handler_table[NUM_SPECIAL_KKC];
+//********** DEFINE HANDLERS for special keycodes **********
 extern char ascii_shift_table[128];
 
-/* IMPORTANT!! you can only pass one part at a time
- *  'a' is ok. KKC_ENTER is ok,
- *  but SHIFT|'a' is not ok.
- */
-/*
-void kb_to_term(uint32_t kernelKeycode)
-{
-    // This one is NOT a FINAL design.
-    uint32_t flag;
-    uint32_t ascii_part, special_part, combine_part;
-    spin_lock_irqsave(&term_lock, flag);
-
-    ascii_part   = kernelKeycode & 0x000000FF;//from 0 - 255 (0-0xFF),same as ascii table
-    special_part = kernelKeycode & 0x0000FF00;//
-    combine_part = kernelKeycode & 0x7FFF0000;
-
-    if((kernelKeycode & 0x80000000) == KKC_RELEASE)
-    {
-        // calculate change so that (pending_kc & change) is the NEW pending_kc
-        // If neither part exists, nothing should change, thus default to ~0x0
-        uint32_t change = 0xFFFFFFFF;
-
-        // WE ASSUME keyboard supports auto-repeat interrupts. 
-
-        change &= ~combine_part;
-
-        pending_kc &= change;
-    }
-    else
-    {
-        // Simulate linux: everytime a new key is pressed,
-        //     old pressed ascii/special key is discarded
-        if(combine_part)
-            pending_kc = pending_kc | combine_part;
-        else if(special_part)
-        {
-            if(!pending_kc)
-                sp_kkc_handler_table[special_part >> 8](kernelKeycode);
-            else if(special_part == KKC_CAPSLOCK)
-                sp_kkc_handler_table[KKC_CAPSLOCK >> 8](kernelKeycode);
-            // Currently we do NOT handle other cases of COMBINE+SPECIAL
-        }
-        else if(ascii_part)         // Avoid 0x0
-        {
-            // Currently this is the ONLY COMBINATION allowed.
-            if(pending_kc == KKC_CTRL && ascii_part == 'l')
-                clear_screen_nolock();
-            else if((pending_kc & (~KKC_SHIFT)) == 0 && term_buf_pos < TERM_BUFFER_SIZE - 1) //-1 because '\n' takes space
-            {
-                // In this case we have directly printable characters
-                char c = (char)ascii_part;
-                uint32_t old_x;
-                term_buf_item rec;
-                if(pending_kc & KKC_SHIFT)
-                {
-                    // If this ascii has a shift, then do shift.
-                    if(ascii_shift_table[ascii_part])
-                        c = ascii_shift_table[ascii_part];
-                }
-                if(caps_locked)
-                {
-                    if('a' <= c && c <= 'z')
-                        c = c - 'a' + 'A';
-                    else if('A' <=c && c <= 'Z')
-                        c = c - 'A' + 'a';
-                }
-                show_char_at_nolock(next_char_x, next_char_y, c);
-                rec.displayed_char = c;
-                old_x = next_char_x;
-                next_char_x++;
-                if(next_char_x == SCREEN_WIDTH)
-                {
-                    rec.x_offset = SCREEN_WIDTH - old_x;
-                    rec.y_offset = 1;
-                    next_char_x = 0;
-                    if(next_char_y < SCREEN_HEIGHT - 1)
-                        next_char_y++;
-                    else scroll_down_nolock();
-                }
-                else
-                {
-                    rec.x_offset = next_char_x - old_x;
-                    rec.y_offset = 0;
-                }
-                term_buf[term_buf_pos++] = rec;
-            }
-        }
-
-        // Only pressing events can put OR remove any text onto screen.
-        // Thus set_cursor_nolock is called within this 'else'
-        set_cursor_nolock(next_char_x, next_char_y);
-    }
-    spin_unlock_irqrestore(&term_lock, flag);
-}
-*/
-
-//--------------- Definition of sp_kkc_handlers. These must match with terminal-asm.S !!! ----------------
-
 // Warning: these handlers DO NOT LOCK spinlocks !!!
-void __attribute__((externally_visible)) term_enter_handler(uint32_t keycode)
+void Term::nolock_enter_handler(uint32_t keycode)
 {
     term_buf_item newLine;
     newLine.displayed_char = '\n';
@@ -236,39 +123,41 @@ void __attribute__((externally_visible)) term_enter_handler(uint32_t keycode)
     else
     {
         next_char_x = 0;
-        scroll_down_nolock();
+        getTermPainter()->scrollDown();
     }
-    // currently we only have 1 terminal. CP2
-    // term2kb_readover and kb_read must add '\n' by itself.
+    //  kb_read must add '\n' by itself.
     term_buf[term_buf_pos++] = newLine;
-    term2kb_readover(0);
+    UserWaitingRead = false;
 }
 
-void __attribute__((externally_visible)) term_backspace_handler(uint32_t keycode)
+void Term::nolock_backspace_handler(uint32_t keycode)
 {
     if(term_buf_pos > 0)
     {
         term_buf_item* i = &term_buf[term_buf_pos - 1];
         if(i->y_offset)
         {
-            // Clear current line
+            /*
+            // Clear current line (clearLine)
             asm volatile (
                 "cld                                                    ;"
                 "movl %0, %%ecx                                         ;"
                 "movl %1, %%eax                                         ;"
                 "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
-                : /* no outputs */
+                : // no outputs
                 : "i" (SCREEN_WIDTH),
                   "i" (' ' + (TEXT_STYLE << 8)),
                   "D" (video_mem + next_char_y * SCREEN_WIDTH * 2)
                 : "cc", "memory", "ecx", "eax"
             );
+            */
+            getTermPainter()->clearLine(next_char_y);
             next_char_y--;
             next_char_x = SCREEN_WIDTH - i->x_offset;
 
             // Must only use this direction (j-- cause sign issues)
             for(uint32_t j = next_char_x; j <= SCREEN_WIDTH - 1; j++)
-                show_char_at_nolock(j, next_char_y, ' ');
+                getTermPainter()->showChar(j, next_char_y, ' ');
         }
         else
         {
@@ -277,26 +166,13 @@ void __attribute__((externally_visible)) term_backspace_handler(uint32_t keycode
 
             // Must only use this direction (j-- cause sign issues)
             for(uint32_t j = next_char_x; j <= orig_x; j++)
-                show_char_at_nolock(j, next_char_y, ' ');
+                getTermPainter()->showChar(j, next_char_y, ' ');
         }
         term_buf_pos --;
     }
-    set_cursor_nolock(next_char_x, next_char_y);
 }
 
-/*
-void __attribute__((externally_visible)) term_capslock_handler(uint32_t keycode)
-{
-    caps_locked = !caps_locked;
-}
-*/
-
-void __attribute__((externally_visible)) term_delete_handler(uint32_t keycode)
-{
-    ;
-}
-
-void __attribute__((externally_visible)) term_tab_handler(uint32_t keycode)
+void Term::nolock_tab_handler(uint32_t keycode)
 {
     if(term_buf_pos >= TERM_BUFFER_SIZE - 1)
         return;
@@ -315,7 +191,7 @@ void __attribute__((externally_visible)) term_tab_handler(uint32_t keycode)
         next_char_x = 0;
         if(next_char_y < SCREEN_HEIGHT - 1)
             next_char_y++;
-        else scroll_down_nolock();
+        else getTermPainter()->scrollDown();
     }
     else
     {
@@ -323,11 +199,6 @@ void __attribute__((externally_visible)) term_tab_handler(uint32_t keycode)
         rec.y_offset = 0;
     }
     term_buf[term_buf_pos++] = rec;
-}
-
-void __attribute__((externally_visible)) term_none_handler(uint32_t keycode)
-{
-    ;
 }
 
 //-------------------- VGA operations ----------------------
@@ -351,15 +222,6 @@ void clear_screen_nolock(void)
     );
     next_char_x = next_char_y = 0;
     set_cursor_nolock(next_char_x, next_char_y);
-}
-
-// clear screen
-void term_cls(void)
-{
-    uint32_t flag;
-    spin_lock_irqsave(&term_lock, flag);
-    clear_screen_nolock();
-    spin_unlock_irqrestore(&term_lock, flag);
 }
 
 // Print one char. Must be either printable or newline character
@@ -409,91 +271,35 @@ void term_putc(uint8_t c)
     spin_unlock_irqrestore(&term_lock, flag);
 }
 
-/********** Implementation of Private Functions ***********/
-
-#define CURSOR_LOC_HIGH_REG     0x0E
-#define CURSOR_LOC_LOW_REG      0x0F
-
-/*
- * void set_cursor_nolock(uint32_t x, uint32_t y)
- * Inputs:
- *      x and y must be within correct range,
- *      (see SCREEN_WIDTH and SCREEN_HEIGHT)
- *      if they are out of range, nothing will happen
- * Function: moves cursor to screen location (x,y).
- * WARNING: lock the term_lock !!!
- */
-void set_cursor_nolock(uint32_t x, uint32_t y)
-{
-    // old_addr stores old CRTC Register's address
-    // addr_reg and data_reg are used to operate CRTC registers
-    // location will be passed to VGA register as Cursor Location Field.
-    uint8_t old_addr;
-    uint16_t addr_reg, data_reg;
-    uint16_t location = SCREEN_WIDTH * y + x;
-    if(x >= SCREEN_WIDTH)
-        return;
-    if(y >= SCREEN_HEIGHT)
-        return;
-    if(inb(0x3CC) & 0x1)
-    {
-        addr_reg = 0x3D4;
-        data_reg = 0x3D5;
-    }
-    else
-    {
-        addr_reg = 0x3B4;
-        data_reg = 0x3B5;
-    }
-    old_addr = inb(addr_reg);
-    outb(CURSOR_LOC_HIGH_REG, addr_reg);
-    outb(location >> 8, data_reg);
-    outb(CURSOR_LOC_LOW_REG , addr_reg);
-    outb(location & 0xff, data_reg);
-    outb(old_addr, addr_reg);
-}
-
-// Scroll the whole screen down by 1 line.
-// There is a VGA way to do this. But we don't have time now.
-// WARNING: lock the term_lock !!!
-void scroll_down_nolock(void)
-{
-    // The width must be an even number so that
-    //      scroll_down_nolock can use rep movsd
-
-    // Move lines up
-    asm volatile (
-        "cld                                                    ;"
-        "movl %0, %%ecx                                         ;"
-        "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
-        : /* no outputs */
-        : "i" ((SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2 / 4),
-          "S" (video_mem + 2 * SCREEN_WIDTH),
-          "D" (video_mem)
-        : "cc", "memory", "ecx"
-    );
-
-    // Clear the content of the last line.
-    asm volatile (
-        "cld                                                    ;"
-        "movl %0, %%ecx                                         ;"
-        "movl %1, %%eax                                         ;"
-        "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
-        : /* no outputs */
-        : "i" (SCREEN_WIDTH),
-          "i" (' ' + (TEXT_STYLE << 8)),
-          "D" (video_mem + (SCREEN_HEIGHT - 1) * SCREEN_WIDTH * 2)
-        : "cc", "memory", "ecx", "eax"
-    );
-}
-
-
 // -------- C++ classes ------------
-void TermImpl::key(uint32_t kkc, bool capslock)
+void Term::key(uint32_t kkc, bool capslock)
 {
     if(kkc & ~KKC_ASCII_MASK & ~KKC_SHIFT)
     {
         // Handle possible shortcuts here.
+        if(kkc & (~KKC_SPECIAL_MASK))
+        {
+            if(kkc == (KKC_CTRL | (uint32_t)'l'))
+            {
+                next_char_x = next_char_y = 0;
+                term_buf_pos = 0;
+                getTermPainter()->clearScreen();
+            }
+        }
+        else switch(kkc & KKC_SPECIAL_MASK)
+        {
+        case KKC_BACKSPACE:
+            nolock_backspace_handler(kkc);
+            break;
+        case KKC_TAB:
+            nolock_tab_handler(kkc);
+            break;
+        case KKC_ENTER:
+            nolock_enter_handler(kkc);
+            break;
+        default:
+            break;
+        }
     }
     else
     {
@@ -519,8 +325,7 @@ void TermImpl::key(uint32_t kkc, bool capslock)
                     c = c - 'A' + 'a';
             }
 
-            // TODO
-            // show_char_at_nolock(next_char_x, next_char_y, c);
+            getTermPainter()->showChar(next_char_x, next_char_y, c);
 
             rec.displayed_char = c;
             old_x = next_char_x;
@@ -532,7 +337,7 @@ void TermImpl::key(uint32_t kkc, bool capslock)
                 next_char_x = 0;
                 if(next_char_y < SCREEN_HEIGHT - 1)
                     next_char_y++;
-                else scroll_down_nolock();
+                else getTermPainter()->scrollDown();
             }
             else
             {
@@ -542,13 +347,6 @@ void TermImpl::key(uint32_t kkc, bool capslock)
             term_buf[term_buf_pos++] = rec;
         }
     }
-}
-
-void TermImpl::keyDown(uint32_t kkc, bool capslock)
-{
-}
-
-void TermImpl::keyUp(uint32_t kkc, bool capslock)
-{
+    getTermPainter()->setCursor(next_char_x, next_char_y);
 }
 
