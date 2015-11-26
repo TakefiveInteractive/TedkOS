@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/klibs/function.h>
 
 class NonCopyable
 {
@@ -28,7 +29,7 @@ class AutoSpinLock: NonCopyable // Scoped Lock idiom
             spin_unlock_irqrestore(lock_, flag);
         }
 
-        void waitUntil(bool (*fn) (void))
+        void waitUntil(function<bool (void)> fn)
         {
             uint32_t flag = flag_;
             spin_unlock_irqrestore(lock_, flag);

@@ -8,8 +8,12 @@
 #include <stddef.h>
 #include "draw_nikita.h"
 
+volatile bool pcbLoadable = false;
+
 __attribute__((used)) void init_main()
 {
+    pcbLoadable = true;
+
     printf("Hello!\nI am the idle process!\nI am a kernel process!\nI am every other process's parent!\n");
 
     draw_nikita();

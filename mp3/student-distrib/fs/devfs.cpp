@@ -12,49 +12,48 @@ void DevFS::init()
 
 }
 
-void DevFS::registerDevice(const char* path, const FOpsTable& jtable)
+void DevFS::registerDevice(const char* path, FOpsGetter getterFn)
 {
     Filename fn(path);
-    deviceOfFilename.put(fn, jtable);
+    deviceOfFilename.put(fn, getterFn);
 }
 
 bool DevFS::open(const char* filename, FsSpecificData *&fdData)
 {
     bool found;
-    FOpsTable jtable = deviceOfFilename.get(Filename(filename), found);
+    auto fopsGetter = deviceOfFilename.get(Filename(filename), found);
     if (!found) return false;
 
-    // Call FOpsOpenImpl, currently we do not have fdEntry structure (=NULL)
-    if (jtable.open(NULL) != 0)
+    auto fopsInstance = fopsGetter();
+    if (fopsInstance)
+    {
+        fdData = +fopsInstance;
+        return true;
+    }
+    else
+    {
         return false;
-
-    auto data = new DevFileDescriptorData();
-    data->jtable = jtable;
-    fdData = data;
-    return true;
+    }
 }
 
 int32_t DevFS::read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len)
 {
-    // Call FOpsReadImpl, currently we do not have fdEntry structure (=NULL)
-    return reinterpret_cast<DevFileDescriptorData *>(data)->jtable.read(NULL, buf, len);
+    // Call FOpsReadImpl
+    return reinterpret_cast<IFOps *>(data)->read(data, buf, len);
 }
 
 int32_t DevFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)
 {
-    // Call FOpsWriteImpl currently we do not have fdEntry structure (=NULL)
-    return reinterpret_cast<DevFileDescriptorData *>(data)->jtable.write(NULL, buf, len);
+    // Call FOpsWriteImpl
+    return reinterpret_cast<IFOps *>(data)->write(data, buf, len);
 }
 
 bool DevFS::close(FsSpecificData *fdData)
 {
-    DevFileDescriptorData *data = reinterpret_cast<DevFileDescriptorData *>(fdData);
-    bool success = data->jtable.close(NULL) == 0;
-    if (success)
-    {
-        delete data;
-    }
-    return success;
+    IFOps *data = reinterpret_cast<IFOps *>(fdData);
+    if (!data) return false;
+    delete data;
+    return true;
 }
 
 }

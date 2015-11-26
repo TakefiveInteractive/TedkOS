@@ -50,8 +50,6 @@ struct HashFunc {
 
 class AbstractFS;
 
-typedef void FsSpecificData;
-
 struct File {
     size_t offset;
     AbstractFS *fs;
@@ -70,13 +68,12 @@ public:
 class Dispatcher {
 private:
     util::PrefixTree<AbstractFS *> lookup;
+    AbstractFS *_kissFS;
     AbstractFS *_devFS;
 
     void mount(AbstractFS *fs, const char *path);
 
 public:
-    AbstractFS *_kissFS;  // this is public for cp2 cuz TAs have to test it
-
     Dispatcher();
 
     void mountAll();
@@ -85,7 +82,7 @@ public:
     int32_t write(File &fd, const void *buf, int32_t nbytes);
     bool open(File &fd, const char *filename);
     bool close(File &fd);
-    void register_devfs(const char* path, const FOpsTable& jtable);
+    void register_devfs(const char* path, FOpsGetter getterFn);
 
     static void init();
 };

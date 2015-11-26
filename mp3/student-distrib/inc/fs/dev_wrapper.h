@@ -5,21 +5,8 @@
 #include <stdint.h>
 #include <inc/fs/fops.h>
 
-
-#ifdef __cplusplus
 namespace filesystem {
-    void register_devfs(const char* path, const FOpsTable& jtable);
+    void register_devfs(const char* path, FOpsGetter getterFn);
 }
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-// C-side functions
-void register_devfs(const char* path, FOpsTable jtable);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
