@@ -133,6 +133,9 @@ namespace Term
     bool TextModePainter::show()
     {
         AutoSpinLock l(&lock);
+
+        //TODO: FIXME: Should First use vbe.cpp to switch back to Text Mode .
+
         if(currShowing)
         {
             AutoSpinLock theirLock(&currShowing->lock);
