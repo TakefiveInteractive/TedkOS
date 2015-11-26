@@ -3,46 +3,18 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/klibs/maybe.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef void FsSpecificData;
 
-/* General RETURN VALUE policy:
-    0 means success for Open and Close.
-    negative means error for all functions.
-    For read, write, non-negative numbers are number of bytes processed.
-*/
+class IFOps
+{
+public:
+    virtual ~IFOps() = 0;
+    virtual int32_t read(FsSpecificData *fdData, uint8_t *buf, int32_t bytes) = 0;
+    virtual int32_t write(FsSpecificData *fdData, const uint8_t *buf, int32_t bytes) = 0;
+};
 
-/* Read from the device */
-typedef int32_t (*FOpsReadImpl) (void* fdEntity, uint8_t *buf, int32_t bytes);
-
-/* Write to device */
-typedef int32_t (*FOpsWriteImpl) (void* fdEntity, const uint8_t *buf, int32_t bytes);
-
-/* initialize the device */
-// fdEntity is pointer to the structure at fd index.
-//   the structure should save some general information shared
-//   between current process and this device.
-// currently this structure type is NOT decided yet.
-typedef int32_t (*FOpsOpenImpl) (void* fdEntity);
-
-/* clean up after closing the device */
-// fdEntity is pointer to the structure at fd index.
-//   the structure should save some general information shared
-//   between current process and this device.
-// currently this structure type is NOT decided yet.
-typedef int32_t (*FOpsCloseImpl) (void* fdEntity);
-
-typedef struct {
-    FOpsOpenImpl open;
-    FOpsCloseImpl close;
-    FOpsReadImpl read;
-    FOpsWriteImpl write;
-} FOpsTable;
-
-#ifdef __cplusplus
-}
-#endif
+typedef Maybe<IFOps *> (* FOpsGetter) ();
 
 #endif /* _FOPS_H */

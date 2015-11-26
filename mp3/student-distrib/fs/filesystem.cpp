@@ -90,9 +90,9 @@ bool Dispatcher::close(File &fd)
     return true;
 }
 
-void Dispatcher::register_devfs(const char* path, const FOpsTable& jtable)
+void Dispatcher::register_devfs(const char* path, FOpsGetter getterFn)
 {
-   static_cast<DevFS *>(theDispatcher->_devFS)->registerDevice(path, jtable);
+   static_cast<DevFS *>(theDispatcher->_devFS)->registerDevice(path, getterFn);
 }
 
 }

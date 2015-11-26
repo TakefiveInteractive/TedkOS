@@ -38,61 +38,6 @@ int rtc_handler(int irq, unsigned int saved_reg)
 }
 
 /**
- * read() would block user program until rtc interrupt finished
- * @param  fd     [description]
- * @param  buf    [description]
- * @param  nbytes [description]
- * @return        [description]
- */
-int32_t rtc_read (void* fd, uint8_t* buf, int32_t nbytes)
-{
-    // wait until interrupt_flag sets to 1
-    while (interrupt_flag == 0);
-    // set interrupt flag back to 0
-    interrupt_flag = 0;
-    return 0;
-}
-
-/**
- * write() would change the frequency of the rtc interrupt generate
- * @param  fd     [description]
- * @param  buf    buf[0] has the frequency number
- * @param  nbytes [description]
- * @return        0 for success, -1 for frequency out of range
- */
-int32_t rtc_write (void* fd, const uint8_t *buf, int32_t nbytes)
-{
-    int freq = *(int *)buf;
-    int rate = frequency_converter(freq);
-    if (!rate) return -1;
-    rtc_change_frequency(rate);
-    return 0;
-}
-
-/**
- * open() would initialize the rtc rate to 2Hz
- * @param  filename [description]
- * @return          return 0 always
- */
-int32_t rtc_open (void *fd)
-{
-    /* open would initialize rtc frequency to 2Hz */
-    uint8_t rate = frequency_converter(2);
-    rtc_change_frequency(rate);
-    return 0;
-}
-
-/**
- * close() did nothing, as TA mentioned
- * @param  fd [description]
- * @return    always return 0
- */
-int32_t rtc_close (void *fd)
-{
-    return 0;
-}
-
-/**
  * private function that convert user input frequency to rtc binary
  * @param  freq - frequency of the rtc, e.g. 2 for 2Hz
  * @return      rtc understandable binary presentation of actual frequency
@@ -132,18 +77,67 @@ void rtc_change_frequency(uint8_t rate)
     outb((prev & HIGH_BIT_MASK) | rate, RTC_DATA);
 }
 
-FOpsTable fops_rtc = {
-    .open = rtc_open,
-    .close = rtc_close,
-    .read = rtc_read,
-    .write = rtc_write
+class FOpsRTC : IFOps {
+private:
+    /**
+     * Would initialize the rtc rate to 2Hz
+     */
+    FOpsRTC()
+    {
+        /* open would initialize rtc frequency to 2Hz */
+        uint8_t rate = frequency_converter(2);
+        rtc_change_frequency(rate);
+    }
+
+public:
+    /**
+     * read() would block user program until rtc interrupt finished
+     * @param  fd     [description]
+     * @param  buf    [description]
+     * @param  nbytes [description]
+     * @return        [description]
+     */
+    virtual int32_t read(FsSpecificData *fdData, uint8_t *buf, int32_t bytes)
+    {
+        // wait until interrupt_flag sets to 1
+        while (interrupt_flag == 0);
+        // set interrupt flag back to 0
+        interrupt_flag = 0;
+        return 0;
+    }
+
+    /**
+     * write() would change the frequency of the rtc interrupt generate
+     * @param  fd     [description]
+     * @param  buf    buf[0] has the frequency number
+     * @param  nbytes [description]
+     * @return        0 for success, -1 for frequency out of range
+     */
+    virtual int32_t write(FsSpecificData *fdData, const uint8_t *buf, int32_t bytes)
+    {
+        int freq = *(int *)buf;
+        int rate = frequency_converter(freq);
+        if (!rate) return -1;
+        rtc_change_frequency(rate);
+        return 0;
+    }
+
+    /* close */
+    virtual ~FOpsRTC()
+    {
+    }
+
+    static Maybe<IFOps *> getNewInstance()
+    {
+        return Maybe<IFOps *>(reinterpret_cast<IFOps *>(new FOpsRTC()));
+    }
 };
 
 DEFINE_DRIVER_INIT(rtc)
 {
     bind_irq(RTC_IRQ, RTC_ID, rtc_handler, RTC_POLICY);
     rtc_init();
-    register_devfs("rtc", fops_rtc);
+    filesystem::register_devfs("rtc", []() { return FOpsRTC::getNewInstance(); });
     return;
 }
 

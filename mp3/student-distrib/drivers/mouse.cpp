@@ -3,7 +3,10 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/drivers/mouse.h>
 #include <inc/d2d/k2m.h>
-#include <inc/drivers/keyboard.h>
+#include <inc/drivers/kbterm.h>
+
+using namespace KeyB;
+using namespace Term;
 
 
 #define KD_POLICY 0

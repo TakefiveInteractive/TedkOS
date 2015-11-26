@@ -216,7 +216,7 @@ namespace palloc
     MemMapManager::MemMapManager(spinlock_t* cpu_cr3_lock)
     {
         loadedMap = 0;
-        isStarted = false;
+        bIsStarted = false;
         this->cpu_cr3_lock = cpu_cr3_lock;
     }
 
@@ -232,7 +232,7 @@ namespace palloc
         }
 
         // >> 22 turns address of 4MB (2^22) page to the index
-        if(!isStarted)
+        if(!bIsStarted)
             global_cr3val[((uint32_t)virt.addr) >> 22] = phys.pde;
         RELOAD_CR3();
         return true;
@@ -250,7 +250,7 @@ namespace palloc
             return false;
         }
         // >> 22 turns address of 4MB (2^22) page to the index
-        if(!isStarted)
+        if(!bIsStarted)
             global_cr3val[((uint32_t)virt.addr) >> 22] = 0;
         RELOAD_CR3();
         return true;
@@ -268,7 +268,7 @@ namespace palloc
             return false;
         }
         // >> 22 turns address of 4MB (2^22) page to the index
-        if(!isStarted)
+        if(!bIsStarted)
             global_cr3val[((uint32_t)virt.addr) >> 22] = 0;
         RELOAD_CR3();
         return true;
@@ -276,7 +276,7 @@ namespace palloc
 
     bool MemMapManager::loadProcessMap(const TinyMemMap& map)
     {
-        if(!isStarted)
+        if(!bIsStarted)
             return false;
         AutoSpinLock lock(cpu_cr3_lock);
         // We START FROM 2, to ignore Kernel at 4MB ~ 8MB
@@ -315,7 +315,7 @@ namespace palloc
     {
         AutoSpinLock lock(cpu_cr3_lock);
         spareMemMaps[loadedMap].loadToCR3();
-        isStarted = true;
+        bIsStarted = true;
     }
 
     // Stop service and change back to the old static map in kernel
@@ -324,7 +324,12 @@ namespace palloc
         AutoSpinLock lock(cpu_cr3_lock);
         REDIRECT_PAGE_DIR(pageDir);
         RELOAD_CR3();
-        isStarted = false;
+        bIsStarted = false;
+    }
+
+    bool isStarted()
+    {
+        return bIsStarted;
     }
 
     VirtAddr MemMapManager::translate(const PhysAddr& addr)
@@ -343,6 +348,9 @@ namespace palloc
     // If it returns 0xffffffff, then memory is used up.
     Maybe<uint32_t> virtOfPage0()
     {
+        if(!cpu0_memmap.isStarted())
+            return Maybe<uint32_t>(0);
+
         // Search for a page from 0MB - 4MB (index=0)
         PhysAddr page0(0, PG_WRITABLE);
 

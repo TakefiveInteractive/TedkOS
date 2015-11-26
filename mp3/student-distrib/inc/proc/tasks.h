@@ -55,6 +55,11 @@ public:
     // For get args
     char *fileName;
     char *arg;
+
+    // For terminal and keyboard driver to find out current terminal.
+    // currTerm is a process state, regardless of whether KeyB/Term is opened,
+    //     so it's not saved in fileDescs
+    Term::Term* currTerm;
 };
 
 
