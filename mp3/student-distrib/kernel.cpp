@@ -128,7 +128,7 @@ _entry (unsigned long magic, unsigned long addr)
         printf(" ... OK!\n");
     }
 
-    // Call this only after C++ intialization has been completed.
+    // Call this only after C++ initialization has been completed.
     prepareRealMode();
 
     // ----- START init as a KERNEL thread (because its code is in kernel code) -----

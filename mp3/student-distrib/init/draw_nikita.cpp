@@ -33,42 +33,6 @@ void draw_nikita()
 
     cli();
 
-    auto vbeInfoMaybe = getVbeInfo();
-    if(vbeInfoMaybe)
-    {
-        VbeInfo vbeInfo (+vbeInfoMaybe);
-        printf("VBE Information:\n");
-        if(vbeInfo.vbe2)
-            printf("\tSupports VBE 2.0\n");
-        if(vbeInfo.vbe3)
-            printf("\tSupports VBE 3.0\n");
-        printf("\tVbeCapability = %x\n", vbeInfo.capabilityFlags);
-        printf("\tOEM = %s\n", vbeInfo.oemString);
-        printf("\tTotal Memory = %d KB\n", ((uint32_t)(vbeInfo.totalMemory)) * 64);
-
-        printf("\tAvailable Video Modes:\n");
-        for(int i = 0; vbeInfo.modeList[i] != 0xffff; i++)
-        {
-            uint16_t mode = vbeInfo.modeList[i];
-            printf("\t Mode %x:  ", mode);
-
-            // Query more about this mode
-            auto modeInfoMaybe = getVideoModeInfo(mode);
-            if(modeInfoMaybe)
-            {
-                VideoModeInfo modeInfo(+modeInfoMaybe);
-                printf(" XRes=%d, YRes=%d, BaseAddr=%x, Color=%s\n",
-                    modeInfo.xRes,
-                    modeInfo.yRes,
-                    modeInfo.physBase,
-                    modeInfo.RGBMask);
-            }
-            else printf("\t\tCan't get any information\n");
-        }
-        printf("\n");
-    }
-
-
     //------------- Try to draw 1024 * 768 HD Graphics ----------------
     auto Mode118Maybe = getVideoModeInfo(0x118);
     if (Mode118Maybe)
