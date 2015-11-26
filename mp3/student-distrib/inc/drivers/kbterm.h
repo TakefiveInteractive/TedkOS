@@ -6,6 +6,7 @@
 
 #include <inc/klibs/AutoSpinLock.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/klibs/maybe.h>
 #include <inc/klibs/lib.h>
 #include <inc/i8259.h>
 
@@ -184,11 +185,11 @@ namespace Term
 
 namespace KeyB
 {
-    class TextOnlyKbClients
+    class KbClients
     {
         static const size_t numClients = 4;
 
-        // To support GUI, here we do NOT directly use TermImpl as type of clients
+        // In order to support GUI later, here we do NOT directly use TermImpl as type of clients
         IEvent* clients[numClients];
         TextTerm clientImpl[numClients];
     public:
@@ -197,40 +198,9 @@ namespace KeyB
 
         IEvent* operator [] (size_t i);
     };
-    // This filter is executed before any other IEvent.
-    //  it will:
-    //  1. prevent typing by not sending events to terminal,
-    //          after too many chars are typed in.
-    //  2. handler shortcuts
-    //  3. Otherwise, pass event to all terminals
-    //  4. It always handles the kb_read buffer.
-    class BasicShortcutFilter
-    {
-        friend int kb_handler(int irq, unsigned int saved_reg);
-    private:
-        static spinlock_t keyb_lock = SPINLOCK_UNLOCKED;
 
-        static TextOnlyKbClients clients;
-        static size_t currClient = 0;
-
-        static bool caps_locked = false;
-
-        // This field is used to tell whether COMBINATION key is pressed
-        //      If so, then it also contains all COMBINATION keys pressed.
-        //      Note that pending_kc's MSB is never 1 (released)
-        static uint32_t pending_kc = 0;
-
-        // The ENTRY POINT into C++ world for all keyboard events.
-        static void handle(uint32_t kernelKeycode);
-
-        // Helper for "handle". true = this key should NOT be passed to IEvent::key()
-        // Alt + # is handled here, but Ctrl+ l is handled in terminal.
-        static bool handleShortcut(uint32_t kernelKeycode);
-    public:
-
-        static void setCurrClient(size_t client);
-        static IEvent* getCurrClient();
-    };
+    // The only "useful" public function from keyboard.cpp
+    Maybe<size_t> getFirstTextTerm();
 }
 
 #define NUM_TERMINALS           1

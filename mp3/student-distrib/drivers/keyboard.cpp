@@ -4,12 +4,58 @@
 #include <inc/d2d/to_term.h>
 #include <inc/d2d/k2m.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/klibs/AutoSpinLock.h>
 
 #define KB_PORT 0x60
 #define KB_INT_NUM 0x21
 #define KB_IRQ_NUM 1
 #define KB_ID 1
 #define KD_POLICY 0
+
+//------------------------- DEFINE PRIVATE : BASIC KB handler, and HIGHEST SHORTCUT PARSER -----------------------
+// !!! All these private "static" functions will NOT lock the keyb_lock !!!
+
+// This filter is executed before any other IEvent.
+//  it will:
+//  1. prevent typing by not sending events to terminal,
+//          after too many chars are typed in.
+//  2. handler shortcuts
+//  3. Otherwise, pass event to all terminals
+//  4. It always handles the kb_read buffer.
+static spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
+
+static KeyB::KbClients clients;
+static size_t currClient = 0;
+
+static bool caps_locked = false;
+
+// This field is used to tell whether COMBINATION key is pressed
+//      If so, then it also contains all COMBINATION keys pressed.
+//      Note that pending_kc's MSB is never 1 (released)
+static uint32_t pending_kc = 0;
+
+// Directly called by interrupt handler.
+static void handle(uint32_t kernelKeycode);
+
+// Helper for "handle". true = this key should NOT be passed to IEvent::key()
+// Alt + # is handled here, but Ctrl+ l is handled in terminal.
+static bool handleShortcut(uint32_t kernelKeycode);
+
+static void switchToTextTerm(size_t clientId);
+
+
+// --------------- The only PUBLIC Function -----------------
+
+namespace KeyB
+{
+    TextTerm* getFirstTextTerm()
+    {
+        return (TextTerm*)(clients[0]);
+    }
+}
+
+// ======== over =========
+
 
 /*
  * See http://wiki.osdev.org/PS/2_Keyboard
@@ -58,12 +104,11 @@ uint32_t KBascii[128] =
     0,	/* All other keys are undefined */
 };
 
-//--------------- Special key Prefix is 0xE0 ---------------
+// Special key Prefix is 0xE0 
 #define SPECIAL_PREFIX      0xE0
 #define RELEASE_OFFSET      0x80
 
 int8_t  pending_special = 0;
-spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
 extern "C" int kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
@@ -104,12 +149,10 @@ DEFINE_DRIVER_REMOVE(kb) {
 int kb_handler(int irq, unsigned int saved_reg)
 {
 	uint8_t keyboard_scancode;
-    uint32_t flag;
-    spin_lock_irqsave(&keyboard_lock, flag);
+    AutoSpinLock(&keyboard_lock);
 
     if ( (mouse_enable_scancode=inb(MOUSE_ENABLE_PORT) ) == 0x20) //should be handle by ms
     {
-        spin_unlock_irqrestore(&keyboard_lock, flag);
         return 0;
     }
  	keyboard_scancode = inb(KB_PORT);                           //read the input
@@ -119,12 +162,10 @@ int kb_handler(int irq, unsigned int saved_reg)
     //!!!   BUT we need to know when keys like SHIFT, ALT are released
 
     if(keyboard_scancode == 0) {
-        spin_unlock_irqrestore(&keyboard_lock, flag);
         return 0;
     }
     if(keyboard_scancode == SPECIAL_PREFIX) {
         pending_special = 1;
-        spin_unlock_irqrestore(&keyboard_lock, flag);
         return 0;
     }
 
@@ -132,33 +173,39 @@ int kb_handler(int irq, unsigned int saved_reg)
     //   They use 0x18 as 2nd code, which conflicts with 'o'
     if(pending_special && keyboard_scancode == 0x18) {
         pending_special = 0;
-        spin_unlock_irqrestore(&keyboard_lock, flag);
         return 0;
     }
     pending_special = 0;
     if ((keyboard_scancode & RELEASE_OFFSET) == 0 ) {                     //pressed
  		uint32_t kernel_keycode = KBascii[keyboard_scancode];
- 		KeyB::BasicShortcutFilter::handle(kernel_keycode|KKC_PRESS);
+ 		handle(kernel_keycode|KKC_PRESS);
  	}
 
  	if (keyboard_scancode & RELEASE_OFFSET) {                             //released
  		uint32_t kernel_keycode = KBascii[keyboard_scancode & (~RELEASE_OFFSET)];
- 		KeyB::BasicShortcutFilter::handle(kernel_keycode|KKC_RELEASE);
+ 		handle(kernel_keycode|KKC_RELEASE);
  	}
-
-    spin_unlock_irqrestore(&keyboard_lock, flag);
 
     return 0;
 }
 
-//------------------------- This part of KeyB driver converts Hardware Keycode to KKC -----------------------
+//------------------------- BASIC KB handler, and HIGHEST SHORTCUT PARSER -----------------------
+// !!! All these private "static" functions will NOT lock the keyb_lock !!!
+
+// This filter is executed before any other IEvent.
+//  it will:
+//  1. prevent typing by not sending events to terminal,
+//          after too many chars are typed in.
+//  2. handler shortcuts
+//  3. Otherwise, pass event to all terminals
+//  4. It always handles the kb_read buffer.
 
 // The entry point into C++ world for all keyboard events.
 /* The param is PARTIAL kernelKeycode, because keyboard does not combine keys.
  *  'a' is ok. KKC_ENTER is ok,
  *  but no one will pass in SHIFT|'a'.
  */
-void BasicShortcutFilter::handle(uint32_t kernelKeycode)
+void handle(uint32_t kernelKeycode)
 //void kb_to_term(uint32_t kernelKeycode)
 {
     uint32_t ascii_part, special_part, combine_part;
@@ -200,7 +247,7 @@ void BasicShortcutFilter::handle(uint32_t kernelKeycode)
     }
 }
 
-bool BasicShortcutFilter::handleShortcut(uint32_t kernelKeycode)
+bool handleShortcut(uint32_t kernelKeycode)
 {
     uint32_t ascii_part, special_part, combine_part;
 
@@ -215,13 +262,30 @@ bool BasicShortcutFilter::handleShortcut(uint32_t kernelKeycode)
         caps_locked = !caps_locked;
         return true;
     }
-    // Currently we do NOT handle other cases of COMBINE+SPECIAL
-    else return false;
+    else switch(kernelKeycode)
+    {
+    case KKC_ALT | '1':
+        switchToTextTerm(0);
+        return true;
+    case KKC_ALT | '2':
+        switchToTextTerm(1);
+        return true;
+    case KKC_ALT | '3':
+        switchToTextTerm(2);
+        return true;
+    case KKC_ALT | '4':
+        switchToTextTerm(3);
+        return true;
+    default:
+        // Currently we do NOT handle other cases of COMBINE+SPECIAL
+        return false;
+    }
 }
 
-void BasicShortcutFilter::setCurrClient(size_t client)
+void switchToTextTerm(size_t clientId)
 {
-    if(client < 0 || client >= numClients)
-        return;
-    currClient = client;
+    //TODO: FIXME: Should First use vbe.cpp to switch back to Text Mode .
+
+    currClient = clientId;
+    ((TextTerm*)(clients[clientId]))->show();
 }

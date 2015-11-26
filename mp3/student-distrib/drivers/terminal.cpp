@@ -1,4 +1,5 @@
-#include <stdint.h>#include <stddef.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <inc/drivers/terminal.h>
 #include <inc/drivers/common.h>
 #include <inc/klibs/lib.h>
@@ -12,15 +13,6 @@
 // The width must be an even number so that
 //      scroll_down_nolock can use rep movsd.
 
-/*
-// This field is used to tell whether COMBINATION key is pressed
-//      If so, then it also contains all COMBINATION keys pressed.
-//      Note that pending_kc's MSB is never 1 (released)
-static uint32_t pending_kc = 0;
-
-static uint8_t caps_locked = 0;
-*/
-
 // The coordinate to display the next char at.
 static uint32_t next_char_x = 0;
 static uint32_t next_char_y = 0;
@@ -32,28 +24,6 @@ term_buf_item term_buf[TERM_BUFFER_SIZE];
 
 // this is actually the position of NEXT NEW char.
 volatile int32_t term_buf_pos = 0;
-
-/********** Private, yet debuggable functions ***********/
-void scroll_down_nolock(void);
-void set_cursor_nolock(uint32_t x, uint32_t y);
-void clear_screen_nolock(void);
-
-/********** Private functions ***********/
-
-/*
- *   Inputs:
- *       uint_8* c = PRINTABLE ascii character
- *       uint_32 x : the x coordinate to display at
- *       uint_32 y : the y coordinate to display at
- *   Return Value: void
- *	Function: Output a character to the screen
- *  WARNING: lock term_lock WHEN CALLING !!!
- */
-static inline void show_char_at_nolock(uint32_t x, uint32_t y, uint8_t c)
-{
-    *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1)) = c;
-    *(uint8_t *)(video_mem + ((SCREEN_WIDTH*y + x) << 1) + 1) = TEXT_STYLE;
-}
 
 /********** FOpsTable values ***********/
 #include <inc/fs/fops.h>
