@@ -4,6 +4,7 @@
 #include <inc/x86/desc_interrupts.h>
 #include <inc/x86/idt_init.h>
 #include <inc/drivers/pit.h>
+#include <inc/drivers/kbterm.h>
 
 // Smaller than zero <=> No switch.
 int32_t wantToSwitchTo = -1;
@@ -63,6 +64,9 @@ int32_t newPausedProcess(int32_t parentPID)
     pd.mainThreadInfo->pcb.prev = parentInfo;
     if (parentInfo)
         parentInfo->pcb.next = pd.mainThreadInfo;
+
+    // TODO: FIXME: Currently all processes are binded to terminal 0
+    pd.currTerm = KeyB::getFirstTextTerm();
 
     return uniq_pid;
 }

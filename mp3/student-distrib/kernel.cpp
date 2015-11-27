@@ -30,6 +30,8 @@ using arch::Stacker;
 using arch::CPUArchTypes::x86;
 using namespace vbe;
 
+volatile bool canUseCpp = false;
+
 /* Initialize runtime library */
 extern "C" void _init(void);
 
@@ -111,6 +113,7 @@ _entry (unsigned long magic, unsigned long addr)
 
     /* Initialize runtime library */
     _init();
+    canUseCpp = true;
 
     /* Initialize file system */
     filesystem::Dispatcher::init();
