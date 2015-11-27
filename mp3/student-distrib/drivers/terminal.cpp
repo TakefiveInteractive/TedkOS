@@ -17,6 +17,16 @@ namespace Term
         // Empty constructor?
     }
 
+    void Term::keyDown(uint32_t kkc, bool capslock)
+    {
+
+    }
+
+    void Term::keyUp(uint32_t kkc, bool capslock)
+    {
+
+    }
+
     // Warning: these handlers DO NOT LOCK spinlocks !!!
     void Term::nolock_enter_handler(uint32_t keycode)
     {
