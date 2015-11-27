@@ -50,14 +50,7 @@ __attribute__((used)) void launcher(void* arg)
     {
         printf("Starting shell ...\n");
 
-        int32_t ret;
-        const char* file = "shell";
-        asm volatile(
-            "movl %1, %%eax         ;\n"
-            "movl %2, %%ebx         ;\n"
-            "int $0x80              ;\n"
-            "movl %%eax, %0         ;\n"
-        :"=rm"(ret) : "i"(SYS_EXECUTE), "rm"(file) : "eax", "cc", "ebx");
+        int32_t ret = ece391_execute((const uint8_t *)"shell");
 
         printf("Return Val: %d\n",ret);
         printf("Falling back to init.\nRe-");
