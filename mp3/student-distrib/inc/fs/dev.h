@@ -23,6 +23,8 @@ public:
     virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len);
     virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len);
     virtual int32_t fstat(FsSpecificData *data, stat *st);
+    virtual bool canSeek(FsSpecificData *fdData);
+    virtual Maybe<uint32_t> getFileSize(FsSpecificData *fdData);
 
     void registerDevice(const char* path, FOpsGetter getterFn);
 };

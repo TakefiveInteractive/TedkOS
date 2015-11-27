@@ -63,5 +63,17 @@ int32_t DevFS::fstat(FsSpecificData *data, stat *st)
     return 0;
 }
 
+bool DevFS::canSeek(FsSpecificData *fdData)
+{
+    // Assume unseekable
+    return false;
+}
+
+Maybe<uint32_t> DevFS::getFileSize(FsSpecificData *fdData)
+{
+    return Nothing;
+}
+
+
 }
 

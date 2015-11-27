@@ -57,6 +57,28 @@ int32_t Dispatcher::fstat(File &fd, stat *st)
     return fd.fs->fstat(fd.fsSpecificData, st);
 }
 
+int32_t Dispatcher::lseek(File &fd, int32_t offset, int32_t whence)
+{
+    if (!fd.fs->canSeek(fd.fsSpecificData)) return -1;
+    auto fileSize = fd.fs->getFileSize(fd.fsSpecificData);
+    switch (whence)
+    {
+    case SEEK_SET:
+        fd.offset = offset;
+        break;
+    case SEEK_CUR:
+        fd.offset += offset;
+        break;
+    case SEEK_END:
+        if (!fileSize) return -1;
+        fd.offset = +fileSize + offset;
+        break;
+    default:
+        return -1;
+    }
+    return fd.offset;
+}
+
 bool Dispatcher::open(File &fd, const char *filename)
 {
     const char *fn = filename;
