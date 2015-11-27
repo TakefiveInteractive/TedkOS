@@ -14,6 +14,7 @@
 #include <inc/proc/sched.h>
 #include <inc/fs/filesystem.h>
 #include <inc/klibs/palloc.h>
+#include <inc/drivers/kbterm.h>
 
 using namespace palloc;
 

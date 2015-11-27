@@ -1,31 +1,7 @@
 .data
 
-.globl sp_kkc_handler_table
 .globl ascii_shift_table
 .align 4
-
-# an array of NUM_SPECIAL_KKC=255 function pointers.
-sp_kkc_handler_table:
-    # 0 is always un-occupied
-    .long term_none_handler
-
-    .long term_enter_handler
-    .long term_backspace_handler
-    .long term_delete_handler
-
-    # UP DOWN LEFT RIGHT are not used yet
-    .rept 4
-    .long term_none_handler
-    .endr
-
-    .long term_tab_handler
-    .long term_capslock_handler
-
-    # fill up the rest of the table with none_handler
-    .rept 255 - 4 - 4 - 2
-    .long term_none_handler
-    .endr
-
 
 # this is a 128 byte array
 .align 4

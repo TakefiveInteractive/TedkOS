@@ -2,8 +2,7 @@
 #include <inc/drivers/mouse.h>
 #include <inc/drivers/common.h>
 #include <inc/drivers/rtc.h>
-#include <inc/drivers/keyboard.h>
-#include <inc/drivers/terminal.h>
+#include <inc/drivers/kbterm.h>
 #include <inc/drivers/pit.h>
 
 /* Include the header of your driver here. */
@@ -16,9 +15,8 @@
 }
 
 driver_t known_drivers[] = {
-    ADD_DRIVER(term, "Terminal driver"),
-    ADD_DRIVER(rtc, "Real Time Clock driver"),
     ADD_DRIVER(kb, "Keyboard"),
+    ADD_DRIVER(rtc, "Real Time Clock driver"),
     ADD_DRIVER(mouse, "Mouse"),
     ADD_DRIVER(pit, "Programmable Interrupt Timer")
 };

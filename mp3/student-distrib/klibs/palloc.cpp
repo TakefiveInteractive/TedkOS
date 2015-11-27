@@ -327,7 +327,7 @@ namespace palloc
         bIsStarted = false;
     }
 
-    bool isStarted()
+    bool MemMapManager::isStarted()
     {
         return bIsStarted;
     }

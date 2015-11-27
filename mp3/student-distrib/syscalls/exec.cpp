@@ -10,7 +10,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
-#include <inc/drivers/fops_kb.h>
+#include <inc/drivers/kbterm.h>
 
 using namespace palloc;
 using namespace boost;
@@ -161,7 +161,8 @@ int32_t do_exec(const char* arg0)
     child.mainThreadInfo->pcb.isKernelThread = 0;
 
     // RELEASE control of stdin.
-    kb_close(NULL);
+    if(getCurrentThreadInfo()->pcb.to_process->currTerm)
+        getCurrentThreadInfo()->pcb.to_process->currTerm->setOwner(-1);
 
     restore_flags(flags);
     return child_upid;

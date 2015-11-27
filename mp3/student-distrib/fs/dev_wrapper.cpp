@@ -3,8 +3,8 @@
 
 // C++ functions
 namespace filesystem {
-    void register_devfs(const char* path, IFOps* jtable)
+    void register_devfs(const char* path, FOpsGetter fn)
     {
-        theDispatcher->register_devfs(path, jtable);
+        theDispatcher->register_devfs(path, fn);
     }
 }

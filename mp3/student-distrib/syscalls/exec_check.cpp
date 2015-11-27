@@ -1,6 +1,6 @@
 #include <inc/syscalls/exec.h>
 #include <inc/fs/kiss.h>
-#include <inc/fs/kiss_wrapper.h>
+#include <inc/fs/filesystem.h>
 
 namespace fs = filesystem;
 
@@ -13,19 +13,19 @@ static const int NORMAL_FILE = 2;
 
 // Check whether exists, and whether executable.
 // Return 0 if not exist or not an executable.
-int8_t is_kiss_executable(const boost::unique_ptr<char[]> &file)//filename
+int8_t is_kiss_executable(const boost::unique_ptr<char[]> &file)
 {
-    //check dentry
+    // check dentry
     dentry_t dentry;
-    if(fs::read_dentry((const unsigned char *) file.get(), &dentry) == -1)//cannot find
+    if (fs::read_dentry((const unsigned char *) file.get(), &dentry) == -1) // cannot find
         return 0;
-    if(dentry.filetype != NORMAL_FILE)//not regular file
+    if (dentry.filetype != NORMAL_FILE) // not regular file
         return 0;
     uint8_t buf[4] = {};
     uint32_t len = fs::read_data(dentry.inode,0,buf,sizeof(buf));
-    if( len < 4)//read error, or input file length error
+    if (len < 4)//read error, or input file length error
         return 0;
-    if(buf[0] == 0x7f &&
+    if (buf[0] == 0x7f &&
         buf[1] == 0x45 &&
         buf[2] == 0x4c &&
         buf[3] == 0x46
