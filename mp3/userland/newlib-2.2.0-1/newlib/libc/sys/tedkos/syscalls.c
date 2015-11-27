@@ -28,9 +28,7 @@ int fork();
 
 int fstat(int file, struct stat *st)
 {
-    // TODO: impl
-    st->st_mode = S_IFCHR;
-    return 0;
+    return ece391_fstat(file, st);
 }
 
 int getpid();
@@ -47,8 +45,7 @@ int link(char *old, char *new);
 
 int lseek(int file, int ptr, int dir)
 {
-    // TODO: impl
-    return 0;
+    return ece391_lseek(file, ptr, dir);
 }
 
 int open(const char *name, int flags, ...)

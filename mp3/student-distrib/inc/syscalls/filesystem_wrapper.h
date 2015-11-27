@@ -11,6 +11,8 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes);
 int32_t write(int32_t fd, const void *buf, int32_t nbytes);
 int32_t open(const char *filename);
 int32_t close(int32_t fd);
+int32_t fstat(int32_t fd, stat *st);
+int32_t lseek(int32_t fd, int32_t offset, int32_t whence);
 
 } }
 

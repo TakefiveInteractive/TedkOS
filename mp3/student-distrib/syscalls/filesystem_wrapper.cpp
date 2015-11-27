@@ -61,6 +61,20 @@ int32_t close(int32_t fd)
     return 0;
 }
 
+int32_t fstat(int32_t fd, stat *st)
+{
+    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    if (!check_valid_fd(fd, processDesc)) return -1;
+    return theDispatcher->fstat(*processDesc->fileDescs[fd], st);
+}
+
+int32_t lseek(int32_t fd, int32_t offset, int32_t whence)
+{
+    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    if (!check_valid_fd(fd, processDesc)) return -1;
+    return theDispatcher->lseek(*processDesc->fileDescs[fd], offset, whence);
+}
+
 } }
 
 // Helps initializes the file descriptors of uniq_pid:

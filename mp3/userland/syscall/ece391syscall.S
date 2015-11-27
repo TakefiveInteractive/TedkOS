@@ -23,6 +23,8 @@ DO_CALL(ece391_vidmap,SYS_VIDMAP)
 DO_CALL(ece391_set_handler,SYS_SET_HANDLER)
 DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 DO_CALL(ece391_sbrk,SYS_SBRK)
+DO_CALL(ece391_fstat,SYS_FSTAT)
+DO_CALL(ece391_lseek,SYS_LSEEK)
 
 
 /* Call the main() function, then halt with its return value. */
