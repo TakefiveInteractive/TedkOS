@@ -16,15 +16,24 @@ class Drawable {
         int32_t y;
 };
 
+enum VideoMode {
+    Video,
+    Text
+};
+
 class Compositor {
     private:
         real_context_t real_context;
         uint16_t orig_mode;
         uint8_t *videoMemory;
+        VideoMode videoMode;
 
     public:
         Compositor();
         void enterVideoMode();
+        void enterTextMode();
+
+        void drawNikita();
 };
 
 }

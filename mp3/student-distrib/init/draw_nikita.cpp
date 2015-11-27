@@ -1,28 +1,10 @@
 #include "draw_nikita.h"
 #include <stdint.h>
 #include <stddef.h>
-#include <inc/fs/filesystem.h>
-#include <inc/ui/vbe.h>
-#include <inc/x86/real.h>
-#include <inc/klibs/palloc.h>
+#include <inc/ui/compositor.h>
 #include <inc/syscalls/filesystem_wrapper.h>
-#include <inc/x86/err_handler.h>
 
-using namespace vbe;
-using namespace palloc;
-using namespace filesystem;
-
-void paint_screen(uint8_t *pixel, uint8_t *source)
-{
-    for (size_t x = 0; x < 1024 * 768; x++)
-    {
-        pixel[2] = source[0];
-        pixel[1] = source[1];
-        pixel[0] = source[2];
-        pixel += 3;
-        source += 4;
-    }
-}
+using ui::Compositor;
 
 void draw_nikita()
 {
@@ -31,66 +13,15 @@ void draw_nikita()
 
     printf("keyboard opened\n");
 
-    cli();
-
-    //------------- Try to draw 1024 * 768 HD Graphics ----------------
-    auto Mode118Maybe = getVideoModeInfo(0x118);
-    if (Mode118Maybe)
-    {
-        // Nothing
-    }
-    else
-    {
-        printf("1024*768 24bits mode is NOT supported.\n");
-        return;
-    }
-    VideoModeInfo Mode118(+Mode118Maybe);
-    uint32_t Mode118Mem = Mode118.physBase;
-
-    uint16_t orig_mode;
-
-    // Back up current mode.
-    real_context_t real_context;
-    real_context.ax = 0x0f00;
-    legacyInt(0x10, real_context);
-    orig_mode = real_context.ax & 0x00ff;
-
-    LOAD_4MB_PAGE(Mode118Mem>>22, Mode118Mem, PG_WRITABLE);
-    RELOAD_CR3();
-
-    auto physAddr = physPages.allocPage(true);
-    if (!physAddr) trigger_exception<27>();
-
-    LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
-    RELOAD_CR3();
-    uint8_t *nikita = (uint8_t *)((uint32_t)(+physAddr) << 22);
-
-    File file;
-    theDispatcher->open(file, "landscape");
-    theDispatcher->read(file, nikita, 1024 * 768 * 4);
-    theDispatcher->close(file);
-
-    uint8_t *pixel = (uint8_t *) Mode118Mem;
-
-    paint_screen(pixel, nikita);
-
-    // Change to HD Video Mode
-    real_context.ax=0x4F02;
-    real_context.bx=0x8118;
-    legacyInt(0x10, real_context);
+    Compositor comp;
+    comp.enterVideoMode();
+    comp.drawNikita();
 
     // Wait for user
-    sti();
     syscall::fops::read(keyb, buf, 1);
-    cli();
-
-    // Change back to original mode
-    real_context.ax=orig_mode;
-    legacyInt(0x10, real_context);
+    comp.enterTextMode();
 
     printf("Back to KERNEL!\n");
-
-    sti();
 
     syscall::fops::close(keyb);
 }
