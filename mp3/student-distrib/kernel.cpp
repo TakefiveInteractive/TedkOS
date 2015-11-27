@@ -13,7 +13,6 @@
 #include <inc/debug.h>
 #include <inc/known_drivers.h>
 #include <inc/x86/paging.h>
-#include <inc/fs/kiss_wrapper.h>
 #include <inc/mbi_info.h>
 #include <inc/klibs/palloc.h>
 #include <inc/proc/tasks.h>

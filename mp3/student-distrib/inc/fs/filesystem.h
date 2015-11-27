@@ -7,6 +7,7 @@
 #include <inc/fs/fops.h>
 #include <inc/klibs/prefix_tree.h>
 #include <inc/klibs/fixedmemorypool.h>
+#include <inc/fs/stat.h>
 
 #ifdef __cplusplus
 namespace filesystem {
@@ -63,6 +64,7 @@ public:
     virtual bool close(FsSpecificData *fdData) = 0;
     virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len) = 0;
     virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len) = 0;
+    virtual int32_t fstat(FsSpecificData *data, stat *st) = 0;
 };
 
 class Dispatcher {
@@ -82,6 +84,8 @@ public:
     int32_t write(File &fd, const void *buf, int32_t nbytes);
     bool open(File &fd, const char *filename);
     bool close(File &fd);
+    int32_t fstat(File &fd, stat *st);
+
     void register_devfs(const char* path, FOpsGetter getterFn);
 
     static void init();
