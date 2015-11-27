@@ -81,7 +81,7 @@ int32_t KissFS::readDir(FsSpecificData *fdData, uint32_t offset, uint8_t *buf, u
     }
 }
 
-int32_t KissFS::write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len)
+int32_t KissFS::write(FsSpecificData *fdData, uint32_t offset, const uint8_t *buf, uint32_t len)
 {
     // Read-only
     return -1;
@@ -108,9 +108,23 @@ int32_t KissFS::fstat(FsSpecificData *fdData, stat *st)
     else
     {
         st->st_mode = S_IFREG;
-        st->st_size = inodes[dentries[data->dentryData.idx].inode].size;
+        st->st_size = inodes[data->inode].size;
     }
     return 0;
+}
+
+bool KissFS::canSeek(FsSpecificData *fdData)
+{
+    auto data = reinterpret_cast<KissFileDescriptorData *>(fdData);
+    if (data->filetype == NORMAL_FILE) return true;
+    return false;
+}
+
+Maybe<uint32_t> KissFS::getFileSize(FsSpecificData *fdData)
+{
+    auto data = reinterpret_cast<KissFileDescriptorData *>(fdData);
+    if (data->filetype != NORMAL_FILE) return Nothing;
+    return inodes[data->inode].size;
 }
 
 struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
