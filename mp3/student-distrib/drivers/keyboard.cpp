@@ -133,6 +133,8 @@ DEFINE_DRIVER_INIT(kb) {
     register_devfs("term", []() { return Term::FOps::getNewInstance(); });
     register_devfs("keyb", []() { return KeyB::FOps::getNewInstance(); });
 
+    getFirstTextTerm()->show();
+
 	return;
 }
 
