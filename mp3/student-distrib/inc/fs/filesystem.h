@@ -8,6 +8,7 @@
 #include <inc/klibs/prefix_tree.h>
 #include <inc/klibs/fixedmemorypool.h>
 #include <inc/fs/stat.h>
+#include <inc/fs/fcntl.h>
 
 #ifdef __cplusplus
 namespace filesystem {
@@ -65,6 +66,8 @@ public:
     virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len) = 0;
     virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len) = 0;
     virtual int32_t fstat(FsSpecificData *data, stat *st) = 0;
+    virtual bool canSeek(FsSpecificData *fdData) = 0;
+    virtual Maybe<uint32_t> getFileSize(FsSpecificData *fdData) = 0;
 };
 
 class Dispatcher {
@@ -85,6 +88,7 @@ public:
     bool open(File &fd, const char *filename);
     bool close(File &fd);
     int32_t fstat(File &fd, stat *st);
+    int32_t lseek(File &fd, int32_t offset, int32_t whence);
 
     void register_devfs(const char* path, FOpsGetter getterFn);
 

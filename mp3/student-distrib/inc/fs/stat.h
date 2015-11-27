@@ -1,13 +1,13 @@
 #ifndef _INC_STAT_H_
 #define _INC_STAT_H_
 
-typedef int32_t gid_t;
-typedef int32_t uid_t;
-typedef int32_t dev_t;
-typedef int32_t ino_t;
-typedef int32_t mode_t;
-typedef int32_t caddr_t;
-typedef int32_t nlink_t;
+typedef unsigned short gid_t;
+typedef unsigned short uid_t;
+typedef short dev_t;
+typedef unsigned short ino_t;
+typedef unsigned int mode_t;
+typedef char* caddr_t;
+typedef unsigned short nlink_t;
 typedef long off_t;
 
 struct stat

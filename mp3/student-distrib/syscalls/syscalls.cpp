@@ -105,6 +105,8 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
         case SYS_SET_HANDLER:   retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
         case SYS_SIGRETURN:     retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
         case SYS_SBRK:          retval = systemCallRunner(sbrk::syssbrk, p1, p2, p3); break;
+        case SYS_FSTAT:         retval = systemCallRunner(fops::fstat, p1, p2, p3); break;
+        case SYS_LSEEK:         retval = systemCallRunner(fops::lseek, p1, p2, p3); break;
         case SYS_DOTASK:        retval = -1; if(getCurrentThreadInfo()->pcb.isKernelThread) prepareSwitchTo((int32_t)p1); break;
 
         /* Unknown syscall */
