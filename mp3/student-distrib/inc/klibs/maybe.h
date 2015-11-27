@@ -18,7 +18,7 @@ template <typename T>
 class Maybe {
 private:
     const T val;
-    bool exists;
+    const bool exists;
 
 public:
     Maybe() : val(T{}), exists(false) { }
