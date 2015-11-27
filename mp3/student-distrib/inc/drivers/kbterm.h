@@ -14,6 +14,8 @@
 #include <inc/klibs/maybe.h>
 #include <inc/klibs/lib.h>
 #include <inc/i8259.h>
+#include <inc/syscalls/exec.h>
+#include <inc/syscalls/halt.h>
 
 #include <inc/fs/filesystem.h>
 #include <inc/fs/fops.h>
@@ -154,6 +156,8 @@ namespace Term
 
     class Term : public KeyB::IEvent
     {
+        friend int32_t syscall::exec::do_exec(const char* file);
+        friend int32_t syscall::halt::syshalt(uint32_t retval);
     protected:
         static const size_t TERM_BUFFER_SIZE = 128;
 

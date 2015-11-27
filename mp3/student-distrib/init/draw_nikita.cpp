@@ -1,7 +1,7 @@
 #include "draw_nikita.h"
 #include <stdint.h>
 #include <stddef.h>
-#include <inc/fs/kiss_wrapper.h>
+#include <inc/fs/filesystem.h>
 #include <inc/ui/vbe.h>
 #include <inc/x86/real.h>
 #include <inc/klibs/palloc.h>
@@ -10,6 +10,7 @@
 
 using namespace vbe;
 using namespace palloc;
+using namespace filesystem;
 
 void paint_screen(uint8_t *pixel, uint8_t *source)
 {
@@ -100,9 +101,10 @@ void draw_nikita()
     RELOAD_CR3();
     uint8_t *nikita = (uint8_t *)((uint32_t)(+physAddr) << 22);
 
-    dentry_t dentry;
-    filesystem::read_dentry((uint8_t*)"landscape", &dentry);
-    filesystem::read_data(dentry.inode, 0, nikita, 1024 * 768 * 4);
+    File file;
+    theDispatcher->open(file, "landscape");
+    theDispatcher->read(file, nikita, 1024 * 768 * 4);
+    theDispatcher->close(file);
 
     uint8_t *pixel = (uint8_t *) Mode118Mem;
 

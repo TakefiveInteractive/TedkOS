@@ -1,4 +1,4 @@
-#include "halt.h"
+#include <inc/syscalls/halt.h>
 #include <inc/error.h>
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
@@ -35,6 +35,10 @@ int32_t syshalt(uint32_t retval)
 
         *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7 * 4) = retval;
         prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
+
+        // GET control of stdin.
+        if(getCurrentThreadInfo()->pcb.to_process->currTerm)
+            getCurrentThreadInfo()->pcb.to_process->currTerm->setOwner(prevInfo->pcb.to_process->getUniqPid());
 
         // Clean up process
         ProcessDesc::remove(getCurrentThreadInfo()->pcb.to_process->getUniqPid());

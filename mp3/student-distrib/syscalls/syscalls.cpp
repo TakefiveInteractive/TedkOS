@@ -7,7 +7,7 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/syscalls/exec.h>
 #include <inc/x86/idt_init.h>
-#include "halt.h"
+#include <inc/syscalls/halt.h>
 #include "getargs.h"
 #include "sbrk.h"
 
