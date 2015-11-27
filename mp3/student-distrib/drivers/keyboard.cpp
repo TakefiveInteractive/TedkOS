@@ -126,8 +126,8 @@ extern "C" int kb_handler(int irq, unsigned int saved_reg);
 DEFINE_DRIVER_INIT(kb) {
     AutoSpinLock l(&KeyB::keyboard_lock);
 
-	// bind handler to pic
-	bind_irq(KB_IRQ_NUM,KB_ID,kb_handler,KD_POLICY);
+    // bind handler to pic
+    bind_irq(KB_IRQ_NUM,KB_ID,kb_handler,KD_POLICY);
 
     // register FOPS
     register_devfs("term", []() { return Term::FOps::getNewInstance(); });
@@ -135,14 +135,14 @@ DEFINE_DRIVER_INIT(kb) {
 
     getFirstTextTerm()->show();
 
-	return;
+    return;
 }
 
 DEFINE_DRIVER_REMOVE(kb) {
     AutoSpinLock l(&KeyB::keyboard_lock);
 
-	//rm handler from pic
-	unbind_irq(KB_IRQ_NUM,KB_ID);
+    // rm handler from pic
+    unbind_irq(KB_IRQ_NUM,KB_ID);
     pending_special = 0;
 
     // reset terminals
@@ -154,26 +154,26 @@ DEFINE_DRIVER_REMOVE(kb) {
 
 /* keyboard_handler
  * description:
- *		Handle keyboard interrupts
+ *      Handle keyboard interrupts
  * input:
- *		int irq, pt_reg* saved_reg(not used)
+ *      int irq, pt_reg* saved_reg(not used)
  * output,return:
- *		currently the value is ignored, 0 for success.
+ *      currently the value is ignored, 0 for success.
  *      Look at <inc/error.h> for more error codes.
  * side effect:
- *		changes keyboard buffer (if we have a buffer)
+ *      changes keyboard buffer (if we have a buffer)
  *      print keyboard character to terminal
  */
 int kb_handler(int irq, unsigned int saved_reg)
 {
-	uint8_t keyboard_scancode;
+    uint8_t keyboard_scancode;
     AutoSpinLock(&KeyB::keyboard_lock);
 
-    if ( (mouse_enable_scancode=inb(MOUSE_ENABLE_PORT) ) == 0x20) //should be handle by ms
+    if ( (mouse_enable_scancode = inb(MOUSE_ENABLE_PORT) ) == 0x20) //should be handle by ms
     {
         return 0;
     }
- 	keyboard_scancode = inb(KB_PORT);                           //read the input
+    keyboard_scancode = inb(KB_PORT);                           //read the input
 
     //!!! WARNING: We should not use "keyboard_scancode & 0x80" anymore
     //!!!   Because that filters out the events for release keys
@@ -194,15 +194,15 @@ int kb_handler(int irq, unsigned int saved_reg)
         return 0;
     }
     pending_special = 0;
-    if ((keyboard_scancode & RELEASE_OFFSET) == 0 ) {                     //pressed
- 		uint32_t kernel_keycode = KBascii[keyboard_scancode];
- 		handle(kernel_keycode|KKC_PRESS);
- 	}
+    if ((keyboard_scancode & RELEASE_OFFSET) == 0 ) {                     // pressed
+        uint32_t kernel_keycode = KBascii[keyboard_scancode];
+        handle(kernel_keycode|KKC_PRESS);
+    }
 
- 	if (keyboard_scancode & RELEASE_OFFSET) {                             //released
- 		uint32_t kernel_keycode = KBascii[keyboard_scancode & (~RELEASE_OFFSET)];
- 		handle(kernel_keycode|KKC_RELEASE);
- 	}
+    if (keyboard_scancode & RELEASE_OFFSET) {                             // released
+        uint32_t kernel_keycode = KBascii[keyboard_scancode & (~RELEASE_OFFSET)];
+        handle(kernel_keycode|KKC_RELEASE);
+    }
 
     return 0;
 }
