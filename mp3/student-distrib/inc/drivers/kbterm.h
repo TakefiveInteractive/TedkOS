@@ -30,8 +30,8 @@ namespace KeyB
         virtual void key(uint32_t kkc, bool capslock);
 
         // Down and Up cuts changes to ONE single key at a time.
-        virtual void keyDown(uint32_t kkc, bool capslock);
-        virtual void keyUp(uint32_t kkc, bool capslock);
+        virtual void keyDown(uint32_t kkc, bool capslock) {}
+        virtual void keyUp(uint32_t kkc, bool capslock) {}
     };
     class FOps : public IFOps
     {
@@ -51,7 +51,7 @@ namespace KeyB
 typedef struct
 {
     char displayed_char;
-    
+
     //offset is the space this item took up on screen
     // x_offset is always positive.
     // For normal characters, x_offset = 1

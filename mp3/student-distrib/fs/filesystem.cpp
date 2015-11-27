@@ -52,6 +52,11 @@ int32_t Dispatcher::write(File &fd, const void *buf, int32_t nbytes)
     return result;
 }
 
+int32_t Dispatcher::fstat(File &fd, stat *st)
+{
+    return fd.fs->fstat(fd.fsSpecificData, st);
+}
+
 bool Dispatcher::open(File &fd, const char *filename)
 {
     const char *fn = filename;

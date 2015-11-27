@@ -111,6 +111,7 @@ namespace filesystem {
         virtual int32_t read(FsSpecificData *data, uint32_t offset, uint8_t *buf, uint32_t len);
         virtual int32_t write(FsSpecificData *data, uint32_t offset, const uint8_t *buf, uint32_t len);
         virtual bool close(FsSpecificData *fdData);
+        virtual int32_t fstat(FsSpecificData *data, stat *st);
 
         int32_t readDentry(const uint8_t* fname, dentry_t* dentry);
         int32_t readDentry(uint32_t index, dentry_t* dentry);

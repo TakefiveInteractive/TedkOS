@@ -122,7 +122,7 @@ uint32_t KBascii[128] =
     0,	/* All other keys are undefined */
 };
 
-// Special key Prefix is 0xE0 
+// Special key Prefix is 0xE0
 #define SPECIAL_PREFIX      0xE0
 #define RELEASE_OFFSET      0x80
 
@@ -287,7 +287,7 @@ bool handleShortcut(uint32_t kernelKeycode)
     case KKC_ALT | KKC_F3:
         switchToTextTerm(2);
         return true;
-    case KKC_ALT | KKC_F4: 
+    case KKC_ALT | KKC_F4:
         switchToTextTerm(3);
         return true;
     default:
@@ -330,18 +330,18 @@ void term_putc(uint8_t c)
     }
 }
 
-// --------- 
+// ---------
 namespace KeyB
 {
-        KbClients::KbClients()
-        {
-            for(size_t i=0; i<numClients; i++)
-                clients[i] = &textTerms[i];
-        }
-        KbClients::~KbClients() {}
-        IEvent* KbClients::operator [] (size_t i)
-        {
-            return clients[i];
-        }
+    KbClients::KbClients()
+    {
+        for(size_t i=0; i<numClients; i++)
+            clients[i] = &textTerms[i];
+    }
+    KbClients::~KbClients() {}
+    IEvent* KbClients::operator [] (size_t i)
+    {
+        return clients[i];
+    }
 }
 

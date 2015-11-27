@@ -94,6 +94,25 @@ bool KissFS::close(FsSpecificData *fdData)
     return true;
 }
 
+int32_t KissFS::fstat(FsSpecificData *fdData, stat *st)
+{
+    auto data = reinterpret_cast<KissFileDescriptorData *>(fdData);
+    if (data->filetype == DIRECTORY)
+    {
+        st->st_mode = S_IFDIR;
+    }
+    else if (data->filetype == SPECIAL_DEVICE)
+    {
+        st->st_mode = S_IFCHR;
+    }
+    else
+    {
+        st->st_mode = S_IFREG;
+        st->st_size = inodes[dentries[data->dentryData.idx].inode].size;
+    }
+    return 0;
+}
+
 struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
 
 void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)

@@ -12,6 +12,11 @@ extern char ascii_shift_table[128];
 // -------- C++ classes ------------
 namespace Term
 {
+    Term::Term()
+    {
+        // Empty constructor?
+    }
+
     // Warning: these handlers DO NOT LOCK spinlocks !!!
     void Term::nolock_enter_handler(uint32_t keycode)
     {
@@ -324,6 +329,11 @@ namespace Term
     {
         AutoSpinLock l(&term_lock);
         painter.show();
+    }
+
+    TextTerm::TextTerm()
+    {
+        // Empty constructor?
     }
 }
 

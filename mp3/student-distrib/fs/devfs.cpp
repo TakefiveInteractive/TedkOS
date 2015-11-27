@@ -56,5 +56,12 @@ bool DevFS::close(FsSpecificData *fdData)
     return true;
 }
 
+int32_t DevFS::fstat(FsSpecificData *data, stat *st)
+{
+    // Assume character device
+    st->st_mode = S_IFCHR;
+    return 0;
+}
+
 }
 
