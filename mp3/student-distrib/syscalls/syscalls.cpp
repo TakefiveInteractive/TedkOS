@@ -15,6 +15,13 @@ using namespace boost;
 
 namespace syscall {
 
+int32_t dotask(int32_t pid)
+{
+    if(getCurrentThreadInfo()->pcb.isKernelThread)
+        prepareSwitchTo(pid);
+    return -1;
+}
+
 template<typename F>
 F super_cast(uint32_t input)
 {
@@ -107,7 +114,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
         case SYS_SBRK:          retval = systemCallRunner(sbrk::syssbrk, p1, p2, p3); break;
         case SYS_FSTAT:         retval = systemCallRunner(fops::fstat, p1, p2, p3); break;
         case SYS_LSEEK:         retval = systemCallRunner(fops::lseek, p1, p2, p3); break;
-        case SYS_DOTASK:        retval = -1; if(getCurrentThreadInfo()->pcb.isKernelThread) prepareSwitchTo((int32_t)p1); break;
+        case SYS_DOTASK:        retval = systemCallRunner(dotask, p1, p2, p3);  break;
 
         /* Unknown syscall */
         default: retval = -1; break;

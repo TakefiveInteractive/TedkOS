@@ -4,7 +4,7 @@
 #include <inc/ui/compositor.h>
 #include <inc/syscalls/filesystem_wrapper.h>
 #include <inc/x86/err_handler.h>
-#include "ece391syscall.h"
+#include <inc/ece391syscall.h>
 
 using ui::Compositor;
 
