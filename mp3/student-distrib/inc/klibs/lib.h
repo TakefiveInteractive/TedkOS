@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-extern char* video_mem;
+extern char* fallback_txt_vmem;
 void putc(uint8_t c);
 void clear(void);
 

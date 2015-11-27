@@ -8,7 +8,7 @@ extern volatile bool canUseCpp;
 
 extern "C"
 {
-    void init_main();
+    void init_main(void* arg);
 }
 
 #endif /* _INIT_H */

@@ -7,6 +7,7 @@
 #include <inc/klibs/palloc.h>
 #include <inc/syscalls/filesystem_wrapper.h>
 #include <inc/x86/err_handler.h>
+#include "ece391syscall.h"
 
 using namespace vbe;
 using namespace palloc;
@@ -26,10 +27,12 @@ void paint_screen(uint8_t *pixel, uint8_t *source)
 
 void draw_nikita()
 {
-    int32_t keyb = syscall::fops::open("/dev/keyb");
-    char buf[32];
+    //int32_t keyb = syscall::fops::open("/dev/keyb");
+    
+    // Must use actual syscall if it's SUPPOSED to block!
+    int32_t keyb = 0;
 
-    printf("keyboard opened\n");
+    char buf[32];
 
     cli();
 
@@ -67,6 +70,11 @@ void draw_nikita()
         }
         printf("\n");
     }
+
+    // Wait for user
+    sti();
+    ece391_read(keyb, buf, 1);
+    cli();
 
 
     //------------- Try to draw 1024 * 768 HD Graphics ----------------
@@ -117,7 +125,7 @@ void draw_nikita()
 
     // Wait for user
     sti();
-    syscall::fops::read(keyb, buf, 1);
+    ece391_read(keyb, buf, 1);
     cli();
 
     // Change back to original mode
@@ -127,6 +135,4 @@ void draw_nikita()
     printf("Back to KERNEL!\n");
 
     sti();
-
-    syscall::fops::close(keyb);
 }
