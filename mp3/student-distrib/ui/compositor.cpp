@@ -48,7 +48,6 @@ Compositor::Compositor()
         LOAD_4MB_PAGE(Mode118Mem >> 22, Mode118Mem, PG_WRITABLE);
         RELOAD_CR3();
 
-
         videoMemory = (uint8_t *) Mode118Mem;
         // TODO: assuming we are in text mode initially.
         // Figure this out programmatically
