@@ -123,9 +123,9 @@ _entry (unsigned long magic, unsigned long addr)
 
     for(size_t i = 0; i < num_known_drivers; i++)
     {
-        printf("Loading driver '%s' ...", known_drivers[i].name);
+        printf("Loading driver '%s'...", known_drivers[i].name);
         known_drivers[i].init();
-        printf(" ... OK!\n");
+        printf("OK!\n");
     }
 
     // Call this only after C++ initialization has been completed.
