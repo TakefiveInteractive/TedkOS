@@ -6,7 +6,7 @@
 #include <sys/errno.h>
 #include <sys/time.h>
 #include <stdio.h>
-#include <../../../../../syscall/ece391syscall.h>
+#include "../../../../../../shared/ece391syscall.h"
 
 void _exit(int code)
 {

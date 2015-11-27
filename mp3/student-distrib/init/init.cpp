@@ -5,7 +5,7 @@
 #include <inc/syscalls/syscalls.h>
 #include <inc/proc/sched.h>
 #include <inc/proc/tasks.h>
-#include "ece391syscall.h"
+#include <inc/ece391syscall.h>
 #include <stdint.h>
 #include <stddef.h>
 #include "draw_nikita.h"
