@@ -57,20 +57,14 @@ static void switchToTextTerm(size_t clientId);
 
 // -------------- An important helper      ------------------
 
-inline Term::TextTerm* getFirstTextTerm()
-{
-    return (Term::TextTerm*)(clients[0]);
-}
-
-// --------------- The only PUBLIC Function -----------------
-
 namespace KeyB
 {
     Term::TextTerm* getFirstTextTerm()
     {
-        return (Term::TextTerm*)(clients[0]);
+        return &(clients.textTerms[0]);
     }
 }
+using KeyB::getFirstTextTerm;
 
 // ======== over =========
 
@@ -307,7 +301,11 @@ void switchToTextTerm(size_t clientId)
 // clear screen
 void term_cls(void)
 {
-    if(pcbLoadable)
+    if(!canUseCpp)
+    {
+        orig_clear();
+    }
+    else if(pcbLoadable)
     {
         getCurrentThreadInfo()->pcb.to_process->currTerm->cls();
     }
@@ -320,7 +318,11 @@ void term_cls(void)
 // Print one char. Must be either printable or newline character
 void term_putc(uint8_t c)
 {
-    if(pcbLoadable)
+    if(!canUseCpp)
+    {
+        orig_putc(c);
+    }
+    else if(pcbLoadable)
     {
         getCurrentThreadInfo()->pcb.to_process->currTerm->putc(c);
     }

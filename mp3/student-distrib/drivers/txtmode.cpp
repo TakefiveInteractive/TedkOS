@@ -28,7 +28,16 @@ namespace Term
               "D" (videoMem())
             : "cc", "memory", "ecx", "eax"
         );
-        setCursor(0, 0);
+
+        // ======== reset cursor position ========
+        cursorX = 0;
+        cursorY = 0;
+
+        // If this terminal is currently hidden: do NOTHING but save cursor location
+        if(!isLoadedInVmem)
+            return;
+
+        helpSetCursor(0, 0);
     }
 
     // Scroll the whole screen down by 1 line.

@@ -242,6 +242,7 @@ namespace KeyB
         IEvent* operator [] (size_t i);
     };
 
+    extern Term::TextTerm* getFirstTextTerm();
     extern spinlock_t keyboard_lock;
     extern KbClients clients;
 }
