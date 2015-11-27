@@ -23,7 +23,7 @@ __attribute__((used)) void init_main(void* arg)
 {
     pcbLoadable = true;
 
-    printf("Hello!\nI am the idle process!\nI am a kernel process!\nI am every other process's parent!\n");
+    printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
 
     printf("Starting gaurd...\n");
 
@@ -37,7 +37,7 @@ __attribute__((used)) void init_main(void* arg)
 
 __attribute__((used)) void launcher(void* arg)
 {
-    printf("Hello\n I am the gaurd process to ensure terminals have shells running in them\n");
+    printf("=> I am the guard process to ensure terminals have shells running in them!\n");
 
     draw_nikita();
 

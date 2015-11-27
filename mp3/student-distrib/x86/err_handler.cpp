@@ -7,6 +7,7 @@
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
 #include <inc/klibs/lib.h>
+#include <inc/init.h>
 
 enum exception_type {
     Fault,
@@ -97,7 +98,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
     //      if non-zero then a system program crashed, otherwise a user program crashed.
     if (exception_metadata[vec].type == Fault && num_nest_int() == 0)
     {
-        thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
+        thread_kinfo* prevInfo = pcbLoadable ? getCurrentThreadInfo()->pcb.prev : NULL;
         printf("\n");
         if (prevInfo == NULL)
         {

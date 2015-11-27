@@ -1,7 +1,7 @@
 #include "getargs.h"
 #include <inc/proc/tasks.h>
 
-using namespace filesystem;
+namespace syscall { namespace exec {
 
 int32_t getargs (uint8_t* buf, int32_t nbytes)
 {
@@ -13,3 +13,5 @@ int32_t getargs (uint8_t* buf, int32_t nbytes)
     buf[arg_len] = '\0';
     return 0;
 }
+
+} }
