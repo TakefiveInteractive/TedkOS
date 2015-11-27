@@ -27,11 +27,11 @@ namespace KeyB
     class IEvent
     {
     public:
-        virtual void key(uint32_t kkc, bool capslock);
+        virtual void key(uint32_t kkc, bool capslock) = 0;
 
         // Down and Up cuts changes to ONE single key at a time.
-        virtual void keyDown(uint32_t kkc, bool capslock) {}
-        virtual void keyUp(uint32_t kkc, bool capslock) {}
+        virtual void keyDown(uint32_t kkc, bool capslock) = 0;
+        virtual void keyUp(uint32_t kkc, bool capslock) = 0;
     };
     class FOps : public IFOps
     {
@@ -192,6 +192,8 @@ namespace Term
         Term();
 
         virtual void key(uint32_t kkc, bool capslock) final;
+        virtual void keyDown(uint32_t kkc, bool capslock) final;
+        virtual void keyUp(uint32_t kkc, bool capslock) final;
 
         // These are used by printf in klibs
         // calling these operations WILL clear the buffer.
