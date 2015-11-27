@@ -12,6 +12,18 @@ using namespace filesystem;
 
 namespace ui {
 
+void paint_screen(uint8_t *pixel, uint8_t *source)
+{
+    for (size_t x = 0; x < 1024 * 768; x++)
+    {
+        pixel[2] = source[0];
+        pixel[1] = source[1];
+        pixel[0] = source[2];
+        pixel += 3;
+        source += 4;
+    }
+}
+
 Compositor::Compositor()
 {
     runWithoutNMI([this] () {
@@ -36,22 +48,50 @@ Compositor::Compositor()
         LOAD_4MB_PAGE(Mode118Mem >> 22, Mode118Mem, PG_WRITABLE);
         RELOAD_CR3();
 
-        auto physAddr = physPages.allocPage(true);
-        if (!physAddr) trigger_exception<27>();
-
-        LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
-        RELOAD_CR3();
 
         videoMemory = (uint8_t *) Mode118Mem;
+        // TODO: assuming we are in text mode initially.
+        // Figure this out programmatically
+        videoMode = Text;
     });
+}
+
+void Compositor::drawNikita()
+{
+    auto physAddr = physPages.allocPage(true);
+    if (!physAddr) trigger_exception<27>();
+
+    LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
+    RELOAD_CR3();
+
+    uint8_t *nikita = (uint8_t *)((uint32_t)(+physAddr) << 22);
+
+    File file;
+    theDispatcher->open(file, "landscape");
+    theDispatcher->read(file, nikita, 1024 * 768 * 4);
+    theDispatcher->close(file);
+
+    paint_screen(videoMemory, nikita);
 }
 
 void Compositor::enterVideoMode()
 {
     runWithoutNMI([this] () {
+        if (videoMode == Video) return;
         real_context.ax = 0x4F02;
         real_context.bx = 0x8118;
         legacyInt(0x10, real_context);
+        videoMode = Video;
+    });
+}
+
+void Compositor::enterTextMode()
+{
+    runWithoutNMI([this] () {
+        if (videoMode == Text) return;
+        real_context.ax = orig_mode;
+        legacyInt(0x10, real_context);
+        videoMode = Text;
     });
 }
 
