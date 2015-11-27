@@ -44,7 +44,16 @@ namespace Term
         }
         //  kb_read must add '\n' by itself.
         term_buf[term_buf_pos++] = newLine;
-        UserWaitingRead = false;
+
+        if(UserWaitingRead)
+        {
+            // This must only occurs at process 0
+            UserWaitingRead = false;
+            auto& proc = ProcessDesc::get(OwnedByPid);
+            cpu0_memmap.loadProcessMap(proc.memmap);
+            getRegs(proc.mainThreadInfo)->eax = helpFinishRead(UserWaitingBuffer, UserWaitingLen);
+            prepareSwitchTo(OwnedByPid);
+        }
     }
 
     void Term::nolock_backspace_handler(uint32_t keycode)
@@ -54,20 +63,6 @@ namespace Term
             term_buf_item* i = &term_buf[term_buf_pos - 1];
             if(i->y_offset)
             {
-                /*
-                // Clear current line (clearLine)
-                asm volatile (
-                    "cld                                                    ;"
-                    "movl %0, %%ecx                                         ;"
-                    "movl %1, %%eax                                         ;"
-                    "rep stosw    # reset ECX *word* from M[ESI] to M[EDI]  "
-                    : // no outputs
-                    : "i" (SCREEN_WIDTH),
-                      "i" (' ' + (TEXT_STYLE << 8)),
-                      "D" (video_mem + next_char_y * SCREEN_WIDTH * 2)
-                    : "cc", "memory", "ecx", "eax"
-                );
-                */
                 getTermPainter()->clearLine(next_char_y);
                 next_char_y--;
                 next_char_x = SCREEN_WIDTH - i->x_offset;
@@ -181,10 +176,22 @@ namespace Term
         if(term_buf_pos < (size_t) nbytes)
         {
             UserWaitingRead = true;
+            UserWaitingBuffer = cbuf;
+            UserWaitingLen = nbytes;
 
-            lock.waitUntil([this](){ return !UserWaitingRead; });
+            // Switch to IDLE thread
+            prepareSwitchTo(0);
+
+            // Retval does not matter here (it's given to IDLE thread)
+            return 0;
         }
+        else return helpFinishRead(cbuf, nbytes);
+    }
 
+    int32_t Term::helpFinishRead(char* buffer, int32_t nbytes)
+    {
+        if(!buffer)
+            return -EFOPS;
         volatile int32_t copylen;
         if((size_t) nbytes < term_buf_pos)
             copylen = nbytes;
@@ -193,10 +200,10 @@ namespace Term
         // Now that we do not need term_buf_pos anymore, we clear its value here.
         term_buf_pos = 0;
 
-        volatile int32_t i;
-        for(i = 0; i < copylen; i++)
+        volatile int32_t i = 0;
+        for(; i < copylen; i++)
         {
-            cbuf[i] = term_buf[i].displayed_char;
+            buffer[i] = term_buf[i].displayed_char;
         }
         return i;
     }
@@ -242,6 +249,8 @@ namespace Term
         AutoSpinLock l(&term_lock);
         OwnedByPid = upid;
         UserWaitingRead = false;
+        UserWaitingBuffer = NULL;
+        UserWaitingLen = -1;
     }
 
     void Term::key(uint32_t kkc, bool capslock)

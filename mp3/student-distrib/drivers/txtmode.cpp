@@ -159,6 +159,9 @@ namespace Term
 
         //TODO: FIXME: Should First use vbe.cpp to switch back to Text Mode .
 
+        if(currShowing == this)
+            return;
+
         if(currShowing)
         {
             AutoSpinLock theirLock(&currShowing->lock);

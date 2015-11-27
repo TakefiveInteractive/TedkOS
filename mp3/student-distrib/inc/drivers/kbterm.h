@@ -185,9 +185,12 @@ namespace Term
 
         int32_t OwnedByPid = -1;
         bool UserWaitingRead = false;
+        char* UserWaitingBuffer = NULL;
+        int32_t UserWaitingLen = -1;
 
         virtual void nolock_putc(uint8_t c) final;
         virtual void nolock_cls() final;
+        virtual int32_t helpFinishRead(char* buffer, int32_t nbytes) final;
     public:
         Term();
 

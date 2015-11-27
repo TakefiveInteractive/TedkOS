@@ -13,4 +13,7 @@
 #define SYS_SIGRETURN  10
 #define SYS_SBRK  11
 
+// Switch to an existing pcb's thread
+#define SYS_DOTASK 12
+
 #endif /* ECE391SYSNUM_H */

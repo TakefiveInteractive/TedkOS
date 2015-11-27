@@ -3,14 +3,13 @@
  */
 
 #include <inc/klibs/lib.h>
-// After we initialized, we directly assign a COMMON virtual address (for kernel to use) to video_mem.
 #define NUM_COLS 80
 #define NUM_ROWS 25
 #define ATTRIB 0x7
 
 static int screen_x;
 static int screen_y;
-char* video_mem = (char *)PRE_INIT_VIDEO;
+char* fallback_txt_vmem = (char *)PRE_INIT_VIDEO;
 
 // using LEGACY_PUTC is HIGHLY NOT recommended!!!!!
 //  It WILL NOT affect terminal's write fops, though.
@@ -49,8 +48,8 @@ orig_clear(void)
 {
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(fallback_txt_vmem + (i << 1)) = ' ';
+        *(uint8_t *)(fallback_txt_vmem + (i << 1) + 1) = ATTRIB;
     }
 }
 
@@ -216,8 +215,8 @@ orig_putc(uint8_t c)
         screen_y++;
         screen_x=0;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(fallback_txt_vmem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(fallback_txt_vmem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_x %= NUM_COLS;
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
@@ -588,6 +587,6 @@ test_interrupts(void)
 {
 	int32_t i;
 	for (i=0; i < NUM_ROWS*NUM_COLS; i++) {
-		video_mem[i<<1]++;
+		fallback_txt_vmem[i<<1]++;
 	}
 }
