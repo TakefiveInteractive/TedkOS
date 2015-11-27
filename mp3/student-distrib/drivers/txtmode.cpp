@@ -9,8 +9,13 @@ namespace Term
 
     uint8_t* TextModePainter::videoMem()
     {
+        auto page0Maybe = virtOfPage0();
+        if(!page0Maybe)
+            return NULL;
+
+        uint32_t page0 = +page0Maybe;
         if(isLoadedInVmem)
-            return (uint8_t*)(virtOfPage0() + TXT_VMEM_OFF);
+            return (uint8_t*)(page0 + TXT_VMEM_OFF);
         else return backupBuffer;
     }
 
@@ -147,6 +152,10 @@ namespace Term
     void TextModePainter::show()
     {
         AutoSpinLock l(&lock);
+        auto page0Maybe = virtOfPage0();
+        if(!page0Maybe)
+            return;
+        uint32_t page0 = +page0Maybe;
 
         //TODO: FIXME: Should First use vbe.cpp to switch back to Text Mode .
 
@@ -159,7 +168,7 @@ namespace Term
                 "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
                 : /* no outputs */
                 : "i" (SCREEN_HEIGHT * SCREEN_WIDTH * 2 / 4),
-                  "S" ((uint8_t*)(virtOfPage0() + TXT_VMEM_OFF)),
+                  "S" ((uint8_t*)(page0 + TXT_VMEM_OFF)),
                   "D" (currShowing->backupBuffer)
                 : "cc", "memory", "ecx"
             );
@@ -172,10 +181,11 @@ namespace Term
             : /* no outputs */
             : "i" (SCREEN_HEIGHT * SCREEN_WIDTH * 2 / 4),
               "S" (backupBuffer),
-              "D" ((uint8_t*)(virtOfPage0() + TXT_VMEM_OFF))
+              "D" ((uint8_t*)(page0 + TXT_VMEM_OFF))
             : "cc", "memory", "ecx"
         );
-        currShowing->isLoadedInVmem = true;
+        currShowing = this;
+        isLoadedInVmem = true;
         helpSetCursor(cursorX, cursorY);
     }
 
