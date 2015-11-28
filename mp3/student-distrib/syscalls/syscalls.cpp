@@ -31,7 +31,7 @@ bool validUserPointer(const void* ptr)
         return false;
 
     // TODO: also add some conditions for kernel threads.
-    if(getCurrentThreadInfo()->pcb.isKernelThread)
+    if(getCurrentThreadInfo()->isKernel())
         return true;
 
     uint32_t pde = global_cr3val[((uint32_t)ptr) >> 22];

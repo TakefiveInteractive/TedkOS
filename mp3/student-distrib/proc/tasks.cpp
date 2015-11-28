@@ -13,8 +13,8 @@ ProcessDesc *static_all_processes[MAX_NUM_PROCESS] = { };
 ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 
 ProcessDesc::ProcessDesc(int32_t _upid, ProcessType processType)
-    : fileDescs(), numFilesInDescs(0),
-    heapPhysicalPages(), heapStartingPageIdx(0), heapSize(0), numHeapPages(0),
+    : fileDescs(), heapPhysicalPages(),
+    heapStartingPageIdx(0), heapSize(0), numHeapPages(0),
     fileName(nullptr), arg(nullptr)
 {
     mainThreadInfo = new thread_kinfo(this, processType);
@@ -123,6 +123,55 @@ ProcessDesc& ProcessDesc::newProcess(int32_t parentPID, ProcessType processType)
 
     nextNewProcess++;
     return *p;
+}
+
+FileDescArr::FileDescArr()
+{
+    memset(content, 0, sizeof(content));
+    size_t i = 0;
+    for(; i < FD_FIXED_PART; i++)
+        isFDfree.clear(i);
+    for(; i < FD_ARRAY_LENGTH; i++)
+    {
+        isFDfree.set(i);
+        freeFDs.push(i);
+    }
+}
+
+filesystem::File*& FileDescArr::operator[] (const size_t i)
+{
+    return content[i];
+}
+
+Maybe<size_t> FileDescArr::alloc()
+{
+    if(freeFDs.empty())
+        return Maybe<size_t>();
+    else
+    {
+        size_t ans = freeFDs.pop();
+        isFDfree.clear(ans);
+        return ans;
+    }
+}
+
+bool FileDescArr::isValid(size_t i)
+{
+    if(i < 0 || i >= FD_ARRAY_LENGTH)
+        return false;
+    else if(isFDfree.test(i))
+        return false;
+    else if(content[i] == NULL)
+        return false;
+    else return true;
+}
+
+void FileDescArr::recycle(size_t i)
+{
+    if(isFDfree.test(i))
+        return;
+    isFDfree.set(i);
+    freeFDs.push(i);
 }
 
 uint8_t __attribute__((used)) isCurrThreadKernel()
