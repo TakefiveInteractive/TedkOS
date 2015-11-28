@@ -1,10 +1,10 @@
-#include "exec.h"
+#include <inc/syscalls/exec.h>
 #include <inc/fs/kiss.h>
 #include <inc/fs/kiss_wrapper.h>
 
 namespace fs = filesystem;
 
-namespace syscall_exec {
+namespace syscall { namespace exec {
 
 static const int NORMAL_FILE = 2;
 /*
@@ -35,4 +35,4 @@ int8_t is_kiss_executable(const boost::unique_ptr<char[]> &file)//filename
         return 0;
 }
 
-}
+} }

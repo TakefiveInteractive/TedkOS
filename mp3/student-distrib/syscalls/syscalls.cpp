@@ -5,13 +5,15 @@
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/syscalls/exec.h>
 #include <inc/x86/idt_init.h>
-#include "exec.h"
 #include "halt.h"
+#include "getargs.h"
+#include "sbrk.h"
 
 using namespace boost;
-using syscall_exec::sysexec;
-using syscall_halt::syshalt;
+
+namespace syscall {
 
 template<typename F>
 F super_cast(uint32_t input)
@@ -92,16 +94,17 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
 
     switch (idx)
     {
-        case SYS_HALT:          retval = systemCallRunner(syshalt, p1, p2, p3); break;
-        case SYS_EXECUTE:       retval = systemCallRunner(sysexec, p1, p2, p3); break;
-        case SYS_READ:          retval = systemCallRunner(fs_read, p1, p2, p3); break;
-        case SYS_WRITE:         retval = systemCallRunner(fs_write, p1, p2, p3); break;
-        case SYS_OPEN:          retval = systemCallRunner(fs_open, p1, p2, p3); break;
-        case SYS_CLOSE:         retval = systemCallRunner(fs_close, p1, p2, p3); break;
-        case SYS_GETARGS:       retval = systemCallRunner(syshalt, p1, p2, p3); break;
-        case SYS_VIDMAP:        retval = systemCallRunner(syshalt, p1, p2, p3); break;
-        case SYS_SET_HANDLER:   retval = systemCallRunner(syshalt, p1, p2, p3); break;
-        case SYS_SIGRETURN:     retval = systemCallRunner(syshalt, p1, p2, p3); break;
+        case SYS_HALT:          retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
+        case SYS_EXECUTE:       retval = systemCallRunner(exec::sysexec, p1, p2, p3); break;
+        case SYS_READ:          retval = systemCallRunner(fops::read, p1, p2, p3); break;
+        case SYS_WRITE:         retval = systemCallRunner(fops::write, p1, p2, p3); break;
+        case SYS_OPEN:          retval = systemCallRunner(fops::open, p1, p2, p3); break;
+        case SYS_CLOSE:         retval = systemCallRunner(fops::close, p1, p2, p3); break;
+        case SYS_GETARGS:       retval = systemCallRunner(getargs, p1, p2, p3); break;
+        case SYS_VIDMAP:        retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
+        case SYS_SET_HANDLER:   retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
+        case SYS_SIGRETURN:     retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
+        case SYS_SBRK:          retval = systemCallRunner(sbrk::syssbrk, p1, p2, p3); break;
 
         /* Unknown syscall */
         default: retval = -1; break;
@@ -111,6 +114,8 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
     num_nest_int_val--;
     spin_unlock_irqrestore(&num_nest_int_lock, flag);
     return retval;
+}
+
 }
 
 /*

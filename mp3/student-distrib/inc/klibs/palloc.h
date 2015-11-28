@@ -10,11 +10,16 @@
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/x86/paging.h>
+#include <inc/klibs/memory.h>
+#include <inc/klibs/AutoSpinLock.h>
+#include <inc/klibs/maybe.h>
+#include <inc/x86/err_handler.h>
+
+using memory::operator "" _KB;
+using memory::operator "" _MB;
 
 namespace palloc
 {
-    static constexpr uint32_t KB = 1024;
-    static constexpr uint32_t MB = 1024 * 1024;
     static constexpr uint32_t PhysIdxLength = 12;
     // We try to use 12 + 22 bit address (4MB page)
     // thus there are 1 << 12 possible page indices.
@@ -32,9 +37,21 @@ namespace palloc
     public:
         PhysAddr(uint32_t _pde);
         PhysAddr(uint16_t pageIndex, uint32_t flags);
-        inline uint16_t index() const;
-        inline uint32_t flags() const;
+        uint16_t index() const;
+        uint32_t flags() const;
         uint32_t pde;
+
+        bool operator == (const PhysAddr& other) const
+        {
+            // CPU may touch the access or dirty bit
+            return (pde & PG_NOT_ACCESSED & PG_NOT_DIRTY) == (other.pde & PG_NOT_ACCESSED & PG_NOT_DIRTY);
+        }
+
+        bool operator != (const PhysAddr& other) const
+        {
+            return !(*this == other);
+        }
+
     };
 
     // MaxMemory must be divisible by 4MB
@@ -42,7 +59,7 @@ namespace palloc
     class PhysPageManager
     {
     private:
-        static constexpr uint32_t SmallestPageSize = 4 * MB;
+        static constexpr uint32_t SmallestPageSize = 4_MB;
         static constexpr uint32_t MaxNumElements = MaxMemory / SmallestPageSize;
         util::BitSet<MaxNumElements> isPhysAddrFree;
         util::Stack<uint16_t, MaxNumElements> freePhysAddr;
@@ -52,11 +69,13 @@ namespace palloc
 
         PhysPageManager(multiboot_info_t* mbi);
 
-        // return 0xffff <=> Memory is Full.
-        uint16_t allocPage(int8_t isCommonPage);
+        // Fails when memory is Full.
+        Maybe<uint16_t> allocPage(bool isCommonPage);
 
         // if this page is NOT in use, do nothing.
         void freePage(uint16_t pageIndex);
+
+        void freePage(PhysAddr page);
     };
 
     // MaxSize and startAddr must be divisible by 4MB
@@ -65,7 +84,7 @@ namespace palloc
     class VirtualMemRegion
     {
     private:
-        static constexpr uint32_t SmallestPageSize = 4 * MB;
+        static constexpr uint32_t SmallestPageSize = 4_MB;
         static constexpr uint32_t MaxNumElements = MaxSize / SmallestPageSize;
         util::BitSet<MaxNumElements> isVirtAddrUsed;
         util::Stack<uint16_t, MaxNumElements> freeVirtAddr;
@@ -75,8 +94,10 @@ namespace palloc
 
         VirtualMemRegion();
 
-        // return NULL <=> Memory is Full.
-        void* allocPage(int8_t isCommonPage);
+        // Fails when memory is full
+        Maybe<void*> allocPage(bool isCommonPage);
+
+        Maybe<void*> allocConsPage(size_t num, bool isCommonPage);
 
         // if this page is NOT in use, do nothing.
         void freePage(void* virtAddr);
@@ -159,10 +180,11 @@ namespace palloc
             PhysAddr phys;
             VirtAddr virt;
         };
-        util::Stack<TinyMemMap::Mapping, 1 * KB> pdStack;
-        util::BitSet<1 * KB> isVirtAddrUsed;
+        util::Stack<TinyMemMap::Mapping, 1_KB> pdStack;
+        util::BitSet<1_KB> isVirtAddrUsed;
     public:
         bool add(const VirtAddr& virt, const PhysAddr& phys);
+        bool remove(const VirtAddr& virt, const PhysAddr& physIdx);
     };
 
     // This mamanger manages a whole cpu's process map and common map
@@ -246,7 +268,7 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
             // Avoid memory larger than 4GB
             if(start_high > 0)
                 continue;
-                
+
             if(mmap->length_high > (0xffffffff - start_high))
                 continue;
             end_high = start_high + mmap->length_high;
@@ -259,7 +281,7 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
             start_idx = (start_low >> 22) | (start_high << 10);
 
             // Avoid addition overflow.
-            if(((1 - (1<<10)) << 22) & end_high)
+            if(((1 - (1 << 10)) << 22) & end_high)
                 continue;
 
             // Avoid memory larger than 4GB
@@ -284,86 +306,123 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
     else
     {
         // 0 and 1 are pages used by kernel initialization
-        for(uint16_t i=MaxNumElements - 1; i >= 2; i++)
+        for(uint16_t i = MaxNumElements - 1; i >= 2; i++)
             freePhysAddr.push(i);
     }
 
     // 0 and 1 are pages used by kernel initialization
     isPhysAddrFree.clear(0);
     isPhysAddrFree.clear(1);
+
+    // go through modules and mark them as occupied
+    size_t modCount = mbi->mods_count;
+    module_t* mod = (module_t*) mbi->mods_addr;
+    for (size_t i = 0; i < modCount; i++)
+    {
+        uint32_t start = mod[i].mod_start;
+        uint32_t end = mod[i].mod_end;
+        uint32_t numPages = memory::ceil((end - start), 4_MB);
+        for (size_t j = 0; j < numPages; j++)
+        {
+            isPhysAddrFree.clear((start + j * 4_MB) >> 22);
+        }
+    }
 }
 
-#define UNLOCK_RETURN(val) {spin_unlock_irqrestore(&lock, flag); return (val);}
-#define UNLOCK_RETURN_VOID() {spin_unlock_irqrestore(&lock, flag); return;}
-
 template <uint32_t MaxMemory>
-uint16_t PhysPageManager<MaxMemory>::allocPage(int8_t isCommonPage)
+Maybe<uint16_t> PhysPageManager<MaxMemory>::allocPage(bool isCommonPage)
 {
-    uint32_t flag;
-    spin_lock_irqsave(&lock, flag);
-    if(freePhysAddr.empty())
-        UNLOCK_RETURN(0xffff);
+    AutoSpinLock l(&lock);
+    if(freePhysAddr.empty()) return Maybe<uint16_t>();
     uint16_t top = freePhysAddr.pop();
-    if(!isPhysAddrFree.test(top))
-        UNLOCK_RETURN(0xffff);
+    if(!isPhysAddrFree.test(top)) return Maybe<uint16_t>();
     isPhysAddrFree.clear(top);
     if(isCommonPage)
         this->isCommonPage.set(top);
-    UNLOCK_RETURN(top);
+    return Maybe<uint16_t>(top);
 }
 
 template <uint32_t MaxMemory>
 void PhysPageManager<MaxMemory>::freePage(uint16_t pageIndex)
 {
-    uint32_t flag;
-    spin_lock_irqsave(&lock, flag);
-    if(isPhysAddrFree.test(pageIndex))
-        UNLOCK_RETURN_VOID();
+    AutoSpinLock l(&lock);
+    if(isPhysAddrFree.test(pageIndex)) return;
     isPhysAddrFree.set(pageIndex);
     isCommonPage.clear(pageIndex);
     freePhysAddr.push(pageIndex);
-    UNLOCK_RETURN_VOID();
 }
 
+template <uint32_t MaxMemory>
+void PhysPageManager<MaxMemory>::freePage(PhysAddr page)
+{
+    freePage(page.index());
+}
 
 template <uint32_t startAddr, uint32_t MaxSize>
-VirtualMemRegion<startAddr,MaxSize>::VirtualMemRegion()
+VirtualMemRegion<startAddr, MaxSize>::VirtualMemRegion()
 {
-    for(uint32_t i = 0; i < MaxNumElements; i++)
+    for (uint32_t i = 0; i < MaxNumElements; i++)
         freeVirtAddr.push(i);
 }
 
 template <uint32_t startAddr, uint32_t MaxSize>
-void* VirtualMemRegion<startAddr,MaxSize>::allocPage(int8_t isCommonPage)
+Maybe<void*> VirtualMemRegion<startAddr, MaxSize>::allocConsPage(size_t num, bool isCommonPage)
 {
-    uint32_t flag;
-    spin_lock_irqsave(&lock, flag);
-    if(freeVirtAddr.empty())
-        UNLOCK_RETURN(NULL);
+    AutoSpinLock l(&lock);
+    if (freeVirtAddr.empty()) return Maybe<void*>();
+
+    // Super dirty algorithm here. To be improved.
+    Maybe<size_t> _startIdx = isVirtAddrUsed.findConsZeros(num);
+    if (_startIdx)
+    {
+        size_t startIdx = +_startIdx;
+        // Kill all corresponding items in the stack
+        for (size_t i = startIdx; i < startIdx + num; i++)
+        {
+            size_t idxInStack = 0;
+            auto good = freeVirtAddr.template first<size_t>(idxInStack, [i](auto x) {
+                if (i == x)
+                    return Maybe<size_t>(0);
+                else
+                    return Maybe<size_t>();
+            });
+            if (!good) trigger_exception<27>();
+            freeVirtAddr.drop(idxInStack);
+            if (isCommonPage) this->isCommonPage.set(i);
+        }
+        return Maybe<void*>((void*)(startIdx * 4_MB + startAddr));
+    }
+    else
+    {
+        return Maybe<void*>();
+    }
+}
+
+template <uint32_t startAddr, uint32_t MaxSize>
+Maybe<void*> VirtualMemRegion<startAddr, MaxSize>::allocPage(bool isCommonPage)
+{
+    AutoSpinLock l(&lock);
+    if (freeVirtAddr.empty()) return Maybe<void*>();
+
     uint16_t top = freeVirtAddr.pop();
     isVirtAddrUsed.set(top);
-    if(isCommonPage)
-        this->isCommonPage.set(top);
-    UNLOCK_RETURN((void*)(top << 22));
+    if (isCommonPage) this->isCommonPage.set(top);
+
+    return Maybe<void*>((void*)(top * 4_MB + startAddr));
 }
 
 template <uint32_t startAddr, uint32_t MaxSize>
 void VirtualMemRegion<startAddr,MaxSize>::freePage(void* virtAddr)
 {
-    uint32_t flag;
-    spin_lock_irqsave(&lock, flag);
+    AutoSpinLock l(&lock);
     uint16_t pageIndex = ((uint32_t)virtAddr >> 22);
-    if(isVirtAddrUsed.test(pageIndex))
+    if (isVirtAddrUsed.test(pageIndex))
     {
         isVirtAddrUsed.clear(pageIndex);
         isCommonPage.clear(pageIndex);
         freeVirtAddr.push(pageIndex);
     }
-    UNLOCK_RETURN_VOID();
 }
-
-#undef UNLOCK_RETURN
-#undef UNLOCK_RETURN_VOID
 
 }
 

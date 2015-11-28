@@ -14,7 +14,7 @@ public:
     Maybe() : exists(false) { }
     Maybe(const T& bla) { val = bla; exists = true; }
 
-    const T operator ! () const {
+    const T operator + () const {
         if (!exists)
         {
             // Trigger an exception
@@ -35,7 +35,8 @@ public:
         }
     }
 
-    explicit operator bool() const { return exists; }
+    bool operator ! () const { return !exists; }
+    operator bool() const { return exists; }
 };
 
 #endif

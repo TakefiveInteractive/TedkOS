@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <inc/drivers/keyboard.h>
 #include <inc/d2d/to_term.h>
+#include <inc/d2d/k2m.h>
 #include <inc/klibs/spinlock.h>
 
 #define KB_PORT 0x60
@@ -63,8 +64,7 @@ uint32_t KBascii[128] =
 
 int8_t  pending_special = 0;
 spinlock_t keyboard_lock = SPINLOCK_UNLOCKED;
-
-int kb_handler(int irq, unsigned int saved_reg);
+extern "C" int kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
     uint32_t flag;
@@ -101,11 +101,17 @@ DEFINE_DRIVER_REMOVE(kb) {
  *		changes keyboard buffer (if we have a buffer)
  *      print keyboard character to terminal
  */
-int kb_handler(int irq, unsigned int saved_reg){
+int kb_handler(int irq, unsigned int saved_reg)
+{
 	uint8_t keyboard_scancode;
     uint32_t flag;
     spin_lock_irqsave(&keyboard_lock, flag);
 
+    if ( (mouse_enable_scancode=inb(MOUSE_ENABLE_PORT) ) == 0x20) //should be handle by ms
+    {
+        spin_unlock_irqrestore(&keyboard_lock, flag);
+        return 0;
+    }
  	keyboard_scancode = inb(KB_PORT);                           //read the input
 
     //!!! WARNING: We should not use "keyboard_scancode & 0x80" anymore

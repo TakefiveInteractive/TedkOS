@@ -173,7 +173,7 @@ _entry (unsigned long magic, unsigned long addr)
     Maybe<uint32_t> vmemBase = virtOfPage0();
     char* vmemPage = NULL;
     if(vmemBase)
-        vmemPage = (char*)(!vmemBase);
+        vmemPage = (char*)(+vmemBase);
     else
     {
         printf("Fail to allocate virtual mem space for VMEM\n");
@@ -183,7 +183,6 @@ _entry (unsigned long magic, unsigned long addr)
 
     cpu0_memmap.start();
     cpu0_memmap.loadProcessMap(proc.memmap);
-
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)kstack.getESP();

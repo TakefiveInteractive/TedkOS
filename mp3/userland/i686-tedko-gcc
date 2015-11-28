@@ -1,0 +1,3 @@
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+/Volumes/ece391cc/cross/bin/i686-elf-gcc -Wall -nostdlib --freestanding -I${DIR}/clib/i686-tedkos/include -I${DIR} -Isyscall "$@" ${DIR}/syscall/ece391syscall.o -L${DIR}/clib/i686-tedkos/lib -lc -lg -lm -lnosys

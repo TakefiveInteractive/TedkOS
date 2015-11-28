@@ -19,6 +19,7 @@ extern int32_t ece391_open (const uint8_t* filename);
 extern int32_t ece391_close (int32_t fd);
 extern int32_t ece391_getargs (uint8_t* buf, int32_t nbytes);
 extern int32_t ece391_vidmap (uint8_t** screen_start);
+extern int32_t ece391_sbrk (int32_t incr);
 
 #endif /* ECE391SYSCALL_H */
 

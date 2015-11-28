@@ -1,23 +1,13 @@
 #include <inc/klibs/kmalloc.h>
 #include <inc/klibs/palloc.h>
 #include <inc/x86/paging.h>
-#include <stdint.h>
-#include <stddef.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/AutoSpinLock.h>
+#include <inc/x86/err_handler.h>
 
 using namespace palloc;
 
 namespace memory {
-
-template<size_t N>
-static inline size_t alignAt(size_t x)
-{
-    return ~(N - 1) & (x - 1 + N);
-}
-
-template<size_t N, size_t x>
-constexpr size_t align = ~(N - 1) & (x - 1 + N);
 
 template<size_t ElementSize, size_t PoolSize>
 Maybe<void *> ObjectPool<ElementSize, PoolSize>::get()
@@ -124,8 +114,8 @@ Maybe<void *> paraFindAndReleaseFreePool()
         // Free it
         slot->drop(idx);
         totalNumPools--;
-        (!x)->~PoolType<ElementSize>();
-        return Maybe<void *>(!x);
+        (+x)->~PoolType<ElementSize>();
+        return Maybe<void *>(+x);
     }
     return Maybe<void *>();
 }
@@ -160,7 +150,7 @@ Maybe<void *> paraAllocate()
             auto freePool = findAndReleaseFreePool();
             if (freePool)
             {
-                auto newPool = new (!freePool) PoolType<ElementSize>();
+                auto newPool = new (+freePool) PoolType<ElementSize>();
                 slot->push(newPool);
                 return newPool->get();
             }
@@ -168,16 +158,24 @@ Maybe<void *> paraAllocate()
             {
                 if (totalNumPools == MaxPoolNumInAllSlots) return Maybe<void *>();
 
-                auto physAddr = physPages.allocPage(1);
-                void* addr = virtLast1G.allocPage(1);
-
-                if(!cpu0_memmap.addCommonPage(VirtAddr(addr), PhysAddr(physAddr, PG_WRITABLE)))
-                    return Maybe<void *>();
-
-                auto newPool = new (addr) PoolType<ElementSize>();
-                slot->push(newPool);
-                totalNumPools++;
-                return newPool->get();
+                auto physAddr = physPages.allocPage(true);
+                if (physAddr)
+                {
+                    auto virtAddr = virtLast1G.allocPage(true);
+                    if (virtAddr)
+                    {
+                        if(cpu0_memmap.addCommonPage(VirtAddr(+virtAddr), PhysAddr(+physAddr, PG_WRITABLE)))
+                        {
+                            auto newPool = new (+virtAddr) PoolType<ElementSize>();
+                            slot->push(newPool);
+                            totalNumPools++;
+                            return newPool->get();
+                        }
+                        virtLast1G.freePage(+virtAddr);
+                    }
+                    physPages.freePage(+physAddr);
+                }
+                return Maybe<void *>();
             }
         }
     }
@@ -238,7 +236,7 @@ void freeImpl(void *addr)
     if (!paraFree<16>(addr) && !paraFree<256>(addr) && !paraFree<8_KB>(addr) && !paraFree<256_KB>(addr))
     {
         // Trigger an exception
-        __asm__ __volatile__("int $25;" : : );
+        trigger_exception<25>();
     }
 }
 
@@ -275,12 +273,12 @@ void* operator new(size_t s) {
     auto x = memory::KMemory::allocImpl(s);
     if (x)
     {
-        return !x;
+        return +x;
     }
     else
     {
         // Trigger an exception
-        __asm__ __volatile__("int $24;" : : );
+        trigger_exception<24>();
         return NULL;
     }
 }
@@ -289,12 +287,12 @@ void* operator new[](size_t s) {
     auto x = memory::KMemory::allocImpl(s);
     if (x)
     {
-        return !x;
+        return +x;
     }
     else
     {
         // Trigger an exception
-        __asm__ __volatile__("int $24;" : : );
+        trigger_exception<24>();
         return NULL;
     }
 }
@@ -311,7 +309,7 @@ void operator delete(void *p, size_t sz) {
     if (!memory::KMemory::freeImpl(p, sz))
     {
         // Trigger an exception
-        __asm__ __volatile__("int $25;" : : );
+        trigger_exception<25>();
     }
 }
 
@@ -319,7 +317,7 @@ void operator delete[](void *p, size_t sz) {
     if (!memory::KMemory::freeImpl(p, sz))
     {
         // Trigger an exception
-        __asm__ __volatile__("int $25;" : : );
+        trigger_exception<25>();
     }
 }
 

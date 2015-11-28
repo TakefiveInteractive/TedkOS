@@ -1,6 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <inc/x86/err_handler.h>
+#include <inc/x86/idt_init.h>
+#include <inc/syscalls/syscalls.h>
+#include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
 #include <inc/klibs/lib.h>
 
 enum exception_type {
@@ -71,6 +76,7 @@ void print_control_registers(void)
 void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned long int code, idt_stack_t *info)
 {
     int have_error_code = ErrorCodeInExceptionBitField & (1 << vec);
+
     printf("================= WTF Exception Occurred =================\n");
     printf("0x%x => %s", vec, exception_metadata[vec].name);
     if (have_error_code)
@@ -84,7 +90,37 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
     print_control_registers();
     printf("Faulting instruction address: 0x%#x, CS: 0x%#x\n", info->EIP, info->CS);
     printf("====================== END OF TRACE ======================");
+
     // TODO: we gotta return control to program in subsequent checkpoints
-    __asm__(".1: hlt; jmp .1;");
+
+    // Test num_nest_int() against 0 (exception handler does not increment that counter)
+    //      if non-zero then a system program crashed, otherwise a user program crashed.
+    if (exception_metadata[vec].type == Fault && num_nest_int() == 0)
+    {
+        thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
+        printf("\n");
+        if (prevInfo == NULL)
+        {
+            printf("Init Process crashed!\n");
+            __asm__("1: hlt; jmp 1b;");
+        }
+        else    // has prev
+        {
+            printf("Squashing process %d ...\n", getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+
+            // Notify parent process that child crashed.
+            *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7 * 4) = 256;
+
+            prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
+
+            // Clean up process
+            ProcessDesc::remove(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+
+            // Must return here, otherwise it will halt.
+            return;
+        }
+    }
+
+    __asm__("1: hlt; jmp 1b;");
 }
 

@@ -1,4 +1,4 @@
-#include "exec.h"
+#include <inc/syscalls/exec.h>
 #include <inc/error.h>
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
@@ -17,15 +17,12 @@ using namespace boost;
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
 
-namespace syscall_exec
-{
+namespace syscall { namespace exec {
 
 // Main entry to implementation of exec syscall
 int32_t sysexec(const char* file)
 {
-    printf("Executing: %s\n", file);
-    if(!file)
-        return -1;
+    if(!file) return -1;
 
     int32_t child_upid = do_exec(file);
     if(child_upid < 0)
@@ -34,6 +31,35 @@ int32_t sysexec(const char* file)
     // Request context switch
     prepareSwitchTo(child_upid);
     return 0;
+}
+
+// return arg index in a filename, return -1 if no argument
+int32_t get_arg_position(unique_ptr<char[]>& filename, uint32_t filename_len)
+{
+    uint32_t i = 0;
+    int32_t arg_index = -1;
+    for (; i < filename_len; i++)
+    {
+        if (filename[i] == ' ')
+        {
+            uint32_t j = i;
+            for (; filename[j] == ' '; j++);
+            if (filename[j] != '\0')
+                arg_index = j;
+            filename[i] = '\0';
+            break;
+        }
+    }
+    return arg_index;
+}
+
+void store_arg(unique_ptr<char[]>& filename, uint32_t filename_len, uint32_t arg_index, ProcessDesc& pd)
+{
+    uint32_t arg_len = filename_len - arg_index;
+    pd.arg = new char[arg_len + 1];
+    for (uint32_t i = 0; i < arg_len; i++)
+        pd.arg[i] = filename[i + arg_index];
+    pd.arg[arg_len] = '\0';
 }
 
 // Returns the uniq_pid of new process.
@@ -48,6 +74,8 @@ int32_t do_exec(const char* arg0)
     // We need to copy filename into kernel because later we will switch page table
     for (size_t i = 0; i < filename_len; i++) file[i] = arg0[i];
     file[filename_len] = '\0';
+
+    int32_t arg_index = get_arg_position(file, filename_len);
 
     if(!is_kiss_executable(file))
     {
@@ -66,9 +94,14 @@ int32_t do_exec(const char* arg0)
 
     ProcessDesc& child = ProcessDesc::get(child_upid);
 
+    if (arg_index != -1)
+    {
+        store_arg(file, filename_len, arg_index, child);
+    }
+
     // Allocate the page at 128MB virt. addr. for child
-    uint16_t physIdx = physPages.allocPage(0);
-    if(physIdx == 0xffff)
+    auto physIdx = physPages.allocPage(false);
+    if(!physIdx)
     {
         restore_flags(flags);
         // "terminated by exception"
@@ -76,7 +109,7 @@ int32_t do_exec(const char* arg0)
     }
 
     // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
-    PhysAddr physAddr = PhysAddr(physIdx, PG_WRITABLE | PG_USER);
+    PhysAddr physAddr = PhysAddr(+physIdx, PG_WRITABLE | PG_USER);
 
     if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
     {
@@ -84,6 +117,8 @@ int32_t do_exec(const char* arg0)
         // "terminated by exception"
         return 256;          // child virt addr space became weird.
     }
+
+    child.heapStartingPageIdx = (code_page_vaddr_base >> 22) + 2;   // gap between heap and stack
 
     // Temporarily mount the address space to CURRENT context's virtual 128MB address.
     uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
@@ -103,7 +138,8 @@ int32_t do_exec(const char* arg0)
     Stacker<x86> kstack((uint32_t)child.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
 
     kstack << (uint32_t) USER_DS_SEL;
-    kstack << (uint32_t) code_page_vaddr_base + (1<<22) - 8;
+    // Set up ESP for child process
+    kstack << (uint32_t) code_page_vaddr_base + (1 << 22) - 8;
 
     // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
     // Set Interrupt Enable Flag. IOPL = 3
@@ -131,4 +167,4 @@ int32_t do_exec(const char* arg0)
     return child_upid;
 }
 
-}
+} }

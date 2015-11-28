@@ -13,14 +13,14 @@ namespace vbe
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
         context.di = 0;
-        
+
         context.ax = 0x4f00;
 
         legacyInt(0x10, context);
-        
+
         if(context.ax != 0x004f)
             return Maybe<RawVbeInfoBlock>();
-        
+
         return Maybe<RawVbeInfoBlock>(*(RawVbeInfoBlock*)RealModePtr(REAL_MODE_FREE_SEG, 0).get32());
     }
 
@@ -31,15 +31,15 @@ namespace vbe
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
         context.di = 0;
-        
+
         context.ax = 0x4f01;
         context.cx = mode;
 
         legacyInt(0x10, context);
-        
+
         if(context.ax != 0x004f)
             return Maybe<RawVbeVideoModeInfo>();
-        
+
         return Maybe<RawVbeVideoModeInfo>(*(RawVbeVideoModeInfo*)RealModePtr(REAL_MODE_FREE_SEG, 0).get32());
     }
 

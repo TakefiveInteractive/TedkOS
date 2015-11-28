@@ -19,33 +19,27 @@ using namespace palloc;
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
 
-namespace syscall_halt {
+namespace syscall { namespace halt {
 
-    int32_t syshalt( uint32_t retval)
+int32_t syshalt(uint32_t retval)
+{
+    thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
+    if (prevInfo == NULL)
     {
-        thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
-        if(prevInfo == NULL){
-            printf("Init Process, cannot halt!\n");
-            return -1;// is init process, return -1
-        }
-        else//has prev
-        {
-            printf("Halt process with retval=%d!\n", retval);
-
-            // close stdin and stdout
-            fs_close(0);
-            fs_close(1);
-
-            *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7*4) = retval;
-            prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
-
-            // asm volatile (
-            //     "movl %0, %%esp         ;\n"
-            //     "popal                  ;\n"
-            //     "iretl                  ;\n"
-            //     : : "rm" (prevInfo->pcb.esp0) : "cc");
-        }
-        return retval;
+        printf("Init Process, cannot halt!\n");
+        return -1;  // is init process, return -1
     }
+    else    // has prev
+    {
+        printf("Halt process with retval=%d!\n", retval);
 
+        *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7 * 4) = retval;
+        prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
+
+        // Clean up process
+        ProcessDesc::remove(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+    }
+    return retval;
 }
+
+} }

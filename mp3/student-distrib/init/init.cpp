@@ -3,14 +3,9 @@
 #include <inc/klibs/stack.h>
 #include <inc/klibs/palloc.h>
 #include <inc/syscalls/syscalls.h>
-#include <inc/syscalls/filesystem_wrapper.h>
-#include <inc/x86/real.h>
-#include <inc/ui/vbe.h>
 #include <stdint.h>
 #include <stddef.h>
-
-using namespace vbe;
-using namespace palloc;
+#include "draw_nikita.h"
 
 __attribute__((used)) void init_main()
 {
@@ -19,7 +14,7 @@ __attribute__((used)) void init_main()
     /* Enable interrupts */
     sti();
 
-    while(1)
+    for (;;)
     {
         printf("Starting shell ...\n");
 
