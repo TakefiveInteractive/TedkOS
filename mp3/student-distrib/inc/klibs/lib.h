@@ -141,6 +141,8 @@ do {                                    \
 			);                      \
 } while(0)
 
+uint32_t getFlagsRegister();
+
 /* Set interrupt flag - enable interrupts on this processor */
 #define sti()                           \
 do {                                    \
