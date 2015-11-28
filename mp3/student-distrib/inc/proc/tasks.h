@@ -14,13 +14,37 @@
 #include <inc/proc/sched.h>
 #include <inc/fs/filesystem.h>
 #include <inc/klibs/palloc.h>
+#include <inc/klibs/stack.h>
+#include <inc/klibs/bitset.h>
+#include <inc/klibs/maybe.h>
 
 using namespace palloc;
+using namespace util;
 
 #define MAX_NUM_PROCESS             256
 
 #define FD_ARRAY_LENGTH             8
+#define FD_FIXED_PART               2
+#define FD_CYCLABLE_PART            (FD_ARRAY_LENGTH - FD_FIXED_PART)
+// There are 2 FDs that are fixed in one process.
+
 #define MAX_NUM_THREADS             128
+
+// An array to manage reusable File Descs
+class FileDescArr
+{
+    filesystem::File *content[FD_ARRAY_LENGTH];
+    Stack<size_t, FD_ARRAY_LENGTH> freeFDs;
+    BitSet<FD_ARRAY_LENGTH> isFDfree;
+public:
+    FileDescArr();
+    filesystem::File*& operator[] (const size_t i);
+
+    Maybe<size_t> alloc();
+    void recycle(size_t i);
+
+    bool isValid(size_t i);
+};
 
 class ProcessDesc
 {
@@ -38,8 +62,8 @@ public:
 
     ~ProcessDesc();
     int32_t getUniqPid();
-    filesystem::File *fileDescs[FD_ARRAY_LENGTH];
-    int32_t numFilesInDescs;
+
+    FileDescArr fileDescs;
 
     // Currently no multithread
     union _thread_kinfo * mainThreadInfo;

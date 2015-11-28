@@ -7,25 +7,18 @@ using namespace palloc;
 
 namespace syscall { namespace fops {
 
-bool check_valid_fd(int32_t fd, ProcessDesc *processDesc)
-{
-    if (fd >= FD_ARRAY_LENGTH || fd < 0) return false;
-    if (!processDesc->fileDescs[fd]) return false;
-    return true;
-}
-
 int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
     sti();
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
-    if (!check_valid_fd(fd, processDesc)) return -1;
+    if (!processDesc->fileDescs.isValid(fd)) return -1;
     return theDispatcher->read(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
 int32_t write(int32_t fd, const void *buf, int32_t nbytes)
 {
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
-    if (!check_valid_fd(fd, processDesc)) return -1;
+    if (!processDesc->fileDescs.isValid(fd)) return -1;
     return theDispatcher->write(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
@@ -33,15 +26,16 @@ int32_t open(const char *filename)
 {
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     File *fd = new File;
-    if (processDesc->numFilesInDescs >= FD_ARRAY_LENGTH)
+    auto fdSlotMaybe = processDesc->fileDescs.alloc();
+    if(!fdSlotMaybe)
         return -1;
     bool res = theDispatcher->open(*fd, filename);
     if (!res) {
         delete fd;
         return -1;
     }
-    processDesc->fileDescs[processDesc->numFilesInDescs] = fd;
-    return processDesc->numFilesInDescs++;
+    processDesc->fileDescs[+fdSlotMaybe] = fd;
+    return +fdSlotMaybe;
 }
 
 int32_t close(int32_t fd)
@@ -50,25 +44,22 @@ int32_t close(int32_t fd)
     if (fd == 0 || fd == 1) return -1;
 
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
-    if (!check_valid_fd(fd, processDesc)) return -1;
+    if (!processDesc->fileDescs.isValid(fd)) return -1;
     bool res = theDispatcher->close(*processDesc->fileDescs[fd]);
     if (!res) return -1;
-    if (processDesc->fileDescs[fd])
-    {
-        delete processDesc->fileDescs[fd];
-        processDesc->fileDescs[fd] = nullptr;
-    }
+
+    delete processDesc->fileDescs[fd];
+    processDesc->fileDescs[fd] = nullptr;
+    processDesc->fileDescs.recycle(fd);
     return 0;
 }
 
 } }
 
 // Helps initializes the file descriptors of uniq_pid:
-//  It assumes that the fd array in the process is
-//  completely not intialized (including numFilesInDescs)
+//  It assumes that the fd array is FILLED with NULL
 int32_t init_fs_desc(ProcessDesc& proc)
 {
-    proc.numFilesInDescs = 2;
     File *fd = new File;
 
     bool res = theDispatcher->open(*fd, "/dev/keyb");
