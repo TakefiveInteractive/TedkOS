@@ -175,7 +175,7 @@ namespace Term
 
         // this is actually the position of NEXT NEW char.
         volatile size_t term_buf_pos = 0;
-        term_buf_item term_buf[TERM_BUFFER_SIZE];
+        term_buf_item term_buf[TERM_BUFFER_SIZE] = {};
 
         virtual TermPainter* getTermPainter() = 0;
 
