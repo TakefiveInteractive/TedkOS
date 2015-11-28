@@ -40,6 +40,7 @@ void kernel_enable_basic_paging();
 
 uint32_t basicPageDir[1024] __attribute__((aligned (4096)));
 uint32_t basicPageTable0[1024] __attribute__((aligned (4096)));
+uint32_t userFirst4MBTable[1024] __attribute__((aligned (4096)));
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -218,6 +219,12 @@ void kernel_enable_basic_paging()
     {
         LOAD_4KB_PAGE(0, i, i << 12, PG_WRITABLE);
     }
+
+    // ------- initialize userFirst4MBTable --------
+    uint32_t id = get_vmem_phys() >> 12; //id: page id for vmem
+    memset(userFirst4MBTable, 0, 0x1000);
+    userFirst4MBTable[id] = (uint32_t)PG_4KB_BASE | (id << 12) | PG_WRITABLE | PG_USER;
+
     enable_paging();
 }
 

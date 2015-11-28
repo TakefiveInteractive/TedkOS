@@ -182,9 +182,11 @@ namespace palloc
         };
         util::Stack<TinyMemMap::Mapping, 1_KB> pdStack;
         util::BitSet<1_KB> isVirtAddrUsed;
+        bool wantVidmap = false;
     public:
         bool add(const VirtAddr& virt, const PhysAddr& phys);
         bool remove(const VirtAddr& virt, const PhysAddr& physIdx);
+        void enableVidmap(class MemMapManager& map);
     };
 
     // This mamanger manages a whole cpu's process map and common map

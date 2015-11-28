@@ -480,3 +480,8 @@ void scroll_down_nolock(void)
         : "cc", "memory", "ecx", "eax"
     );
 }
+
+uint32_t get_vmem_phys()
+{
+    return (uint32_t)PRE_INIT_VIDEO;
+}

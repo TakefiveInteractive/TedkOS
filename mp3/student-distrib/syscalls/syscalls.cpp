@@ -10,6 +10,7 @@
 #include "halt.h"
 #include "getargs.h"
 #include "sbrk.h"
+#include "vidmap.h"
 
 using namespace boost;
 
@@ -101,7 +102,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
         case SYS_OPEN:          retval = systemCallRunner(fops::open, p1, p2, p3); break;
         case SYS_CLOSE:         retval = systemCallRunner(fops::close, p1, p2, p3); break;
         case SYS_GETARGS:       retval = systemCallRunner(getargs, p1, p2, p3); break;
-        case SYS_VIDMAP:        retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
+        case SYS_VIDMAP:        retval = systemCallRunner(vidmap, p1, p2, p3); break;
         case SYS_SET_HANDLER:   retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
         case SYS_SIGRETURN:     retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
         case SYS_SBRK:          retval = systemCallRunner(sbrk::syssbrk, p1, p2, p3); break;

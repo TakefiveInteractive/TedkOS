@@ -38,6 +38,9 @@ extern spinlock_t term_lock;
 DEFINE_DRIVER_INIT(term);
 DEFINE_DRIVER_REMOVE(term);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // These implementation will make sure cursors are moved so that kernel's output fits well with user's input
 
@@ -49,5 +52,11 @@ void term_cls(void);
 
 // Print one char. Must be either printable or newline character
 void term_putc(uint8_t c);
+
+uint32_t get_vmem_phys();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _TERMINAL_H */
