@@ -17,8 +17,7 @@ int32_t lseek(int32_t fd, int32_t offset, int32_t whence);
 } }
 
 // Helps initializes the file descriptors of uniq_pid:
-//  It assumes that the fd array in the process is
-//  completely not intialized (including numFilesInDescs)
+//  It assumes that the fd array is FILLED with NULL
 int32_t init_fs_desc(ProcessDesc& proc);
 
 #endif
