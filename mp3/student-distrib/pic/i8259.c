@@ -201,7 +201,6 @@ void unbind_irq(unsigned int irq, unsigned int device_id)
 static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
 {
     irqaction* action;
-    unsigned int flag;
 
     // Interrupt is still disabled before this line
     spin_lock(&desc->lock);
@@ -219,20 +218,17 @@ static void handle_level_irq(unsigned int irq, irq_desc_t* desc)
     send_eoi_nolock(irq);
 
 
-    // State is valid and executing other Interrupts is allowed now.
     spin_unlock(&desc->lock);
-    sti();
-    nop();
 
     // interrupt must be enabled before this line.
-    spin_lock_irqsave(&desc->actionsLock, flag);
+    spin_lock(&desc->actionsLock);
     for (action = first_action(&desc->actions); action; action = action->next)
         action->handler(irq, action->dev_id);
-    spin_unlock_irqrestore(&desc->actionsLock, flag);
+    spin_unlock(&desc->actionsLock);
 
-    spin_lock_irqsave(&desc->lock, flag);
+    spin_lock(&desc->lock);
     desc->depth--;
-    spin_unlock_irqrestore(&desc->lock, flag);
+    spin_unlock(&desc->lock);
 }
 
 static int setup_irq(unsigned int irq, unsigned int device_id,
