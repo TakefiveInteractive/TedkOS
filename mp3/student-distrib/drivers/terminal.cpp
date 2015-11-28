@@ -350,7 +350,7 @@ namespace Term
         painter.show();
     }
 
-    TextTerm::TextTerm()
+    TextTerm::TextTerm() : Term()
     {
         // Empty constructor?
     }
