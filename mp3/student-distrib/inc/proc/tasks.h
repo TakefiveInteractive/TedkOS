@@ -19,7 +19,7 @@ using namespace palloc;
 
 #define MAX_NUM_PROCESS             256
 
-#define FD_ARRAY_LENGTH             128
+#define FD_ARRAY_LENGTH             8
 #define MAX_NUM_THREADS             128
 
 class ProcessDesc
