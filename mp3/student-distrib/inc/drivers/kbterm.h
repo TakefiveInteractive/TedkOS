@@ -237,7 +237,7 @@ namespace KeyB
         // In order to support GUI later, here we do NOT directly use TermImpl as type of clients
         IEvent* clients[numClients];
     public:
-        Term::TextTerm textTerms[numClients];
+        Term::TextTerm textTerms[4] = {Term::TextTerm(), Term::TextTerm(), Term::TextTerm(), Term::TextTerm()};
 
         KbClients();
         virtual ~KbClients();
