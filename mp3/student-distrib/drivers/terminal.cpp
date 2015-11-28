@@ -32,7 +32,7 @@ namespace Term
     {
         term_buf_item newLine;
         newLine.displayed_char = '\n';
-        if(next_char_y < SCREEN_HEIGHT - 1)
+        if (next_char_y < SCREEN_HEIGHT - 1)
         {
             next_char_y++;
             next_char_x = 0;
@@ -45,9 +45,9 @@ namespace Term
         //  kb_read must add '\n' by itself.
         term_buf[term_buf_pos++] = newLine;
 
-        if(UserWaitingRead)
+        if (UserWaitingRead)
         {
-            // This must only occurs at process 0
+            // This must only occur at process 0
             UserWaitingRead = false;
             auto& proc = ProcessDesc::get(OwnedByPid);
             cpu0_memmap.loadProcessMap(proc.memmap);
@@ -80,7 +80,7 @@ namespace Term
                 for(uint32_t j = next_char_x; j <= orig_x; j++)
                     getTermPainter()->showChar(j, next_char_y, ' ');
             }
-            term_buf_pos --;
+            term_buf_pos--;
         }
     }
 
@@ -162,18 +162,18 @@ namespace Term
         char* cbuf = (char*) buf;
 
         // Firstly: check owner
-        if(OwnedByPid == -1)
+        if (OwnedByPid == -1)
         {
             OwnedByPid = getCurrentThreadInfo()->pcb.to_process->getUniqPid();
             UserWaitingRead = false;
         }
-        else if(OwnedByPid != getCurrentThreadInfo()->pcb.to_process->getUniqPid())
+        else if (OwnedByPid != getCurrentThreadInfo()->pcb.to_process->getUniqPid())
         {
             return -EFOPS;
         }
 
         // If currently buffer is not enough, wait.
-        if(term_buf_pos < (size_t) nbytes)
+        if (term_buf_pos < (size_t) nbytes)
         {
             UserWaitingRead = true;
             UserWaitingBuffer = cbuf;
