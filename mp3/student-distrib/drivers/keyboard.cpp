@@ -142,11 +142,11 @@ DEFINE_DRIVER_REMOVE(kb) {
     AutoSpinLock l(&KeyB::keyboard_lock);
 
     // rm handler from pic
-    unbind_irq(KB_IRQ_NUM,KB_ID);
+    unbind_irq(KB_IRQ_NUM, KB_ID);
     pending_special = 0;
 
     // reset terminals
-    for(size_t i=0; i<KeyB::KbClients::numClients; i++)
+    for(size_t i = 0; i < KeyB::KbClients::numClients; i++)
         clients.textTerms[i].cls();
 
     return;
@@ -224,7 +224,6 @@ int kb_handler(int irq, unsigned int saved_reg)
  *  but no one will pass in SHIFT|'a'.
  */
 void handle(uint32_t kernelKeycode)
-//void kb_to_term(uint32_t kernelKeycode)
 {
     uint32_t ascii_part, special_part, combine_part;
 
@@ -235,7 +234,7 @@ void handle(uint32_t kernelKeycode)
     combine_part = kernelKeycode & KKC_COMBINE_MASK;
 
     // If this event represents releasing a key
-    if((kernelKeycode & KKC_RELEASE) != 0)
+    if ((kernelKeycode & KKC_RELEASE) != 0)
     {
         // calculate change so that (pending_kc & change) is the NEW pending_kc
         // If neither part exists, nothing should change, thus default to ~0x0
@@ -254,12 +253,12 @@ void handle(uint32_t kernelKeycode)
         // A rule: everytime a new ascii/special key is pressed,
         //     old pressed ascii/special key is discarded
         // Thus we only put combine_part in pending_kc
-        if(combine_part)
+        if (combine_part)
             pending_kc = pending_kc | combine_part;
-        else if(ascii_part || special_part)             // avoid 0x0
+        else if (ascii_part || special_part)             // avoid 0x0
         {
             clients[currClient]->keyDown(pending_kc | special_part | ascii_part, caps_locked);
-            if(!handleShortcut(pending_kc | special_part | ascii_part))
+            if (!handleShortcut(pending_kc | special_part | ascii_part))
                 clients[currClient]->key(pending_kc | special_part | ascii_part, caps_locked);
         }
     }

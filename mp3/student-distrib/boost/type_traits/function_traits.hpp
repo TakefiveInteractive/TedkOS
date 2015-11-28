@@ -167,6 +167,27 @@ struct function_traits :
 {
 };
 
+template<typename T>
+struct lambda_helper {
+    typedef decltype(&T::operator()) type;
+};
+
+template<typename T>
+struct lambda_extractor { };
+
+template<typename ClassType, typename ReturnType, typename... Args>
+struct lambda_extractor<ReturnType(ClassType::*)(Args...) const>
+// we specialize for pointers to member function
+{
+    typedef ReturnType result_type;
+};
+
+template<typename Function>
+struct lambda_traits
+{
+    typedef typename lambda_extractor<typename lambda_helper<Function>::type>::result_type result_type;
+};
+
 }
 
 #endif // BOOST_TT_FUNCTION_TRAITS_HPP_INCLUDED

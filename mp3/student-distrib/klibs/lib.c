@@ -309,6 +309,19 @@ strlen(const char* s)
 	return len;
 }
 
+uint32_t getFlagsRegister()
+{
+    uint32_t flags;
+    asm volatile(
+            "pushfl        \n      \
+            popl %0"
+            : "=r"(flags)           \
+            :                       \
+            : "memory", "cc"        \
+            );                      \
+    return flags;
+}
+
 /*
 * void* memset(void* s, int32_t c, uint32_t n);
 *   Inputs: void* s = pointer to memory

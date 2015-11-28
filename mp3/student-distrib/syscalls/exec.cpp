@@ -10,6 +10,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
+#include <inc/x86/idt_init.h>
 #include <inc/drivers/kbterm.h>
 
 using namespace palloc;
@@ -22,10 +23,10 @@ namespace syscall { namespace exec {
 // Main entry to implementation of exec syscall
 int32_t sysexec(const char* file)
 {
-    if(!file) return -1;
+    if (!file) return -1;
 
     int32_t child_upid = do_exec(file);
-    if(child_upid < 0)
+    if (child_upid < 0)
         return child_upid;
 
     // Request context switch
@@ -65,107 +66,102 @@ void store_arg(unique_ptr<char[]>& filename, uint32_t filename_len, uint32_t arg
 // Returns the uniq_pid of new process.
 int32_t do_exec(const char* arg0)
 {
-    uint32_t flags;
-    cli_and_save(flags);
-
-    uint32_t filename_len = strlen(arg0);
-    unique_ptr<char[]> file(new char[filename_len + 1]);
-
-    // We need to copy filename into kernel because later we will switch page table
-    for (size_t i = 0; i < filename_len; i++) file[i] = arg0[i];
-    file[filename_len] = '\0';
-
-    int32_t arg_index = get_arg_position(file, filename_len);
-
-    if(!is_kiss_executable(file))
+    return runWithoutNMI([arg0] () -> int32_t
     {
-        restore_flags(flags);
-        // "no such command"
-        return -1;
-    }
-    int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+        uint32_t filename_len = strlen(arg0);
+        unique_ptr<char[]> file(new char[filename_len + 1]);
 
-    if(child_upid < 0)
-    {
-        restore_flags(flags);
-        // "terminated by exception"
-        return 256;          // Out of PIDs
-    }
+        // We need to copy filename into kernel because later we will switch page table
+        for (size_t i = 0; i < filename_len; i++) file[i] = arg0[i];
+        file[filename_len] = '\0';
 
-    ProcessDesc& child = ProcessDesc::get(child_upid);
+        int32_t arg_index = get_arg_position(file, filename_len);
 
-    if (arg_index != -1)
-    {
-        store_arg(file, filename_len, arg_index, child);
-    }
+        if (!is_kiss_executable(file))
+        {
+            // "no such command"
+            return -1;
+        }
+        int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
 
-    // Allocate the page at 128MB virt. addr. for child
-    auto physIdx = physPages.allocPage(false);
-    if(!physIdx)
-    {
-        restore_flags(flags);
-        // "terminated by exception"
-        return 256;          // Memory full.
-    }
+        if (child_upid < 0)
+        {
+            // "terminated by exception"
+            return 256;          // Out of PIDs
+        }
 
-    // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
-    PhysAddr physAddr = PhysAddr(+physIdx, PG_WRITABLE | PG_USER);
+        ProcessDesc& child = ProcessDesc::get(child_upid);
 
-    if(!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
-    {
-        restore_flags(flags);
-        // "terminated by exception"
-        return 256;          // child virt addr space became weird.
-    }
+        if (arg_index != -1)
+        {
+            store_arg(file, filename_len, arg_index, child);
+        }
 
-    child.heapStartingPageIdx = (code_page_vaddr_base >> 22) + 2;   // gap between heap and stack
+        // Allocate the page at 128MB virt. addr. for child
+        auto physIdx = physPages.allocPage(false);
+        if (!physIdx)
+        {
+            // "terminated by exception"
+            return 256;          // Memory full.
+        }
 
-    // Temporarily mount the address space to CURRENT context's virtual 128MB address.
-    uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
-    global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
-    RELOAD_CR3();
+        // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
+        PhysAddr physAddr = PhysAddr(+physIdx, PG_WRITABLE | PG_USER);
 
-    // Load executable into memory
-    void* entry_point = kiss_loader(file);
+        if (!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
+        {
+            // "terminated by exception"
+            return 256;          // child virt addr space became weird.
+        }
 
-    // restore 128MB address back to CURRENT context's content
-    global_cr3val[code_page_vaddr_base >> 22] = backupDir;
-    RELOAD_CR3();
+        child.heapStartingPageIdx = (code_page_vaddr_base >> 22) + 2;   // gap between heap and stack
 
-    // Initialize stack and ESP
-    // compatible with x86 32-bit iretl
-    // always no error code on stack before iretl
-    Stacker<x86> kstack((uint32_t)child.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
+        // Temporarily mount the address space to CURRENT context's virtual 128MB address.
+        uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
+        global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
+        RELOAD_CR3();
 
-    kstack << (uint32_t) USER_DS_SEL;
-    // Set up ESP for child process
-    kstack << (uint32_t) code_page_vaddr_base + (1 << 22) - 8;
+        // Load executable into memory
+        void* entry_point = kiss_loader(file);
 
-    // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
-    // Set Interrupt Enable Flag. IOPL = 3
-    kstack << (uint32_t)(((uint32_t)flags & (~0x24100)) | 0x3200);
+        // restore 128MB address back to CURRENT context's content
+        global_cr3val[code_page_vaddr_base >> 22] = backupDir;
+        RELOAD_CR3();
 
-    kstack << (uint32_t) USER_CS_SEL;
-    kstack << (uint32_t) entry_point;
+        // Initialize stack and ESP
+        // compatible with x86 32-bit iretl
+        // always no error code on stack before iretl
+        Stacker<x86> kstack((uint32_t)child.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
 
-    pushal_t regs;
-    regs.esp = (uint32_t) kstack.getESP();
-    regs.ebp = 0;
-    regs.eax = -1;
-    regs.ebx = regs.ecx = regs.edx = 0;
-    regs.edi = regs.esi = 0;
+        kstack << (uint32_t) USER_DS_SEL;
+        // Set up ESP for child process
+        kstack << (uint32_t) code_page_vaddr_base + (1 << 22) - 8;
 
-    kstack << regs;
+        // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
+        // Set Interrupt Enable Flag. IOPL = 3
+        kstack << (uint32_t)(((uint32_t) getFlagsRegister() & (~0x24100)) | 0x3200);
 
-    child.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
-    child.mainThreadInfo->pcb.isKernelThread = 0;
+        kstack << (uint32_t) USER_CS_SEL;
+        kstack << (uint32_t) entry_point;
 
-    // RELEASE control of stdin.
-    if(getCurrentThreadInfo()->pcb.to_process->currTerm)
-        getCurrentThreadInfo()->pcb.to_process->currTerm->setOwner(-1);
+        pushal_t regs;
+        regs.esp = (uint32_t) kstack.getESP();
+        regs.ebp = 0;
+        regs.eax = -1;
+        regs.ebx = regs.ecx = regs.edx = 0;
+        regs.edi = regs.esi = 0;
 
-    restore_flags(flags);
-    return child_upid;
+        kstack << regs;
+
+        child.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
+        child.mainThreadInfo->pcb.isKernelThread = 0;
+
+        // RELEASE control of stdin.
+        if (getCurrentThreadInfo()->pcb.to_process->currTerm)
+            getCurrentThreadInfo()->pcb.to_process->currTerm->setOwner(-1);
+
+        return child_upid;
+    });
 }
 
 } }
