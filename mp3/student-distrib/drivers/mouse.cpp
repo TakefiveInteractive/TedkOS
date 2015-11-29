@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/klibs/spinlock.h>
+#include <inc/klibs/AutoSpinLock.h>
 #include <inc/drivers/mouse.h>
 #include <inc/d2d/k2m.h>
 #include <inc/drivers/kbterm.h>
@@ -11,8 +12,7 @@ using namespace Term;
 
 #define KD_POLICY 0
 #define MOUSE_PORT 0x60
-#define MOUSE_INT_NUM 0x21
-#define MOUSE_IRQ_NUM 1
+#define MOUSE_IRQ_NUM 12
 #define MOUSE_ID 1
 #define LEFT_BUTTON (1 << 0)
 #define RIGHT_BUTTON (1 << 1)
@@ -22,7 +22,6 @@ using namespace Term;
 #define Y_SIGN (1 << 5)
 #define X_OVERFLOW (1 << 6)
 #define Y_OVERFLOW (1 << 7)
-
 
 
 /*
@@ -57,7 +56,13 @@ int mouse_handler();
 
 void send_command(uint8_t command, uint8_t port) {
 	write_byte(0xD4, MOUSE_ENABLE_PORT);
-	write_byte(command, port);
+    write_byte(command, port);
+
+    for (;;)
+    {
+        auto a = read_byte();
+        if (a == 0xFA || a == 0xAA) break;
+    }
 }
 
 void write_byte(uint8_t data, uint8_t port) {
@@ -92,32 +97,31 @@ uint8_t try_read_byte_afterkb() {
 }
 
 DEFINE_DRIVER_INIT(mouse) {
-    uint32_t flag;
-    spin_lock_irqsave(&keyboard_lock, flag);
+
+    AutoSpinLock l(&KeyB::keyboard_lock);
+
 	// bind handler to pic
     init_mouse();
 
 	bind_irq(MOUSE_IRQ_NUM,MOUSE_ID,mouse_handler,KD_POLICY);
-    //init_mouse();
 
-    spin_unlock_irqrestore(&keyboard_lock, flag);
 	return;
 }
 
 DEFINE_DRIVER_REMOVE(mouse) {
-    uint32_t flag;
-    spin_lock_irqsave(&keyboard_lock, flag);
+
+    AutoSpinLock l(&KeyB::keyboard_lock);
+
 	//rm handler from pic
 	unbind_irq(MOUSE_IRQ_NUM,MOUSE_ID);
 
-    spin_unlock_irqrestore(&keyboard_lock, flag);
     return;
 }
 
 void init_mouse() {
-    send_command(0xFF, MOUSE_PORT);//rest
+    send_command(0xFF, MOUSE_PORT);//reset
     // send "Get Compaq Status Byte" command
-	send_command(0x20, MOUSE_ENABLE_PORT);
+	write_byte(0x20, MOUSE_ENABLE_PORT);
 	uint8_t compaq_status = read_byte();
 	// enable IRQ 12
 	compaq_status |= 0x2;
@@ -139,23 +143,20 @@ void init_mouse() {
 
 
 int mouse_handler(int irq, unsigned int saved_reg) {
+    AutoSpinLock(&KeyB::keyboard_lock);
+    mouse_enable_scancode = read_byte();
+    printf("mouse_enable_scancode: %#x \n",mouse_enable_scancode);
 
-    uint32_t flag;
-
-    spin_lock_irqsave(&keyboard_lock, flag);
-
-
-    if (mouse_enable_scancode != 0x20) //should be handle by ms
+    if ( (mouse_enable_scancode & 0x20) == 0) //should be handle by kb
     {
-        spin_unlock_irqrestore(&keyboard_lock, flag);
         return 0;
     }
+
     //init_mouse();
     uint8_t flags = try_read_byte_afterkb();
     if (last_read == ReadSuccess) {
         if (flags == 0xFA) {
             // ack
-            spin_unlock_irqrestore(&keyboard_lock, flag);
 
             return 0;
         } else {
@@ -194,13 +195,10 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                 if (flags & MIDDLE_BUTTON) {
                     //not specified
                 }
-                spin_unlock_irqrestore(&keyboard_lock, flag);
                 return 0;
 
             }
         }
     }
-    spin_unlock_irqrestore(&keyboard_lock, flag);
-
     return 0;
 }
