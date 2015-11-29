@@ -14,6 +14,13 @@ using arch::CPUArchTypes::x86;
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
 
+void setTSS(const thread_pcb& pcb)
+{
+    if(pcb.isKernelThread)
+        tss.esp0 = (uint32_t)pcb.esp0 + (8 + 3) * 4;
+    else tss.esp0 = (uint32_t)pcb.esp0 + (8 + 5) * 4;
+}
+
 void enablePreemptiveScheduling()
 {
     pit_init(20);   // switch every 50ms
@@ -45,7 +52,7 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 
         // Save new kernel stack into TSS.
         //   so that later interrupts use this new kstack
-        tss.esp0 = (uint32_t)desc.mainThreadInfo->pcb.esp0;
+        setTSS(desc.mainThreadInfo->pcb);
 
         // Switch Page Directory
         cpu0_memmap.loadProcessMap(desc.memmap);
@@ -150,7 +157,7 @@ void forceStartThread(union _thread_kinfo* thread)
     cpu0_memmap.loadProcessMap(thread->pcb.to_process->memmap);
 
     // refresh TSS so that later interrupts use this new kstack
-    tss.esp0 = (uint32_t)thread->pcb.esp0;
+    setTSS(thread->pcb);
 
     asm volatile (
         "movl %0, %%esp         ;\n"
