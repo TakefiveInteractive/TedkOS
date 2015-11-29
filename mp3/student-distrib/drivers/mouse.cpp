@@ -160,7 +160,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     int i;
                     for (i = 0; i < MAX_HANDLERS; i++) {
                         if (left_click_handler[i] != NULL) {
-                            //left_click_handler[i](mouse_pos.x/X_SCALE, mouse_pos.y/Y_SCALE);
+                            //left_click_handler[i]();
                         }
                     }
                 }
@@ -169,12 +169,9 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     int i;
                     for (i = 0; i < MAX_HANDLERS; i++) {
                         if (right_click_handler[i] != NULL) {
-                            //right_click_handler[i](mouse_pos.x/X_SCALE, mouse_pos.y/Y_SCALE);
+                            //right_click_handler[i]();
                         }
                     }
-                }
-                if (flags & MIDDLE_BUTTON) {
-                    //not specified
                 }
                 return 0;
 
