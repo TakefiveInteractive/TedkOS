@@ -86,16 +86,6 @@ uint8_t try_read_byte() {
     }
 }
 
-uint8_t try_read_byte_afterkb() {
-    if ( (mouse_enable_scancode & 0x1) == 0 ) {
-        last_read = ReadFailure;
-        return 0;
-    } else {
-        last_read = ReadSuccess;
-        return inb(MOUSE_PORT);
-    }
-}
-
 DEFINE_DRIVER_INIT(mouse) {
 
     AutoSpinLock l(&KeyB::keyboard_lock);
@@ -144,50 +134,41 @@ void init_mouse() {
 
 int mouse_handler(int irq, unsigned int saved_reg) {
     AutoSpinLock(&KeyB::keyboard_lock);
-    mouse_enable_scancode = read_byte();
-    printf("mouse_enable_scancode: %#x \n",mouse_enable_scancode);
 
-    if ( (mouse_enable_scancode & 0x20) == 0) //should be handle by kb
-    {
-        return 0;
-    }
-
-    //init_mouse();
-    uint8_t flags = try_read_byte_afterkb();
+    uint8_t flags = try_read_byte();
     if (last_read == ReadSuccess) {
         if (flags == 0xFA) {
             // ack
-
             return 0;
         } else {
             if ( (flags & MOVEMENT_ONE) != 0 &&
                     (flags & X_OVERFLOW) == 0 &&
                     (flags & Y_OVERFLOW) == 0)
             {
-                // int32_t deltax = read_byte();
-                // if (flags & X_SIGN) {
-                //     deltax = deltax | 0xFFFFFF00;
-                // }
-                // int32_t deltay = read_byte();
-                // if (flags & Y_SIGN) {
-                //     deltay = deltay | 0xFFFFFF00;
-                // }
+                int32_t deltax = read_byte();
+                if (flags & X_SIGN) {
+                    deltax = deltax | 0xFFFFFF00;
+                }
+                int32_t deltay = read_byte();
+                if (flags & Y_SIGN) {
+                    deltay = deltay | 0xFFFFFF00;
+                }
                 // move_mouse(deltax, deltay);
 
                 if (flags & LEFT_BUTTON) {
+                    printf("LEFT_BUTTON");
                     int i;
                     for (i = 0; i < MAX_HANDLERS; i++) {
                         if (left_click_handler[i] != NULL) {
-                            printf("LEFT_BUTTON");
                             //left_click_handler[i](mouse_pos.x/X_SCALE, mouse_pos.y/Y_SCALE);
                         }
                     }
                 }
                 if (flags & RIGHT_BUTTON) {
+                    printf("RIGHT_BUTTON");
                     int i;
                     for (i = 0; i < MAX_HANDLERS; i++) {
                         if (right_click_handler[i] != NULL) {
-                            printf("RIGHT_BUTTON");
                             //right_click_handler[i](mouse_pos.x/X_SCALE, mouse_pos.y/Y_SCALE);
                         }
                     }
