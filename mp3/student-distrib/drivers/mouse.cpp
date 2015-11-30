@@ -39,11 +39,9 @@ click_handler right_click_handler[MAX_HANDLERS];
 
 uint8_t mouse_enable_scancode;
 
-enum read_status {
-     ReadSuccess,
-     ReadFailure,
-};
-enum read_status last_read;
+bool last_read;
+//  true for  ReadSuccess
+//  false for ReadFailure
 
 void write_byte(uint8_t data, uint8_t port);
 uint8_t read_byte();
@@ -72,16 +70,16 @@ void write_byte(uint8_t data, uint8_t port) {
 
 uint8_t read_byte() {
     while( (inb(MOUSE_ENABLE_PORT) & 0x1) == 0 );
-    last_read = ReadSuccess;
+    last_read = true;
     return inb(MOUSE_PORT);
 }
 
 uint8_t try_read_byte() {
     if ( (inb(MOUSE_ENABLE_PORT) & 0x1) == 0 ) {
-        last_read = ReadFailure;
+        last_read = false;
         return 0;
     } else {
-        last_read = ReadSuccess;
+        last_read = true;
         return inb(MOUSE_PORT);
     }
 }
@@ -136,7 +134,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
     AutoSpinLock(&KeyB::keyboard_lock);
 
     uint8_t flags = try_read_byte();
-    if (last_read == ReadSuccess) {
+    if (last_read == true) {
         if (flags == 0xFA) {
             // ack
             return 0;

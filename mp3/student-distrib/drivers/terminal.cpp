@@ -332,7 +332,7 @@ namespace Term
         }
         getTermPainter()->setCursor(next_char_x, next_char_y);
     }
-
+    
     // +++++++++ TextTerm ++++++++++
 
     // Private function: no need to lock.
@@ -355,4 +355,3 @@ namespace Term
         // Empty constructor?
     }
 }
-
