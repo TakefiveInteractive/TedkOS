@@ -41,11 +41,13 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     {
         if(!getCurrentThreadInfo()->pcb.isKernelThread)
         {
-            getCurrentThreadInfo()->pcb.esp0 = (target_esp0)((uint32_t)getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
+            getCurrentThreadInfo()->pcb.esp0 = (target_esp0)((uint32_t) getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
             tss.esp0 = (uint32_t) getCurrentThreadInfo()->pcb.esp0;
         }
         return NULL;
     }
+    if (currentlyRunning == wantToSwitchTo)
+        return NULL;
 
     // Firstly save current esp0 to current thread's pcb
     // Should only be saved if this is the outmost interrupt.

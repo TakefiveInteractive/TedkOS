@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/x86/err_handler.h>
 
 namespace maybe_details {
 
@@ -15,26 +16,43 @@ class NothingType {
 extern maybe_details::NothingType Nothing;
 
 template <typename T>
+union MaybeUnion
+{
+    uint8_t _nothing;
+    T v;
+    MaybeUnion() : _nothing(0) {}
+    ~MaybeUnion() {}
+};
+
+template <typename T>
 class Maybe {
 private:
-    const T val;
+    MaybeUnion<T> val;
     const bool exists;
 
 public:
-    Maybe() : val(T{}), exists(false) { }
-    Maybe(const T& bla) : val(bla), exists(true) { }
-    Maybe(const maybe_details::NothingType nothing) : val(T{}), exists(false) { }
+    Maybe() : exists(false) { }
+    Maybe(const T& bla) : exists(true) { val.v = bla; }
+    Maybe(const Maybe<T>& other) : exists(other.exists)
+    {
+        if (exists)
+        {
+            val.v = other.val.v;
+        }
+    }
+    ~Maybe() { if (exists) (&val.v)->~T(); }
+    Maybe(const maybe_details::NothingType nothing) : exists(false) { }
 
     const T& operator + () const {
         if (!exists)
         {
             // Trigger an exception
-            __asm__ __volatile__("int $26;" : : );
-            for (;;) { }
+            trigger_exception<26>();
             // We'll never reach here
-            return val;
+            for (;;) { }
+            return val.v;
         }
-        return val;
+        return val.v;
     }
 
     const Maybe<T> operator >> (Maybe<T> (*other)()) const {

@@ -43,7 +43,26 @@ namespace vbe
         return *(RawVbeVideoModeInfo*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
     }
 
-    // classes
+    Maybe<VideoModeInfo> findVideoModeInfo(function<bool (VideoModeInfo)> predicate)
+    {
+        // Iterate over all video modes and return the first one which satisfies the predicate
+        auto vbeInfoMaybe = getVbeInfo();
+        if (vbeInfoMaybe)
+        {
+            VbeInfo vbeInfo(+vbeInfoMaybe);
+            for (size_t i = 0; i < vbeInfo.numModes; i++)
+            {
+                auto rawVbeInfoMaybe = getVideoModeInfo(vbeInfo.modeList[i]);
+                if (rawVbeInfoMaybe)
+                {
+                    VideoModeInfo videoInfo(+rawVbeInfoMaybe);
+                    if (predicate(videoInfo)) return videoInfo;
+                }
+            }
+        }
+        return Nothing;
+    }
+
     VbeInfo::VbeInfo(const VbeInfo& other)
     {
         // This is private to ban copying.
@@ -53,6 +72,8 @@ namespace vbe
         // This is private to ban copying.
         return *this;
     }
+
+    // classes
     VbeInfo::VbeInfo(const RawVbeInfoBlock& raw)
     {
         vbe2 = raw.VbeVersion >= 0x0200;
@@ -73,6 +94,7 @@ namespace vbe
             ;
         this->modeList = new uint16_t[numModes+1];
         this->modeList[numModes] = 0xffff;
+        this->numModes = numModes;
         for(uint32_t i=0; i<numModes; i++)
             this->modeList[i] = modeList[i];
     }
@@ -82,15 +104,6 @@ namespace vbe
         delete[] modeList;
     }
 
-    VideoModeInfo::VideoModeInfo(const VideoModeInfo& other)
-    {
-        // This is private to ban copying.
-    }
-    const VideoModeInfo& VideoModeInfo::operator = (const VideoModeInfo& other)
-    {
-        // This is private to ban copying.
-        return *this;
-    }
     VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw)
     {
         xRes = raw.XRes;

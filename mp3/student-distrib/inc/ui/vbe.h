@@ -3,6 +3,7 @@
 
 #include <inc/x86/real.h>
 #include <inc/klibs/maybe.h>
+#include <inc/klibs/function.h>
 
 // References:
 // Definition of the following "struct" comes from:
@@ -33,19 +34,19 @@ typedef struct  {
     uint16_t WinASeg, WinBSeg;              // Window A/B's address (segment part)
     uint16_t WinFuncPtr[2];
     uint16_t BytesPerScanLine;
- 
+
     uint16_t XRes, YRes;
     uint8_t XCharSize, YCharSize;
     uint8_t NumPlanes, BitsPerPixel, NumBanks;
     uint8_t MemoryModelType, BankSize, NumImagePages;
     uint8_t Reserved0;
- 
+
     uint8_t RedMaskSize, RedFieldPosition;
     uint8_t GreenMaskSize, GreenFieldPosition;
     uint8_t BlueMaskSize, BlueFieldPosition;
     uint8_t RsvMaskSize, RsvFieldPosition;
     uint8_t DirectColorAttributes;
- 
+
     uint32_t PhysBase;                      // LFB (Linear Framebuffer) PHYSICAL addr
     uint16_t OffScreenMemPtr[2];
     uint16_t OffScreenMemSize;
@@ -62,12 +63,13 @@ namespace vbe
         const VbeInfo& operator = (const VbeInfo& other);
     public:
         VbeInfo(const RawVbeInfoBlock& raw);
-        
+
         // All pointers below are kmalloc-ed, and need deleted
         ~VbeInfo();
 
         char* oemString;
         uint16_t* modeList;
+        uint32_t numModes;
         uint32_t capabilityFlags;
         uint16_t totalMemory;                   // as # of 64KB blocks
 
@@ -79,13 +81,9 @@ namespace vbe
     // VideoModeInfo <= RawVbeVideoModeInfo
     class VideoModeInfo
     {
-    private:
-        // Forbids copying.
-        VideoModeInfo(const VideoModeInfo& other);
-        const VideoModeInfo& operator = (const VideoModeInfo& other);
     public:
         VideoModeInfo(const RawVbeVideoModeInfo& raw);
-        
+
         // All pointers below are kmalloc-ed, and need deleted
         ~VideoModeInfo();
 
@@ -102,12 +100,13 @@ namespace vbe
         uint32_t physBase;                      // LFB (Linear Framebuffer) PHYSICAL addr
     };
 
-    // WARNING: previously returned information is clobbered when calling any of 
+    // WARNING: previously returned information is clobbered when calling any of
     //      these functions. Please make a backup if necessary.
     //          It does not help you back them up because most of the information
     //      is not very crucial and doing the backup might waste both time and memory.
     Maybe<RawVbeInfoBlock> getVbeInfo();
     Maybe<RawVbeVideoModeInfo> getVideoModeInfo(uint16_t mode);
+    Maybe<VideoModeInfo> findVideoModeInfo(function<bool (VideoModeInfo)> fn);
 }
 
 #endif//_UI_VBE_H
