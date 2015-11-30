@@ -39,8 +39,11 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
         return NULL;
     if (wantToSwitchTo < 0)
     {
-        getCurrentThreadInfo()->pcb.esp0 = (target_esp0)((uint32_t)getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
-        tss.esp0 = (uint32_t) getCurrentThreadInfo()->pcb.esp0;
+        if(!getCurrentThreadInfo()->pcb.isKernelThread)
+        {
+            getCurrentThreadInfo()->pcb.esp0 = (target_esp0)((uint32_t)getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
+            tss.esp0 = (uint32_t) getCurrentThreadInfo()->pcb.esp0;
+        }
         return NULL;
     }
 
