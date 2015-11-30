@@ -27,6 +27,10 @@ class Compositor {
         uint16_t orig_mode;
         uint8_t *videoMemory;
         VideoMode videoMode;
+        uint8_t *mouseImg;
+
+        uint32_t mouseX = 512;
+        uint32_t mouseY = 384;
 
     public:
         Compositor();
@@ -34,6 +38,7 @@ class Compositor {
         void enterTextMode();
 
         void drawNikita();
+        void moveMouse(int, int);
 };
 
 }

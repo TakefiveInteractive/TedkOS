@@ -57,7 +57,9 @@ Compositor::Compositor()
         legacyInt(0x10, real_context);
         orig_mode = real_context.ax & 0x00ff;
 
-        LOAD_4MB_PAGE(ModeMem >> 22, ModeMem, PG_WRITABLE);
+        PhysAddr physAddr = PhysAddr(ModeMem >> 22, PG_WRITABLE);
+        cpu0_memmap.addCommonPage(VirtAddr((void*)ModeMem), physAddr);
+
         RELOAD_CR3();
 
         videoMemory = (uint8_t *) ModeMem;
@@ -65,6 +67,26 @@ Compositor::Compositor()
         // Figure this out programmatically
         videoMode = Text;
     });
+}
+
+void Compositor::moveMouse(int dx, int dy)
+{
+    mouseX += dx;
+    mouseY -= dy;
+    if (mouseX < 0) mouseX = 0;
+    if (mouseX > 1024 - 30) mouseX = 1024 - 30;
+    if (mouseY < 0) mouseY = 0;
+    if (mouseY > 768 - 44) mouseY = 768 - 44;
+    for (size_t y = 0; y < 44; y++)
+    {
+        for (size_t x = 0; x < 30; x++)
+        {
+            float alpha = (float) mouseImg[(30 * y + x) * 4 + 3] / 256.0F;
+            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 0] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 0] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 2];
+            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 1] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 1] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 1];
+            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 2] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 2] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 0];
+        }
+    }
 }
 
 void Compositor::drawNikita()
@@ -82,7 +104,15 @@ void Compositor::drawNikita()
     theDispatcher->read(file, nikita, 1024 * 768 * 4);
     theDispatcher->close(file);
 
+
+    File mouseFile;
+    mouseImg = new uint8_t[5280];
+    theDispatcher->open(mouseFile, "mouse.png.conv");
+    theDispatcher->read(mouseFile, mouseImg, 5280);
+    theDispatcher->close(mouseFile);
+
     paint_screen(videoMemory, nikita);
+    moveMouse(0, 0);
 }
 
 void Compositor::enterVideoMode()

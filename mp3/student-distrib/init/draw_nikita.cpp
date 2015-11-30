@@ -8,6 +8,8 @@
 
 using ui::Compositor;
 
+Compositor *comp;
+
 void draw_nikita()
 {
     // Must use actual syscall if it's SUPPOSED to block!
@@ -18,13 +20,13 @@ void draw_nikita()
     // Wait for user
     ece391_read(keyb, buf, 1);
 
-    Compositor comp;
-    comp.enterVideoMode();
-    comp.drawNikita();
+    comp = new Compositor();
+    comp->enterVideoMode();
+    comp->drawNikita();
 
     // Wait for user
     ece391_read(keyb, buf, 1);
-    comp.enterTextMode();
+    comp->enterTextMode();
 
     printf("Back to KERNEL!\n");
 }
