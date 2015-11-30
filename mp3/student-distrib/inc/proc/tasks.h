@@ -55,8 +55,8 @@ struct thread_pcb
 struct __attribute__ ((__packed__)) thread_kinfo
 {
     union {
-        thread_pcb pcb;
         uint8_t kstack[THREAD_KSTACK_SIZE];
+        thread_pcb pcb;
     } storage;
 
     ProcessDesc* getProcessDesc() { return storage.pcb.to_process; }
@@ -72,6 +72,8 @@ struct __attribute__ ((__packed__)) thread_kinfo
         storage.pcb.type = processType;
     }
 };
+
+static_assert(sizeof(thread_kinfo) == THREAD_KSTACK_SIZE, "thread_kinfo size mismatch");
 
 class ProcessDesc
 {
