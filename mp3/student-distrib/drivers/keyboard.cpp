@@ -13,7 +13,6 @@
 using filesystem::register_devfs;
 
 #define KB_PORT 0x60
-#define KB_INT_NUM 0x21
 #define KB_IRQ_NUM 1
 #define KB_ID 1
 #define KD_POLICY 0
@@ -169,10 +168,6 @@ int kb_handler(int irq, unsigned int saved_reg)
     uint8_t keyboard_scancode;
     AutoSpinLock(&KeyB::keyboard_lock);
 
-    if ( (mouse_enable_scancode = inb(MOUSE_ENABLE_PORT) ) == 0x20) //should be handle by ms
-    {
-        return 0;
-    }
     keyboard_scancode = inb(KB_PORT);                           //read the input
 
     //!!! WARNING: We should not use "keyboard_scancode & 0x80" anymore
@@ -347,4 +342,3 @@ namespace KeyB
         return clients[i];
     }
 }
-
