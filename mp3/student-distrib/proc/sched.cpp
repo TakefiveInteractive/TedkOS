@@ -35,35 +35,32 @@ void schedMakeDecision()
 // Performs context switching
 target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 {
-    return runWithoutNMI([&currentESP] () -> void* {
-        if (num_nest_int() > 0)
-            return NULL;
-        if (wantToSwitchTo < 0)
-            return NULL;
+    if (num_nest_int() > 0)
+        return NULL;
+    if (wantToSwitchTo < 0)
+        return NULL;
 
-        // Firstly save current esp0 to current thread's pcb
-        // Should only be saved if this is the outmost interrupt.
-        getCurrentThreadInfo()->pcb.esp0 = currentESP;
+    // Firstly save current esp0 to current thread's pcb
+    // Should only be saved if this is the outmost interrupt.
+    getCurrentThreadInfo()->pcb.esp0 = currentESP;
 
-        ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
+    ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
 
-        // Switch stack
-        target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
+    // Switch stack
+    target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
 
-        // Save new kernel stack into TSS.
-        //   so that later interrupts use this new kstack
-        setTSS(desc.mainThreadInfo->pcb);
+    // Save new kernel stack into TSS.
+    //   so that later interrupts use this new kstack
+    setTSS(desc.mainThreadInfo->pcb);
 
-        // Switch Page Directory
-        cpu0_memmap.loadProcessMap(desc.memmap);
+    // Switch Page Directory
+    cpu0_memmap.loadProcessMap(desc.memmap);
 
-        currentlyRunning = wantToSwitchTo;
-        // Reset dispatch decision state.
-        wantToSwitchTo = -1;
+    currentlyRunning = wantToSwitchTo;
+    // Reset dispatch decision state.
+    wantToSwitchTo = -1;
 
-        return ans;
-    });
-
+    return ans;
 }
 
 int32_t newPausedProcess(int32_t parentPID)
