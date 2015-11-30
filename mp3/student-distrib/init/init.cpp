@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include "draw_nikita.h"
 
+using scheduler::makeKThread;
+
 volatile bool pcbLoadable = false;
 
 void launcher(void* arg);
@@ -25,11 +27,13 @@ __attribute__((used)) void init_main(void* arg)
 
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
 
+    scheduler::enablePreemptiveScheduling();
+
     printf("Starting gaurd...\n");
 
-    auto thread = makeKThread(launcher, NULL);
+    auto thread = makeKThread(launcher);
 
-    ece391_dotask(thread->pcb.to_process->getUniqPid());
+    ece391_dotask(thread->getProcessDesc()->getUniqPid());
 
     // this part is NEVER REACHED
     asm volatile("1: hlt; jmp 1b;");
@@ -40,8 +44,6 @@ __attribute__((used)) void launcher(void* arg)
     printf("=> I am the guard process to ensure terminals have shells running in them!\n");
 
     draw_nikita();
-
-    enablePreemptiveScheduling();
 
     /* Enable interrupts */
     sti();

@@ -17,21 +17,21 @@ bool check_valid_fd(int32_t fd, ProcessDesc *processDesc)
 int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
     sti();
-    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     if (!check_valid_fd(fd, processDesc)) return -1;
     return theDispatcher->read(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
 int32_t write(int32_t fd, const void *buf, int32_t nbytes)
 {
-    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     if (!check_valid_fd(fd, processDesc)) return -1;
     return theDispatcher->write(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
 int32_t open(const char *filename)
 {
-    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     File *fd = new File;
     if (processDesc->numFilesInDescs >= FD_ARRAY_LENGTH)
         return -1;
@@ -49,7 +49,7 @@ int32_t close(int32_t fd)
     // Disallow closing STDIN or STDOUT
     if (fd == 0 || fd == 1) return -1;
 
-    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     if (!check_valid_fd(fd, processDesc)) return -1;
     bool res = theDispatcher->close(*processDesc->fileDescs[fd]);
     if (!res) return -1;
@@ -63,14 +63,14 @@ int32_t close(int32_t fd)
 
 int32_t fstat(int32_t fd, stat *st)
 {
-    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     if (!check_valid_fd(fd, processDesc)) return -1;
     return theDispatcher->fstat(*processDesc->fileDescs[fd], st);
 }
 
 int32_t lseek(int32_t fd, int32_t offset, int32_t whence)
 {
-    auto processDesc = getCurrentThreadInfo()->pcb.to_process;
+    auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     if (!check_valid_fd(fd, processDesc)) return -1;
     return theDispatcher->lseek(*processDesc->fileDescs[fd], offset, whence);
 }

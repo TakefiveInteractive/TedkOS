@@ -6,6 +6,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
 
 //********** DEFINE HANDLERS for special keycodes **********
 extern char ascii_shift_table[128];
@@ -52,7 +53,7 @@ namespace Term
             auto& proc = ProcessDesc::get(OwnedByPid);
             cpu0_memmap.loadProcessMap(proc.memmap);
             getRegs(proc.mainThreadInfo)->eax = helpFinishRead(UserWaitingBuffer, UserWaitingLen);
-            prepareSwitchTo(OwnedByPid);
+            scheduler::prepareSwitchTo(OwnedByPid);
         }
     }
 
@@ -164,10 +165,10 @@ namespace Term
         // Firstly: check owner
         if (OwnedByPid == -1)
         {
-            OwnedByPid = getCurrentThreadInfo()->pcb.to_process->getUniqPid();
+            OwnedByPid = getCurrentThreadInfo()->getProcessDesc()->getUniqPid();
             UserWaitingRead = false;
         }
-        else if (OwnedByPid != getCurrentThreadInfo()->pcb.to_process->getUniqPid())
+        else if (OwnedByPid != getCurrentThreadInfo()->getProcessDesc()->getUniqPid())
         {
             return -EFOPS;
         }
@@ -180,7 +181,7 @@ namespace Term
             UserWaitingLen = nbytes;
 
             // Switch to IDLE thread
-            prepareSwitchTo(0);
+            scheduler::prepareSwitchTo(0);
 
             // Retval does not matter here (it's given to IDLE thread)
             return 0;
@@ -332,7 +333,7 @@ namespace Term
         }
         getTermPainter()->setCursor(next_char_x, next_char_y);
     }
-    
+
     // +++++++++ TextTerm ++++++++++
 
     // Private function: no need to lock.

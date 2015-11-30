@@ -30,7 +30,7 @@ int32_t sysexec(const char* file)
         return child_upid;
 
     // Request context switch
-    prepareSwitchTo(child_upid);
+    scheduler::prepareSwitchTo(child_upid);
     return 0;
 }
 
@@ -82,7 +82,9 @@ int32_t do_exec(const char* arg0)
             // "no such command"
             return -1;
         }
-        int32_t child_upid = newPausedProcess(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+        int32_t child_upid = scheduler::newPausedProcess(
+            getCurrentThreadInfo()->getProcessDesc()->getUniqPid(),
+            USER_PROCESS);
 
         if (child_upid < 0)
         {
@@ -131,7 +133,7 @@ int32_t do_exec(const char* arg0)
         // Initialize stack and ESP
         // compatible with x86 32-bit iretl
         // always no error code on stack before iretl
-        Stacker<x86> kstack((uint32_t)child.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
+        Stacker<x86> kstack((uint32_t) child.mainThreadInfo->storage.kstack + THREAD_KSTACK_SIZE - 1);
 
         kstack << (uint32_t) USER_DS_SEL;
         // Set up ESP for child process
@@ -153,12 +155,11 @@ int32_t do_exec(const char* arg0)
 
         kstack << regs;
 
-        child.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
-        child.mainThreadInfo->pcb.isKernelThread = 0;
+        child.mainThreadInfo->storage.pcb.esp0 = (target_esp0) kstack.getESP();
 
         // RELEASE control of stdin.
-        if (getCurrentThreadInfo()->pcb.to_process->currTerm)
-            getCurrentThreadInfo()->pcb.to_process->currTerm->setOwner(-1);
+        if (getCurrentThreadInfo()->getProcessDesc()->currTerm)
+            getCurrentThreadInfo()->getProcessDesc()->currTerm->setOwner(-1);
 
         return child_upid;
     });

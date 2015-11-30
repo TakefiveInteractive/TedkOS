@@ -10,13 +10,15 @@
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
 
+namespace scheduler {
+
 // Smaller than zero <=> No switch.
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
 
 void setTSS(const thread_pcb& pcb)
 {
-    if(pcb.isKernelThread)
+    if(pcb.type == KERNEL_PROCESS)
         tss.esp0 = (uint32_t)pcb.esp0 + (8 + 3) * 4;
     else tss.esp0 = (uint32_t)pcb.esp0 + (8 + 5) * 4;
 }
@@ -26,67 +28,21 @@ void enablePreemptiveScheduling()
     pit_init(20);   // switch every 50ms
 }
 
-void schedMakeDecision()
+void makeDecision()
 {
     // Put whatever scheduling policy here
     // call "prepareSwitchTo" to schedule a context switch
 }
 
-// Performs context switching
-target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
+int32_t newPausedProcess(int32_t parentPID, ProcessType processType)
 {
-    if (num_nest_int() > 0)
-        return NULL;
-    if (wantToSwitchTo < 0)
-    {
-        if(!getCurrentThreadInfo()->pcb.isKernelThread)
-        {
-            getCurrentThreadInfo()->pcb.esp0 = (target_esp0)((uint32_t) getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
-            tss.esp0 = (uint32_t) getCurrentThreadInfo()->pcb.esp0;
-        }
-        return NULL;
-    }
-    if (currentlyRunning == wantToSwitchTo)
-        return NULL;
 
-    // Firstly save current esp0 to current thread's pcb
-    // Should only be saved if this is the outmost interrupt.
-    getCurrentThreadInfo()->pcb.esp0 = currentESP;
-
-    ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
-
-    // Switch stack
-    target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
-
-    // Save new kernel stack into TSS.
-    //   so that later interrupts use this new kstack
-    setTSS(desc.mainThreadInfo->pcb);
-
-    // Switch Page Directory
-    cpu0_memmap.loadProcessMap(desc.memmap);
-
-    currentlyRunning = wantToSwitchTo;
-    // Reset dispatch decision state.
-    wantToSwitchTo = -1;
-
-    return ans;
-}
-
-int32_t newPausedProcess(int32_t parentPID)
-{
-    thread_kinfo* parentInfo = NULL;
-    if (parentPID >= 0)
-        parentInfo = ProcessDesc::get(parentPID).mainThreadInfo;
-    int32_t uniq_pid = ProcessDesc::newProcess();
-    ProcessDesc& pd = ProcessDesc::get(uniq_pid);
-    pd.mainThreadInfo->pcb.prev = parentInfo;
-    if (parentInfo)
-        parentInfo->pcb.next = pd.mainThreadInfo;
+    ProcessDesc& pd = ProcessDesc::newProcess(parentPID, processType);
 
     // TODO: FIXME: Currently all processes are binded to terminal 0
     pd.currTerm = KeyB::getFirstTextTerm();
 
-    return uniq_pid;
+    return pd.getUniqPid();
 }
 
 // pass -1 to cancel a prepared switch.
@@ -95,11 +51,16 @@ void prepareSwitchTo(int32_t pid)
     wantToSwitchTo = pid;
 }
 
+thread_kinfo* makeKThread(kthread_entry entry)
+{
+    return makeKThread(entry, nullptr);
+}
+
 thread_kinfo* makeKThread(kthread_entry entry, void* arg)
 {
     // should have loaded flags using cli_and_save or pushfl
     uint32_t flags = 0;
-    int32_t child_upid = newPausedProcess(-1);
+    int32_t child_upid = newPausedProcess(-1, KERNEL_PROCESS);
 
     if(child_upid < 0)
     {
@@ -115,7 +76,7 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
     // Initialize stack and ESP
     // compatible with x86 32-bit iretl. KTHREAD mode.
     // always no error code on stack before iretl
-    Stacker<x86> kstack((uint32_t)proc.mainThreadInfo->kstack + THREAD_KSTACK_SIZE - 1);
+    Stacker<x86> kstack((uint32_t) proc.mainThreadInfo->storage.kstack + THREAD_KSTACK_SIZE - 1);
 
     // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
     // Set Interrupt Enable Flag. IOPL = 3
@@ -133,13 +94,12 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
 
     kstack << regs;
 
-    proc.mainThreadInfo->pcb.esp0 = (target_esp0)kstack.getESP();
-    proc.mainThreadInfo->pcb.isKernelThread = 1;
+    proc.mainThreadInfo->storage.pcb.esp0 = (target_esp0)kstack.getESP();
 
     return proc.mainThreadInfo;
 }
 
-void forceStartThread(union _thread_kinfo* thread)
+void forceStartThread(thread_kinfo* thread)
 {
     cli();
     if(!thread)
@@ -160,17 +120,69 @@ void forceStartThread(union _thread_kinfo* thread)
 
         cpu0_memmap.start();
     }
-    cpu0_memmap.loadProcessMap(thread->pcb.to_process->memmap);
+    cpu0_memmap.loadProcessMap(thread->getProcessDesc()->memmap);
 
     // refresh TSS so that later interrupts use this new kstack
-    tss.esp0 = (uint32_t)thread->pcb.esp0;
+    tss.esp0 = (uint32_t)thread->storage.pcb.esp0;
 
     asm volatile (
         "movl %0, %%esp         ;\n"
         "popal                  ;\n"
         "iretl                  ;\n"
-        : : "rm" (thread->pcb.esp0) : "cc");
+        : : "rm" (thread->storage.pcb.esp0) : "cc");
     // This asm block changes everything but gcc should not worry about them.
+}
+
+// Performs context switching
+target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
+{
+    if (num_nest_int() > 0)
+        return NULL;
+    if (wantToSwitchTo < 0)
+    {
+        if(!getCurrentThreadInfo()->isKernel())
+        {
+            getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
+            tss.esp0 = (uint32_t) getCurrentThreadInfo()->storage.pcb.esp0;
+        }
+        return NULL;
+    }
+    if (currentlyRunning == wantToSwitchTo)
+        return NULL;
+
+    // Firstly save current esp0 to current thread's pcb
+    // Should only be saved if this is the outmost interrupt.
+    getCurrentThreadInfo()->storage.pcb.esp0 = currentESP;
+
+    ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
+
+    // Switch stack
+    target_esp0 ans = desc.mainThreadInfo->storage.pcb.esp0;
+
+    // Save new kernel stack into TSS.
+    //   so that later interrupts use this new kstack
+    setTSS(desc.mainThreadInfo->storage.pcb);
+
+    // Switch Page Directory
+    cpu0_memmap.loadProcessMap(desc.memmap);
+
+    currentlyRunning = wantToSwitchTo;
+    // Reset dispatch decision state.
+    wantToSwitchTo = -1;
+
+    return ans;
+}
+
+void yield()
+{
+}
+
+
+}   // namespace scheduler
+
+target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
+{
+    return scheduler::schedDispatchExecution(currentESP);
 }
 
 // Note that it's not recommended to get current thread's regs,
@@ -181,6 +193,6 @@ pushal_t* getRegs(thread_kinfo* thread)
         return NULL;
     if(!thread)
         return NULL;
-    return (pushal_t*)thread->pcb.esp0;
+    return (pushal_t*)thread->storage.pcb.esp0;
 }
 
