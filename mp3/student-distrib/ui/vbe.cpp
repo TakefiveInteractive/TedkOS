@@ -127,5 +127,80 @@ namespace vbe
     VideoModeInfo::~VideoModeInfo()
     {
     }
+    VBEMemHelp::VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem) : info(_info)
+    {
+        pixelSize = 0;
+        while(info.RGBMask[pixelSize]!='\0')
+            pixelSize++;
+        pixelSize = pixelSize >> 3;
+        totalSize = (size_t)pixelSize * info.xRes * info.yRes;
+        this->vmem = vmem;
+
+        rCode = colorCode('r');
+        gCode = colorCode('g');
+        bCode = colorCode('b');
+        oCode = colorCode('_');
+
+        for(int i=0; i<4; i++)
+            maskCode[i] = colorCode(info.RGBMask[i * 8]);
+    }
+    VBEMemHelp::~VBEMemHelp() {}
+
+    uint8_t VBEMemHelp::colorCode(char colorCharName)
+    {
+        switch (colorCharName)
+        {
+        case 'r': return 1;
+        case 'g': return 2;
+        case 'b': return 3;
+        default: return 0;
+        }
+    }
+
+    VBEMemHelp& VBEMemHelp::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        size_t offset = (x + y * info.xRes) * pixelSize;
+        uint8_t colorByCode[4];
+        colorByCode[rCode] = red;
+        colorByCode[gCode] = green;
+        colorByCode[bCode] = blue;
+        colorByCode[oCode] = 0;
+
+        for(int i=0; i<pixelSize; i++)
+            vmem[offset + i] = colorByCode[maskCode[i]];
+
+        return *this;
+    }
+
+    VBEMemHelp& VBEMemHelp::cls(uint8_t val)
+    {
+        asm volatile (
+            "cld                                                    ;"
+            "movl %0, %%ecx                                         ;"
+            "movl %1, %%eax                                         ;"
+            "rep stosb    # reset ECX *byte*                        "
+            : /* no outputs */
+            : "rg" (totalSize),
+              "rg" (val),
+              "D" (vmem)
+            : "cc", "memory", "ecx", "eax"
+        );
+        return *this;
+    }
+
+    VBEMemHelp& VBEMemHelp::copy(uint8_t* buildBuffer)
+    {
+        asm volatile (
+            "cld                                                    ;"
+            "movl %0, %%ecx                                         ;"
+            "rep movsb    # copy ECX *bytes* from M[ESI] to M[EDI]  "
+            : /* no outputs */
+            : "rg" (totalSize),
+              "S" (buildBuffer),
+              "D" (vmem)
+            : "cc", "memory", "ecx"
+        );
+        return *this;
+    }
 }
 

@@ -96,8 +96,36 @@ namespace vbe
         uint16_t xRes, yRes;
         uint8_t  numPlanes;
         uint8_t  numImagePages;
-        uint8_t  bitsPerPixel;
+        uint8_t  bitsPerPixel;                  // VBE calls this BBP, but it's also per color
         uint32_t physBase;                      // LFB (Linear Framebuffer) PHYSICAL addr
+    };
+
+    // A helper to abstract pixel encoding and memory accessing.
+    // REQUIREMENT: bits per pixel per COLOR = 8
+    // This structure has NO LOCK
+    class VBEMemHelp
+    {
+    private:
+        // Unit: bytes
+        uint8_t pixelSize;
+
+        // Unit: bytes
+        size_t totalSize;
+        const VideoModeInfo info;
+        uint8_t* vmem;
+
+        uint8_t colorCode(char colorCharName);
+        uint8_t rCode, gCode, bCode, oCode;
+        uint8_t maskCode[4];
+    public:
+
+        // vmem should be decided by Virtual Memory Manager
+        VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem);
+        ~VBEMemHelp();
+
+        VBEMemHelp& put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        VBEMemHelp& cls(uint8_t val);
+        VBEMemHelp& copy(uint8_t* buildBuffer); 
     };
 
     // WARNING: previously returned information is clobbered when calling any of
