@@ -14,6 +14,13 @@ using arch::CPUArchTypes::x86;
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
 
+void setTSS(const thread_pcb& pcb)
+{
+    if(pcb.isKernelThread)
+        tss.esp0 = (uint32_t)pcb.esp0 + (8 + 3) * 4;
+    else tss.esp0 = (uint32_t)pcb.esp0 + (8 + 5) * 4;
+}
+
 void enablePreemptiveScheduling()
 {
     pit_init(20);   // switch every 50ms
@@ -28,35 +35,32 @@ void schedMakeDecision()
 // Performs context switching
 target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 {
-    return runWithoutNMI([&currentESP] () -> void* {
-        if (num_nest_int() > 0)
-            return NULL;
-        if (wantToSwitchTo < 0)
-            return NULL;
+    if (num_nest_int() > 0)
+        return NULL;
+    if (wantToSwitchTo < 0)
+        return NULL;
 
-        // Firstly save current esp0 to current thread's pcb
-        // Should only be saved if this is the outmost interrupt.
-        getCurrentThreadInfo()->pcb.esp0 = currentESP;
+    // Firstly save current esp0 to current thread's pcb
+    // Should only be saved if this is the outmost interrupt.
+    getCurrentThreadInfo()->pcb.esp0 = currentESP;
 
-        ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
+    ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
 
-        // Switch stack
-        target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
+    // Switch stack
+    target_esp0 ans = desc.mainThreadInfo->pcb.esp0;
 
-        // Save new kernel stack into TSS.
-        //   so that later interrupts use this new kstack
-        tss.esp0 = (uint32_t)desc.mainThreadInfo->pcb.esp0;
+    // Save new kernel stack into TSS.
+    //   so that later interrupts use this new kstack
+    setTSS(desc.mainThreadInfo->pcb);
 
-        // Switch Page Directory
-        cpu0_memmap.loadProcessMap(desc.memmap);
+    // Switch Page Directory
+    cpu0_memmap.loadProcessMap(desc.memmap);
 
-        currentlyRunning = wantToSwitchTo;
-        // Reset dispatch decision state.
-        wantToSwitchTo = -1;
+    currentlyRunning = wantToSwitchTo;
+    // Reset dispatch decision state.
+    wantToSwitchTo = -1;
 
-        return ans;
-    });
-
+    return ans;
 }
 
 int32_t newPausedProcess(int32_t parentPID)
@@ -150,7 +154,7 @@ void forceStartThread(union _thread_kinfo* thread)
     cpu0_memmap.loadProcessMap(thread->pcb.to_process->memmap);
 
     // refresh TSS so that later interrupts use this new kstack
-    tss.esp0 = (uint32_t)thread->pcb.esp0;
+    setTSS(thread->pcb);
 
     asm volatile (
         "movl %0, %%esp         ;\n"
