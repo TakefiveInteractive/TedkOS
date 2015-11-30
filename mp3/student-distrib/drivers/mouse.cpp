@@ -129,6 +129,8 @@ void init_mouse() {
     send_command(0xF4, MOUSE_PORT);
 }
 
+#include <inc/ui/compositor.h>
+extern ui::Compositor *comp;
 
 int mouse_handler(int irq, unsigned int saved_reg) {
     AutoSpinLock(&KeyB::keyboard_lock);
@@ -152,6 +154,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     deltay = deltay | 0xFFFFFF00;
                 }
                 // move_mouse(deltax, deltay);
+                comp->moveMouse(deltax, deltay);
 
                 if (flags & LEFT_BUTTON) {
                     printf("LEFT_BUTTON");
