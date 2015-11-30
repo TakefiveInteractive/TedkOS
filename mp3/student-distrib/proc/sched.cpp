@@ -38,7 +38,14 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     if (num_nest_int() > 0)
         return NULL;
     if (wantToSwitchTo < 0)
+    {
+        if(!getCurrentThreadInfo()->pcb.isKernelThread)
+        {
+            getCurrentThreadInfo()->pcb.esp0 = (target_esp0)((uint32_t)getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
+            tss.esp0 = (uint32_t) getCurrentThreadInfo()->pcb.esp0;
+        }
         return NULL;
+    }
 
     // Firstly save current esp0 to current thread's pcb
     // Should only be saved if this is the outmost interrupt.
@@ -154,7 +161,7 @@ void forceStartThread(union _thread_kinfo* thread)
     cpu0_memmap.loadProcessMap(thread->pcb.to_process->memmap);
 
     // refresh TSS so that later interrupts use this new kstack
-    setTSS(thread->pcb);
+    tss.esp0 = (uint32_t)thread->pcb.esp0;
 
     asm volatile (
         "movl %0, %%esp         ;\n"
