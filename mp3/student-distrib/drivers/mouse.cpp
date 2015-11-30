@@ -39,11 +39,9 @@ click_handler right_click_handler[MAX_HANDLERS];
 
 uint8_t mouse_enable_scancode;
 
-enum read_status {
-     ReadSuccess,
-     ReadFailure,
-};
-enum read_status last_read;
+bool last_read;
+//  true for  ReadSuccess
+//  false for ReadFailure
 
 void write_byte(uint8_t data, uint8_t port);
 uint8_t read_byte();
@@ -55,7 +53,7 @@ int mouse_handler();
 
 
 void send_command(uint8_t command, uint8_t port) {
-	write_byte(0xD4, MOUSE_ENABLE_PORT);
+    write_byte(0xD4, MOUSE_ENABLE_PORT);
     write_byte(command, port);
 
     for (;;)
@@ -66,22 +64,22 @@ void send_command(uint8_t command, uint8_t port) {
 }
 
 void write_byte(uint8_t data, uint8_t port) {
-	while( (inb(MOUSE_ENABLE_PORT) & 0x2) != 0 );
-	outb(data, port);
+    while( (inb(MOUSE_ENABLE_PORT) & 0x2) != 0 );
+    outb(data, port);
 }
 
 uint8_t read_byte() {
-	while( (inb(MOUSE_ENABLE_PORT) & 0x1) == 0 );
-    last_read = ReadSuccess;
-	return inb(MOUSE_PORT);
+    while( (inb(MOUSE_ENABLE_PORT) & 0x1) == 0 );
+    last_read = true;
+    return inb(MOUSE_PORT);
 }
 
 uint8_t try_read_byte() {
     if ( (inb(MOUSE_ENABLE_PORT) & 0x1) == 0 ) {
-        last_read = ReadFailure;
+        last_read = false;
         return 0;
     } else {
-        last_read = ReadSuccess;
+        last_read = true;
         return inb(MOUSE_PORT);
     }
 }
@@ -90,20 +88,20 @@ DEFINE_DRIVER_INIT(mouse) {
 
     AutoSpinLock l(&KeyB::keyboard_lock);
 
-	// bind handler to pic
+    // bind handler to pic
     init_mouse();
 
-	bind_irq(MOUSE_IRQ_NUM,MOUSE_ID,mouse_handler,KD_POLICY);
+    bind_irq(MOUSE_IRQ_NUM,MOUSE_ID,mouse_handler,KD_POLICY);
 
-	return;
+    return;
 }
 
 DEFINE_DRIVER_REMOVE(mouse) {
 
     AutoSpinLock l(&KeyB::keyboard_lock);
 
-	//rm handler from pic
-	unbind_irq(MOUSE_IRQ_NUM,MOUSE_ID);
+    //rm handler from pic
+    unbind_irq(MOUSE_IRQ_NUM,MOUSE_ID);
 
     return;
 }
@@ -111,15 +109,15 @@ DEFINE_DRIVER_REMOVE(mouse) {
 void init_mouse() {
     send_command(0xFF, MOUSE_PORT);//reset
     // send "Get Compaq Status Byte" command
-	write_byte(0x20, MOUSE_ENABLE_PORT);
-	uint8_t compaq_status = read_byte();
-	// enable IRQ 12
-	compaq_status |= 0x2;
-	// clear Disable Mouse Click
-	compaq_status &= ~(0x20);
+    write_byte(0x20, MOUSE_ENABLE_PORT);
+    uint8_t compaq_status = read_byte();
+    // enable IRQ 12
+    compaq_status |= 0x2;
+    // clear Disable Mouse Click
+    compaq_status &= ~(0x20);
     // "Send Compaq Status"
-	send_command(0x60, MOUSE_ENABLE_PORT);
-	write_byte(compaq_status, MOUSE_PORT);
+    send_command(0x60, MOUSE_ENABLE_PORT);
+    write_byte(compaq_status, MOUSE_PORT);
 
     int i;
     for (i = 0; i < MAX_HANDLERS; i++) {
@@ -127,8 +125,8 @@ void init_mouse() {
         right_click_handler[i] = NULL;
     }
 
-	// enable acks
-	send_command(0xF4, MOUSE_PORT);
+    // enable acks
+    send_command(0xF4, MOUSE_PORT);
 }
 
 
@@ -136,7 +134,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
     AutoSpinLock(&KeyB::keyboard_lock);
 
     uint8_t flags = try_read_byte();
-    if (last_read == ReadSuccess) {
+    if (last_read == true) {
         if (flags == 0xFA) {
             // ack
             return 0;
