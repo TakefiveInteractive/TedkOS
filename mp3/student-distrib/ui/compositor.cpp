@@ -27,28 +27,40 @@ void paint_screen(uint8_t *pixel, uint8_t *source)
 Compositor::Compositor()
 {
     runWithoutNMI([this] () {
-        auto Mode118Maybe = getVideoModeInfo(0x118);
-        if (Mode118Maybe)
-        {
-            // Nothing
-        }
-        else
+        auto VideoMode = findVideoModeInfo([](VideoModeInfo& modeInfo) {
+            // Locate 1024x768x24 mode
+            if (
+                modeInfo.xRes == 1024 &&
+                modeInfo.yRes == 768 &&
+                modeInfo.bitsPerPixel == 8
+                )
+            {
+                // Ensure there are no reserved bits
+                for (size_t i = 32 - 8; i < 33; i++)
+                {
+                    if (modeInfo.RGBMask[i] != '\0') return false;
+                }
+                return true;
+            }
+            return false;
+        });
+        if (!VideoMode)
         {
             printf("1024*768 24bits mode is NOT supported.\n");
             trigger_exception<27>();
         }
-        VideoModeInfo Mode118(+Mode118Maybe);
-        uint32_t Mode118Mem = Mode118.physBase;
+        VideoModeInfo mode = +VideoMode;
+        uint32_t ModeMem = mode.physBase;
 
         // Back up current mode.
         real_context.ax = 0x0f00;
         legacyInt(0x10, real_context);
         orig_mode = real_context.ax & 0x00ff;
 
-        LOAD_4MB_PAGE(Mode118Mem >> 22, Mode118Mem, PG_WRITABLE);
+        LOAD_4MB_PAGE(ModeMem >> 22, ModeMem, PG_WRITABLE);
         RELOAD_CR3();
 
-        videoMemory = (uint8_t *) Mode118Mem;
+        videoMemory = (uint8_t *) ModeMem;
         // TODO: assuming we are in text mode initially.
         // Figure this out programmatically
         videoMode = Text;
