@@ -36,7 +36,6 @@ void makeDecision()
 
 int32_t newPausedProcess(int32_t parentPID, ProcessType processType)
 {
-
     ProcessDesc& pd = ProcessDesc::newProcess(parentPID, processType);
 
     // TODO: FIXME: Currently all processes are binded to terminal 0
@@ -76,7 +75,7 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
     // Initialize stack and ESP
     // compatible with x86 32-bit iretl. KTHREAD mode.
     // always no error code on stack before iretl
-    Stacker<x86> kstack((uint32_t) proc.mainThreadInfo->storage.kstack + THREAD_KSTACK_SIZE - 1);
+    Stacker<x86> kstack(((uint32_t) &proc.mainThreadInfo->storage) + THREAD_KSTACK_SIZE - 1);
 
     // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
     // Set Interrupt Enable Flag. IOPL = 3
@@ -142,7 +141,7 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     {
         if(!getCurrentThreadInfo()->isKernel())
         {
-            getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) getCurrentThreadInfo() + THREAD_KSTACK_SIZE - 4);
+            getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) &getCurrentThreadInfo()->storage + THREAD_KSTACK_SIZE - 4);
             tss.esp0 = (uint32_t) getCurrentThreadInfo()->storage.pcb.esp0;
         }
         return NULL;
