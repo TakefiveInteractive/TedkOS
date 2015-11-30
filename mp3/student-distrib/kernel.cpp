@@ -30,6 +30,9 @@ using arch::Stacker;
 using arch::CPUArchTypes::x86;
 using namespace vbe;
 
+using scheduler::makeKThread;
+using scheduler::forceStartThread;
+
 volatile bool canUseCpp = false;
 
 /* Initialize runtime library */
@@ -132,7 +135,7 @@ _entry (unsigned long magic, unsigned long addr)
     prepareRealMode();
 
     // ----- START init as a KERNEL thread (because its code is in kernel code) -----
-    forceStartThread(makeKThread(init_main, NULL));
+    forceStartThread(makeKThread(init_main));
 
     // This part should never be reached.
     printf("Halted.\n");

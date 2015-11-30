@@ -4,6 +4,7 @@
 #include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
+#include <inc/proc/sched.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/syscalls/exec.h>
 #include <inc/x86/idt_init.h>
@@ -17,8 +18,8 @@ namespace syscall {
 
 int32_t dotask(int32_t pid)
 {
-    if(getCurrentThreadInfo()->pcb.isKernelThread)
-        prepareSwitchTo(pid);
+    if(getCurrentThreadInfo()->isKernel())
+        scheduler::prepareSwitchTo(pid);
     return -1;
 }
 
