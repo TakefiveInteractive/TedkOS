@@ -116,7 +116,7 @@ void Compositor::redraw(const Rectangle &rect)
             buildBuffer[(x + y * 1024) * 4 + 2] = b;
         }
     }
-    drawHelper.copy(videoMemory, buildBuffer);
+    drawHelper.copyRegion(videoMemory, buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
