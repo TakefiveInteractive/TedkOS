@@ -31,10 +31,10 @@ Compositor::Compositor() : numDrawables(0)
 {
     runWithoutNMI([this] () {
         infoMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
-            // Locate 1024x768x24 mode
+            // Locate ScreenWidth x ScreenHeight 8BPP mode
             if (
-                modeInfo.xRes == 1024 &&
-                modeInfo.yRes == 768 &&
+                modeInfo.xRes == ScreenWidth &&
+                modeInfo.yRes == ScreenHeight &&
                  (modeInfo.bitsPerPixel == 24 ||
                   modeInfo.bitsPerPixel == 32)
                 )
@@ -45,7 +45,7 @@ Compositor::Compositor() : numDrawables(0)
         });
         if (!infoMaybe)
         {
-            printf("1024*768 24bits mode is NOT supported.\n");
+            printf("%d * %d 8BPP mode is NOT supported.\n", ScreenWidth, ScreenHeight);
             trigger_exception<27>();
         }
         else printf("RGBMasks = %s \n", (+infoMaybe).RGBMask);
@@ -66,7 +66,7 @@ Compositor::Compositor() : numDrawables(0)
         videoMode = Text;
 
         // TODO: free the pages allocated here.
-        buildBuffer = (uint8_t*)+virtLast1G.allocPage(true);
+        buildBuffer = (PixelRow*) +virtLast1G.allocPage(true);
         cpu0_memmap.addCommonPage(VirtAddr(buildBuffer), PhysAddr((+physPages.allocPage(true)), PG_WRITABLE));
 
         RELOAD_CR3();
@@ -74,7 +74,7 @@ Compositor::Compositor() : numDrawables(0)
         drawHelper = +getMemHelp(mode);
         drawables = new Drawable*[5];
 
-        memset(buildBuffer, 0, 1024 * 768 * 4);
+        memset(buildBuffer, 0, ScreenWidth * ScreenHeight * 4);
     });
 }
 
@@ -111,12 +111,12 @@ void Compositor::redraw(const Rectangle &rect)
                     b = alphaBlending(b, drawables[i]->getBlue(relX, relY), alpha);
                 }
             }
-            buildBuffer[(x + y * 1024) * 4 + 0] = r;
-            buildBuffer[(x + y * 1024) * 4 + 1] = g;
-            buildBuffer[(x + y * 1024) * 4 + 2] = b;
+            buildBuffer[y][x][0] = r;
+            buildBuffer[y][x][1] = g;
+            buildBuffer[y][x][2] = b;
         }
     }
-    drawHelper.copyRegion(videoMemory, buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
+    drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
@@ -126,18 +126,22 @@ void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
         for (int32_t x = rect.x1; x < rect.x2; x++)
         {
             uint8_t r, g, b;
-            r = buildBuffer[(x + y * 1024) * 4 + 0];
-            g = buildBuffer[(x + y * 1024) * 4 + 1];
-            b = buildBuffer[(x + y * 1024) * 4 + 2];
+            r = buildBuffer[y][x][0];
+            g = buildBuffer[y][x][1];
+            b = buildBuffer[y][x][2];
 
             int32_t relX = x - d->getX(), relY = y - d->getY();
             const float alpha = d->getAlpha(relX, relY) / 256.0F;
-            buildBuffer[(x + y * 1024) * 4 + 0] = r;
-            buildBuffer[(x + y * 1024) * 4 + 1] = g;
-            buildBuffer[(x + y * 1024) * 4 + 2] = b;
+            r = alphaBlending(r, d->getRed(relX, relY), alpha);
+            g = alphaBlending(g, d->getGreen(relX, relY), alpha);
+            b = alphaBlending(b, d->getBlue(relX, relY), alpha);
+
+            buildBuffer[y][x][0] = r;
+            buildBuffer[y][x][1] = g;
+            buildBuffer[y][x][2] = b;
         }
     }
-    drawHelper.copyRegion(videoMemory, buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
+    drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawNikita()
@@ -145,7 +149,7 @@ void Compositor::drawNikita()
     addDrawable(new Desktop());
     addDrawable(new Mouse());
 
-    redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = 1024, .y2 = 768 });
+    redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = ScreenWidth, .y2 = ScreenHeight });
 }
 
 void Compositor::enterVideoMode()

@@ -13,6 +13,9 @@ namespace ui {
 
 class Drawable;
 
+constexpr int32_t ScreenWidth = 1024;
+constexpr int32_t ScreenHeight = 768;
+
 enum VideoMode {
     Video,
     Text
@@ -25,6 +28,9 @@ struct Rectangle {
     int32_t y2;
 };
 
+typedef uint8_t (RGBAGroup)[4];
+typedef RGBAGroup (PixelRow)[ScreenWidth];
+
 class Compositor {
     private:
         uint8_t* nikita = NULL;
@@ -32,7 +38,7 @@ class Compositor {
         uint16_t orig_mode;
 
         // buildBuffer format: RGBA. + alignment.
-        uint8_t* buildBuffer;
+        PixelRow *buildBuffer;
         uint8_t* videoMemory;
         VideoMode videoMode;
         uint8_t* mouseImg;
