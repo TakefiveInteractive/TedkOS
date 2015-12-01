@@ -124,6 +124,8 @@ namespace vbe
 
         virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue) = 0; 
         virtual VBEMemHelp* cls(uint8_t val);
+
+        // Build Buffer is in the format of "8R:8G:8B"
         virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
     };
 
@@ -155,6 +157,9 @@ namespace vbe
             virtual ~HelpRGB();
 
             virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+
+            // Fastest way to access VBE VMEM
+            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
         };
         class HelpRGBO : public VBEMemHelp
         {
@@ -164,6 +169,9 @@ namespace vbe
             virtual ~HelpRGBO();
 
             virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+
+            // Fastest way to access VBE VMEM
+            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
         };
         class HelpBGR : public VBEMemHelp
         {
@@ -173,6 +181,9 @@ namespace vbe
             virtual ~HelpBGR();
 
             virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+
+            // Fastest way to access VBE VMEM
+            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
         };
         class HelpBGRO : public VBEMemHelp
         {
@@ -182,6 +193,9 @@ namespace vbe
             virtual ~HelpBGRO();
 
             virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+
+            // Fastest way to access VBE VMEM
+            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
         };
     };
 
