@@ -124,8 +124,8 @@ void init_mouse() {
 
     int i;
     for (i = 0; i < MAX_HANDLERS; i++) {
-        left_click_handler[i] = NULL;
-        right_click_handler[i] = NULL;
+        left_click_handler[i] = nullptr;
+        right_click_handler[i] = nullptr;
     }
 
     // enable acks
@@ -164,7 +164,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     printf("LEFT_BUTTON");
                     int i;
                     for (i = 0; i < MAX_HANDLERS; i++) {
-                        if (left_click_handler[i] != NULL) {
+                        if (left_click_handler[i] != nullptr) {
                             //left_click_handler[i]();
                         }
                     }
@@ -173,7 +173,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     printf("RIGHT_BUTTON");
                     int i;
                     for (i = 0; i < MAX_HANDLERS; i++) {
-                        if (right_click_handler[i] != NULL) {
+                        if (right_click_handler[i] != nullptr) {
                             //right_click_handler[i]();
                         }
                     }
