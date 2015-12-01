@@ -87,6 +87,8 @@ namespace vbe
         // All pointers below are kmalloc-ed, and need deleted
         ~VideoModeInfo();
 
+        RawVbeVideoModeInfo _rawMode;
+
         // The RGBMask looks like: "rrrrr___ggggggggbbbbb___"
         //      where '_' represents not present
         //      and if there is only 24 bits BPP, the last 8+1 chars are '\0'
@@ -123,9 +125,9 @@ namespace vbe
         VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem);
         ~VBEMemHelp();
 
-        VBEMemHelp& put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        VBEMemHelp& put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue);
         VBEMemHelp& cls(uint8_t val);
-        VBEMemHelp& copy(uint8_t* buildBuffer); 
+        VBEMemHelp& copy(uint8_t* buildBuffer);
     };
 
     // WARNING: previously returned information is clobbered when calling any of

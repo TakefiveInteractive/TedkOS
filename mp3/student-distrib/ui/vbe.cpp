@@ -8,7 +8,7 @@ namespace vbe
 {
     Maybe<RawVbeInfoBlock> getVbeInfo()
     {
-        real_context_t context;
+        real_context_t context = { };
 
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
@@ -26,7 +26,7 @@ namespace vbe
 
     Maybe<RawVbeVideoModeInfo> getVideoModeInfo(uint16_t mode)
     {
-        real_context_t context;
+        real_context_t context = { };
 
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
@@ -37,7 +37,7 @@ namespace vbe
 
         legacyInt(0x10, context);
 
-        if(context.ax != 0x004f)
+        if (context.ax != 0x004f)
             return Nothing;
 
         return *(RawVbeVideoModeInfo*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
@@ -104,7 +104,7 @@ namespace vbe
         delete[] modeList;
     }
 
-    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw)
+    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw) : _rawMode(raw)
     {
         xRes = raw.XRes;
         yRes = raw.YRes;
@@ -124,13 +124,15 @@ namespace vbe
         for(i = 0; i < raw.RsvMaskSize; i++)
             RGBMask[i + raw.RsvFieldPosition] = '_';
     }
+
     VideoModeInfo::~VideoModeInfo()
     {
     }
+
     VBEMemHelp::VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem) : info(_info)
     {
         pixelSize = 0;
-        while(info.RGBMask[pixelSize]!='\0')
+        while(info.RGBMask[pixelSize] != '\0')
             pixelSize++;
         pixelSize = pixelSize >> 3;
         totalSize = (size_t)pixelSize * info.xRes * info.yRes;
@@ -144,7 +146,10 @@ namespace vbe
         for(int i=0; i<4; i++)
             maskCode[i] = colorCode(info.RGBMask[i * 8]);
     }
-    VBEMemHelp::~VBEMemHelp() {}
+
+    VBEMemHelp::~VBEMemHelp()
+    {
+    }
 
     uint8_t VBEMemHelp::colorCode(char colorCharName)
     {
