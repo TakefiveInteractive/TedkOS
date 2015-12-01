@@ -29,6 +29,9 @@ class Compositor {
     private:
         real_context_t real_context;
         uint16_t orig_mode;
+
+        // buildBuffer format: RGBA. + alignment.
+        uint8_t buildBuffer[1024 * 768 * 4] __attribute__((aligned (4)));
         uint8_t *videoMemory;
         VideoMode videoMode;
         uint8_t *mouseImg;
