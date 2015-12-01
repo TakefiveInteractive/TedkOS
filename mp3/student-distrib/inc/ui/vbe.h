@@ -106,98 +106,19 @@ namespace vbe
     // A helper to abstract pixel encoding and memory accessing.
     // REQUIREMENT: bits per pixel per COLOR = 8
     // This structure has NO LOCK
-    class VBEMemHelp
+    typedef struct
     {
-    protected:
-        // Unit: bytes
-        uint8_t pixelSize;
+        void (*put)(uint8_t* vmem, uint8_t pixel, uint8_t red, uint8_t green, uint8_t blue);
+        void (*cls)(uint8_t* vmem, uint8_t val);
 
-        // Unit: bytes
-        size_t totalSize;
+        // Build Buffer is in the format of "8R:8G:8B:8A"
+        void (*copy)(uint8_t* vmem, uint8_t* buildBuffer); 
 
-        const VideoModeInfo info;
-        uint8_t* vmem;
-    public:
-        // vmem should be decided by Virtual Memory Manager
-        VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem);
-        virtual ~VBEMemHelp();
+        // [xfrom, xto) [yfrom, yto) (the interval contains left endpoint, and excludes right endpoint)
+        void (*copyRegion)(uint8_t* vmem, uint8_t* buildBuffer, uint8_t xfrom, uint8_t xto, uint8_t yfrom, uint8_t yto);
+    } VBEMemHelp;
 
-        virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue) = 0; 
-        virtual VBEMemHelp* cls(uint8_t val);
-
-        // Build Buffer is in the format of "8R:8G:8B"
-        virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
-    };
-
-    class VBEMemHelpFactory
-    {
-    public:
-        static VBEMemHelp* getInstance(const VideoModeInfo& _info, uint8_t* vmem);
-    private:
-        // this is a slow, general implementation.
-        class HelpSlow : public VBEMemHelp
-        {
-        private:
-            uint8_t colorCode(char colorCharName);
-            uint8_t rCode, gCode, bCode, oCode;
-            uint8_t maskCode[4];
-        public:
-            // vmem should be decided by Virtual Memory Manager
-            HelpSlow(const VideoModeInfo& _info, uint8_t* vmem);
-            virtual ~HelpSlow();
-
-            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
-        };
-
-        class HelpRGB : public VBEMemHelp
-        {
-        public:
-            // vmem should be decided by Virtual Memory Manager
-            HelpRGB(const VideoModeInfo& _info, uint8_t* vmem);
-            virtual ~HelpRGB();
-
-            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
-
-            // Fastest way to access VBE VMEM
-            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
-        };
-        class HelpRGBO : public VBEMemHelp
-        {
-        public:
-            // vmem should be decided by Virtual Memory Manager
-            HelpRGBO(const VideoModeInfo& _info, uint8_t* vmem);
-            virtual ~HelpRGBO();
-
-            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
-
-            // Fastest way to access VBE VMEM
-            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
-        };
-        class HelpBGR : public VBEMemHelp
-        {
-        public:
-            // vmem should be decided by Virtual Memory Manager
-            HelpBGR(const VideoModeInfo& _info, uint8_t* vmem);
-            virtual ~HelpBGR();
-
-            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
-
-            // Fastest way to access VBE VMEM
-            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
-        };
-        class HelpBGRO : public VBEMemHelp
-        {
-        public:
-            // vmem should be decided by Virtual Memory Manager
-            HelpBGRO(const VideoModeInfo& _info, uint8_t* vmem);
-            virtual ~HelpBGRO();
-
-            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
-
-            // Fastest way to access VBE VMEM
-            virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
-        };
-    };
+    Maybe<VBEMemHelp> getMemHelp(const VideoModeInfo& _info);
 
     // WARNING: previously returned information is clobbered when calling any of
     //      these functions. Please make a backup if necessary.

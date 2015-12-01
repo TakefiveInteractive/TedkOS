@@ -13,9 +13,9 @@ using namespace filesystem;
 
 namespace ui {
 
-void paint_screen(VBEMemHelp* helper, uint8_t *pixel, uint8_t *source)
+void paint_screen(VBEMemHelp& helper, uint8_t *pixel, uint8_t *source)
 {
-    helper->copy(source);
+    helper.copy(pixel, source);
 
     /*
     for (size_t x = 0; x < 1024 * 768; x++)
@@ -119,7 +119,7 @@ void Compositor::drawNikita()
         theDispatcher->close(mouseFile);
     }
 
-    VBEMemHelp* helper = VBEMemHelpFactory::getInstance(+infoMaybe, videoMemory);
+    VBEMemHelp helper = +getMemHelp(+infoMaybe);
 
     for(int i=0; i<10; i++)
     {
