@@ -23,6 +23,26 @@ int32_t dotask(int32_t pid)
     return -1;
 }
 
+#define HAS_FLAG(X, FLAG) (((X) & (FLAG)) == (FLAG))
+
+bool validUserPointer(void* ptr)
+{
+    if(ptr == NULL)
+        return false;
+
+    uint32_t pde = global_cr3val[((uint32_t)ptr) >> 22];
+    if(HAS_FLAG(pde, PG_4MB_BASE|PG_USER))
+        return true;
+    else if(HAS_FLAG(pde, PT_BASE|PT_USER))
+    {
+        uint32_t pte = ((uint32_t*) (pde & ALIGN_4KB_ADDR))[((uint32_t)ptr & EXTRACT_PTE) >> 12];
+        return HAS_FLAG(pte, PG_4KB_BASE|PG_USER);
+    }
+    else return false;
+}
+
+#undef HAS_FLAG
+
 template<typename F>
 F super_cast(uint32_t input)
 {
