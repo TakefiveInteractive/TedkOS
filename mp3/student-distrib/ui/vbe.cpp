@@ -179,11 +179,32 @@ namespace vbe
         colorByCode[bCode] = blue;
         colorByCode[oCode] = 0;
 
-        for(int i=0; i<pixelSize; i++)
+        for(int i = 0; i < pixelSize; i++)
             vmem[offset + i] = colorByCode[maskCode[i]];
 
         return *this;
     }
+
+    VBEMemHelp& VBEMemHelp::get(size_t x, size_t y, uint8_t *red, uint8_t *green, uint8_t *blue)
+    {
+        size_t offset = (x + y * info.xRes) * pixelSize;
+        uint8_t *colorByCode[4];
+        colorByCode[rCode] = red;
+        colorByCode[gCode] = green;
+        colorByCode[bCode] = blue;
+        colorByCode[oCode] = NULL;
+
+        for (int i = 0; i < pixelSize; i++)
+        {
+            if (colorByCode[maskCode[i]])
+            {
+                *colorByCode[maskCode[i]] = vmem[offset + i];
+            }
+        }
+
+        return *this;
+    }
+
 
     VBEMemHelp& VBEMemHelp::cls(uint8_t val)
     {

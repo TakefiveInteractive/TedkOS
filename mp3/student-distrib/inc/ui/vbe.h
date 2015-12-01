@@ -126,9 +126,10 @@ namespace vbe
         VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem);
         ~VBEMemHelp();
 
-        VBEMemHelp& put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        VBEMemHelp& put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue);
+        VBEMemHelp& get(size_t x, size_t y, uint8_t *red, uint8_t *green, uint8_t *blue);
         VBEMemHelp& cls(uint8_t val);
-        VBEMemHelp& copy(uint8_t* buildBuffer); 
+        VBEMemHelp& copy(uint8_t* buildBuffer);
     };
 
     // WARNING: previously returned information is clobbered when calling any of
