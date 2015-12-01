@@ -18,10 +18,14 @@ namespace syscall {
 
 #define HAS_FLAG(X, FLAG) (((X) & (FLAG)) == (FLAG))
 	
-bool validUserPointer(void* ptr)
+bool validUserPointer(const void* ptr)
 {
 	if(ptr == NULL)
 		return false;
+	
+	// TODO: also add some conditions for kernel threads.
+	if(getCurrentThreadInfo()->pcb.isKernelThread)
+		return true;
 	
     uint32_t pde = global_cr3val[((uint32_t)ptr) >> 22];
 	if(HAS_FLAG(pde, PG_4MB_BASE|PG_USER))

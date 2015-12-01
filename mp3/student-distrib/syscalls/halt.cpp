@@ -10,6 +10,7 @@
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
 #include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/syscalls/syscalls.h>
 #include <inc/fs/filesystem.h>
 
 using namespace filesystem;

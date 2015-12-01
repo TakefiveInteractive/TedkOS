@@ -1,10 +1,15 @@
 #include "getargs.h"
 #include <inc/proc/tasks.h>
+#include <inc/syscalls/syscalls.h>
 
 using namespace filesystem;
+using syscall::validUserPointer;
 
 int32_t getargs (uint8_t* buf, int32_t nbytes)
 {
+    if(!validUserPointer(buf))
+        return -1;
+	
     auto pd = getCurrentThreadInfo()->pcb.to_process;
     if (!pd->arg) {buf[0] = '\0'; return 0;}
     int32_t arg_len = strlen(pd->arg);

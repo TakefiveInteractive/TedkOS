@@ -1,4 +1,5 @@
 #include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/syscalls/syscalls.h>
 #include <inc/fs/filesystem.h>
 #include <inc/proc/tasks.h>
 
@@ -9,6 +10,8 @@ namespace syscall { namespace fops {
 
 int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
+    if(!validUserPointer(buf))
+        return -1;
     sti();
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     if (!processDesc->fileDescs.isValid(fd)) return -1;
@@ -17,6 +20,8 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
 
 int32_t write(int32_t fd, const void *buf, int32_t nbytes)
 {
+    if(!validUserPointer(buf))
+        return -1;
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     if (!processDesc->fileDescs.isValid(fd)) return -1;
     return theDispatcher->write(*processDesc->fileDescs[fd], buf, nbytes);
@@ -24,6 +29,8 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes)
 
 int32_t open(const char *filename)
 {
+    if(!validUserPointer(filename))
+        return -1;
     auto processDesc = getCurrentThreadInfo()->pcb.to_process;
     File *fd = new File;
     auto fdSlotMaybe = processDesc->fileDescs.alloc();
