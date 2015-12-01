@@ -8,7 +8,6 @@
 
 using ui::Compositor;
 
-Compositor *comp;
 
 void draw_nikita()
 {
@@ -20,7 +19,7 @@ void draw_nikita()
     // Wait for user
     ece391_read(keyb, buf, 1);
 
-    comp = new Compositor();
+    Compositor *comp = Compositor::getInstance();
     comp->enterVideoMode();
     comp->drawNikita();
 
