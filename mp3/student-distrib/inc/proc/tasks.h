@@ -11,39 +11,114 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <inc/proc/sched.h>
 #include <inc/fs/filesystem.h>
 #include <inc/klibs/palloc.h>
 #include <inc/drivers/kbterm.h>
+#include <inc/klibs/stack.h>
+#include <inc/klibs/bitset.h>
+#include <inc/klibs/maybe.h>
 
 using namespace palloc;
+using namespace util;
 
 #define MAX_NUM_PROCESS             256
+#define MAX_NUM_THREADS             128
+
+class ProcessDesc;
+struct thread_kinfo;
+
+// This type stores the esp of the kernel stack of the thread to switch to.
+//      Use NULL if not going to switch.
+typedef void* target_esp0;
+
+enum ProcessType
+{
+    KERNEL_PROCESS = 1,
+    USER_PROCESS
+};
+
+// because we saves all register states in kernel stack,
+//   here we do not repeat those states.
+struct thread_pcb
+{
+    // Kernel stack state of current thread.
+    volatile target_esp0 esp0;
+    ProcessDesc* to_process;
+
+    ProcessType type;
+
+    // Following is a simple list used by "scheduling"
+    //    Simplest scheduling: process is paused and the next process
+    //    to be executed is stored as current pcb->next.
+    thread_kinfo *next, *prev;
+};
+
+//!!!! thread_kinfo must be aligned in memory !!!!
+struct __attribute__ ((__packed__)) thread_kinfo
+{
+    union {
+        uint8_t kstack[THREAD_KSTACK_SIZE];
+        thread_pcb pcb;
+    } storage;
+
+    ProcessDesc* getProcessDesc() { return storage.pcb.to_process; }
+
+    bool isKernel() { return storage.pcb.type == KERNEL_PROCESS; }
+
+    thread_kinfo(ProcessDesc *parent, ProcessType processType)
+    {
+        storage.pcb.esp0 = NULL;
+        storage.pcb.to_process = parent;
+        storage.pcb.next = NULL;
+        storage.pcb.prev = NULL;
+        storage.pcb.type = processType;
+    }
+};
+
+static_assert(sizeof(thread_kinfo) == THREAD_KSTACK_SIZE, "thread_kinfo size mismatch");
 
 #define FD_ARRAY_LENGTH             128
-#define MAX_NUM_THREADS             128
+#define FD_FIXED_PART               2
+#define FD_CYCLABLE_PART            (FD_ARRAY_LENGTH - FD_FIXED_PART)
+// There are 2 FDs that are fixed in one process.
+
+// An array to manage reusable File Descs
+class FileDescArr
+{
+    filesystem::File *content[FD_ARRAY_LENGTH];
+    Stack<size_t, FD_ARRAY_LENGTH> freeFDs;
+    BitSet<FD_ARRAY_LENGTH> isFDfree;
+public:
+    FileDescArr();
+    filesystem::File*& operator[] (const size_t i);
+
+    Maybe<size_t> alloc();
+    void recycle(size_t i);
+
+    bool isValid(size_t i);
+};
 
 class ProcessDesc
 {
 private:
     static size_t nextNewProcess;
     static ProcessDesc** all_processes;
-    ProcessDesc(int32_t _upid);
+    ProcessDesc(int32_t _upid, ProcessType processType);
     int32_t upid;
 
 public:
     static ProcessDesc** all();
     static ProcessDesc& get(size_t uniq_pid);
     static void remove(size_t uniq_pid);
-    static size_t newProcess();
+    static ProcessDesc& newProcess(int32_t _upid, ProcessType processType);
 
     ~ProcessDesc();
     int32_t getUniqPid();
-    filesystem::File *fileDescs[FD_ARRAY_LENGTH];
-    int32_t numFilesInDescs;
+
+    FileDescArr fileDescs;
 
     // Currently no multithread
-    union _thread_kinfo * mainThreadInfo;
+    thread_kinfo * mainThreadInfo;
     TinyMemMap memmap;
 
     util::Stack<uint16_t, 1024> heapPhysicalPages;
@@ -62,33 +137,6 @@ public:
     //     so it's not saved in fileDescs
     Term::Term* currTerm;
 };
-
-
-// because we saves all register states in kernel stack,
-//   here we do not repeat those states.
-typedef struct _thread_pcb_t
-{
-    // Kernel stack state of current thread.
-    volatile target_esp0 esp0;
-    ProcessDesc* to_process;
-
-    // If this is a kernel thread, non-zero. Otherwise zero.
-    uint8_t isKernelThread;
-
-    // Following is a simple list used by "scheduling"
-    //    Simplest scheduling: process is paused and the next process
-    //    to be executed is stored as current pcb->next.
-    union _thread_kinfo *next, *prev;
-} thread_pcb;
-
-typedef union _thread_kinfo
-{
-    thread_pcb pcb;
-    uint8_t kstack[THREAD_KSTACK_SIZE];
-} thread_kinfo;
-
-//!!!! thread_kinfo must be aligned in memory !!!!
-
 
 #ifdef __cplusplus
 extern "C" {

@@ -98,7 +98,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
     //      if non-zero then a system program crashed, otherwise a user program crashed.
     if (exception_metadata[vec].type == Fault && num_nest_int() == 0)
     {
-        thread_kinfo* prevInfo = pcbLoadable ? getCurrentThreadInfo()->pcb.prev : NULL;
+        thread_kinfo* prevInfo = pcbLoadable ? getCurrentThreadInfo()->storage.pcb.prev : NULL;
         printf("\n");
         if (prevInfo == NULL)
         {
@@ -107,15 +107,15 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
         }
         else    // has prev
         {
-            printf("Squashing process %d ...\n", getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+            printf("Squashing process %d ...\n", getCurrentThreadInfo()->getProcessDesc()->getUniqPid());
 
             // Notify parent process that child crashed.
-            *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7 * 4) = 256;
+            *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = 256;
 
-            prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
+            scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getUniqPid());
 
             // Clean up process
-            ProcessDesc::remove(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+            ProcessDesc::remove(getCurrentThreadInfo()->getProcessDesc()->getUniqPid());
 
             // Must return here, otherwise it will halt.
             return;

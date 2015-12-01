@@ -10,7 +10,7 @@ namespace Term
     }
     int32_t FOps::write(FsSpecificData* fdData, const uint8_t *buf, int32_t bytes)
     {
-        Term* t = getCurrentThreadInfo()->pcb.to_process->currTerm;
+        Term* t = getCurrentThreadInfo()->getProcessDesc()->currTerm;
 
         // If this is not a terminal program, returns fault.
         if(!t)
@@ -22,7 +22,7 @@ namespace Term
     {}
     Maybe<IFOps*> FOps::getNewInstance()
     {
-        Term* t = getCurrentThreadInfo()->pcb.to_process->currTerm;
+        Term* t = getCurrentThreadInfo()->getProcessDesc()->currTerm;
 
         // If this is not a terminal program, returns fault.
         if(!t)
@@ -37,7 +37,7 @@ namespace KeyB
 {
     int32_t FOps::read(FsSpecificData* fdData, uint8_t *buf, int32_t bytes)
     {
-        Term::Term* t = getCurrentThreadInfo()->pcb.to_process->currTerm;
+        Term::Term* t = getCurrentThreadInfo()->getProcessDesc()->currTerm;
 
         // If this is not a terminal program, returns fault.
         if(!t)
@@ -53,7 +53,7 @@ namespace KeyB
     {}
     Maybe<IFOps*> FOps::getNewInstance()
     {
-        Term::Term* t = getCurrentThreadInfo()->pcb.to_process->currTerm;
+        Term::Term* t = getCurrentThreadInfo()->getProcessDesc()->currTerm;
 
         // If this is not a terminal program, returns fault.
         if(!t)
@@ -62,7 +62,7 @@ namespace KeyB
     }
     FOps::~FOps()
     {
-        Term::Term* t = getCurrentThreadInfo()->pcb.to_process->currTerm;
+        Term::Term* t = getCurrentThreadInfo()->getProcessDesc()->currTerm;
 
         // If this is not a terminal program, returns fault.
         if(!t)
