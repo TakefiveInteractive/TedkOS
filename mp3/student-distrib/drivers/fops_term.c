@@ -17,8 +17,6 @@ int32_t term_write(void* fdEntity, const uint8_t* buf, int32_t nbytes)
     const char* cbuf = (const char*) buf;
     for(i = 0; i < nbytes; i++)
     {
-        if(cbuf[i] == 0)    // end of string
-            return i;
         term_putc(cbuf[i]);
     }
     return nbytes;
