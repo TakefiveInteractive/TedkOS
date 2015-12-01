@@ -53,12 +53,12 @@ namespace KeyB
     {}
     Maybe<IFOps*> FOps::getNewInstance()
     {
-        //Term::Term* t = getCurrentThreadInfo()->getProcessDesc()->currTerm;
+        Term::Term* t = getCurrentThreadInfo()->getProcessDesc()->currTerm;
 
         // If this is not a terminal program, returns fault.
-        //if(!t)
-        //    return Nothing;
-        /*else */return reinterpret_cast<IFOps*>(new FOps);
+        if(!t)
+            return Nothing;
+        else return reinterpret_cast<IFOps*>(new FOps);
     }
     FOps::~FOps()
     {
