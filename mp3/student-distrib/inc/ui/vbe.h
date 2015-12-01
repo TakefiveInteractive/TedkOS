@@ -112,10 +112,10 @@ namespace vbe
         void (*cls)(uint8_t* vmem, uint8_t val);
 
         // Build Buffer is in the format of "8R:8G:8B:8A"
-        void (*copy)(uint8_t* vmem, uint8_t* buildBuffer); 
+        void (*copy)(uint8_t* vmem, uint8_t* buildBuffer);
 
         // [xfrom, xto) [yfrom, yto) (the interval contains left endpoint, and excludes right endpoint)
-        void (*copyRegion)(uint8_t* vmem, uint8_t* buildBuffer, uint8_t xfrom, uint8_t xto, uint8_t yfrom, uint8_t yto);
+        void (*copyRegion)(uint8_t* vmem, uint8_t* buildBuffer, int xfrom, int xto, int yfrom, int yto);
     } VBEMemHelp;
 
     Maybe<VBEMemHelp> getMemHelp(const VideoModeInfo& _info);
