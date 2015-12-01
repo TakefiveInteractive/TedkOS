@@ -25,6 +25,7 @@ enum VideoMode {
 
 class Compositor {
     private:
+        uint8_t* nikita = NULL;
         real_context_t real_context;
         uint16_t orig_mode;
         uint8_t *videoMemory;
