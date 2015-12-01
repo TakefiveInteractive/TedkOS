@@ -8,7 +8,7 @@ using namespace filesystem;
 
 namespace ui {
 
-Desktop::Desktop() : Drawable(1024, 768, 0, 0)
+Desktop::Desktop() : Drawable(ScreenWidth, ScreenHeight, 0, 0)
 {
     auto physAddr = physPages.allocPage(true);
     auto virtAddr = virtLast1G.allocPage(true);
@@ -22,7 +22,7 @@ Desktop::Desktop() : Drawable(1024, 768, 0, 0)
 
     File file;
     theDispatcher->open(file, "landscape");
-    theDispatcher->read(file, pixelBuffer, 1024 * 768 * 4);
+    theDispatcher->read(file, pixelBuffer, RGBASize<ScreenWidth, ScreenHeight>);
     theDispatcher->close(file);
 }
 

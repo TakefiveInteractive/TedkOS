@@ -12,17 +12,24 @@ namespace ui {
 
 Mouse *mouseObj;
 
+constexpr int MouseWidth = 30;
+constexpr int MouseHeight = 44;
+
+constexpr int ClickPointOffsetX = 5;
+constexpr int ClickPointOffsetY = 7;
+
 void moveOurMouse(int dx, int dy)
 {
     mouseObj->moveMouse(dx, dy);
 }
 
-Mouse::Mouse() : Drawable(30, 44, 512, 384)
+Mouse::Mouse() : Drawable(MouseWidth, MouseHeight, ScreenWidth / 2, ScreenHeight / 2)
 {
     File mouseFile;
-    pixelBuffer = new uint8_t[5280];
+    constexpr auto size = RGBASize<MouseWidth, MouseHeight>;
+    pixelBuffer = new uint8_t[size];
     theDispatcher->open(mouseFile, "mouse.png.conv");
-    theDispatcher->read(mouseFile, pixelBuffer, 5280);
+    theDispatcher->read(mouseFile, pixelBuffer, size);
     theDispatcher->close(mouseFile);
 
     mouseObj = this;
@@ -40,10 +47,10 @@ void Mouse::moveMouse(int dx, int dy)
 
     newX += dx;
     newY -= dy;
-    if (newX < 0) newX = 0;
-    if (newX > 1024 - 30) newX = 1024 - 30;
-    if (newY < 0) newY = 0;
-    if (newY > 768 - 44) newY = 768 - 44;
+    if (newX < -ClickPointOffsetX) newX = -ClickPointOffsetX;
+    if (newX > ScreenWidth - ClickPointOffsetX) newX = ScreenWidth - ClickPointOffsetX;
+    if (newY < -ClickPointOffsetY) newY = -ClickPointOffsetY;
+    if (newY > ScreenHeight - ClickPointOffsetY) newY = ScreenHeight - ClickPointOffsetY;
 
     updateLocation(newX, newY);
 }
