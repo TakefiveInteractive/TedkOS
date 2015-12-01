@@ -51,7 +51,6 @@ class Compositor {
         PixelRow *buildBuffer;
         uint8_t* videoMemory;
         VideoMode videoMode;
-        uint8_t* mouseImg;
 
         Maybe<vbe::VideoModeInfo> infoMaybe;
 
@@ -74,6 +73,7 @@ class Compositor {
 
         void redraw(const Rectangle &rect);
         void addDrawable(Drawable *d);
+        //draw Single drawable
         void drawSingle(Drawable *d, const Rectangle &rect);
 };
 
