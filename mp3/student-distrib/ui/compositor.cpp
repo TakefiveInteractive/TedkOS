@@ -1,57 +1,56 @@
 #include <inc/ui/compositor.h>
-#include <inc/fs/filesystem.h>
+#include <inc/ui/drawable.h>
+#include <inc/ui/desktop.h>
+#include <inc/ui/mouse.h>
 #include <inc/ui/vbe.h>
-#include <inc/klibs/palloc.h>
-#include <inc/syscalls/filesystem_wrapper.h>
 #include <inc/x86/err_handler.h>
 #include <inc/x86/idt_init.h>
-#include <inc/ece391syscall.h>
+#include <inc/klibs/palloc.h>
+#include <inc/klibs/lib.h>
 
 using namespace vbe;
 using namespace palloc;
-using namespace filesystem;
 
 namespace ui {
 
 void paint_screen(VBEMemHelp& helper, uint8_t *pixel, uint8_t *source)
 {
     helper.copy(pixel, source);
-
-    /*
-    for (size_t x = 0; x < 1024 * 768; x++)
-    {
-        pixel[2] = source[0];
-        pixel[1] = source[1];
-        pixel[0] = source[2];
-        pixel += 3;
-        source += 4;
-    }
-    */
 }
 
-Compositor::Compositor()
+Compositor* Compositor::comp = nullptr;
+
+Compositor* Compositor::getInstance()
+{
+    if (comp) return comp;
+    comp = new Compositor();
+    return comp;
+}
+
+Compositor::Compositor() : numDrawables(0)
 {
     runWithoutNMI([this] () {
-        infoMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
-            // Locate 1024x768x24 mode
+        auto videoModeMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
+            // Locate ScreenWidth x ScreenHeight 8BPP mode
             if (
-                modeInfo.xRes == 1024 &&
-                modeInfo.yRes == 768 &&
-                 (modeInfo.bitsPerPixel == 24 ||
-                  modeInfo.bitsPerPixel == 32)
+                modeInfo.xRes == ScreenWidth &&
+                modeInfo.yRes == ScreenHeight &&
+                modeInfo._rawMode.RedMaskSize == 8 &&
+                modeInfo._rawMode.GreenMaskSize == 8 &&
+                modeInfo._rawMode.BlueMaskSize == 8
                 )
             {
                 return true;
             }
             return false;
         });
-        if (!infoMaybe)
+        if (!videoModeMaybe)
         {
-            printf("1024*768 24bits mode is NOT supported.\n");
+            printf("%d * %d 8BPP mode is NOT supported.\n", ScreenWidth, ScreenHeight);
             trigger_exception<27>();
         }
-        else printf("RGBMasks = %s \n", (+infoMaybe).RGBMask);
-        VideoModeInfo mode = +infoMaybe;
+        VideoModeInfo mode = +videoModeMaybe;
+        printf("RGBMasks = %s \n", mode.RGBMask);
         uint32_t ModeMem = mode.physBase;
 
         // Back up current mode.
@@ -62,73 +61,95 @@ Compositor::Compositor()
         PhysAddr physAddr = PhysAddr(ModeMem >> 22, PG_WRITABLE);
         cpu0_memmap.addCommonPage(VirtAddr((void*)ModeMem), physAddr);
 
-        RELOAD_CR3();
-
         videoMemory = (uint8_t *) ModeMem;
         // TODO: assuming we are in text mode initially.
         // Figure this out programmatically
         videoMode = Text;
+
+        // TODO: free the pages allocated here.
+        buildBuffer = (PixelRow*) +virtLast1G.allocPage(true);
+        cpu0_memmap.addCommonPage(VirtAddr(buildBuffer), PhysAddr((+physPages.allocPage(true)), PG_WRITABLE));
+
+        drawHelper = +getMemHelp(mode);
+        drawables = new Drawable*[5];
+
+        memset(buildBuffer, 0, ScreenWidth * ScreenHeight * 4);
+        memset(videoMemory, 0, ScreenWidth * ScreenHeight * 4);
     });
 }
 
-void Compositor::moveMouse(int dx, int dy)
+void Compositor::addDrawable(Drawable *d)
 {
-    mouseX += dx;
-    mouseY -= dy;
-    if (mouseX < 0) mouseX = 0;
-    if (mouseX > 1024 - 30) mouseX = 1024 - 30;
-    if (mouseY < 0) mouseY = 0;
-    if (mouseY > 768 - 44) mouseY = 768 - 44;
-    for (size_t y = 0; y < 44; y++)
+    drawables[numDrawables] = d;
+    numDrawables++;
+}
+
+float alphaBlending(float p1, float p2, float alpha)
+{
+    return p1 * (1.0F - alpha) + p2 * alpha;
+}
+
+void Compositor::redraw(const Rectangle &rect)
+{
+    for (int32_t y = rect.y1; y < rect.y2; y++)
     {
-        for (size_t x = 0; x < 30; x++)
+        for (int32_t x = rect.x1; x < rect.x2; x++)
         {
-            float alpha = (float) mouseImg[(30 * y + x) * 4 + 3] / 256.0F;
-            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 0] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 0] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 2];
-            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 1] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 1] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 1];
-            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 2] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 2] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 0];
+            // Fill it with black ink
+            float r = 0.0F;
+            float g = 0.0F;
+            float b = 0.0F;
+            // Draw all drawables
+            for (int32_t i = 0; i < numDrawables; i++)
+            {
+                if (drawables[i]->isPixelInRange(x, y))
+                {
+                    int32_t relX = x - drawables[i]->getX(), relY = y - drawables[i]->getY();
+                    const float alpha = drawables[i]->getAlpha(relX, relY) / 256.0F;
+                    r = alphaBlending(r, drawables[i]->getRed(relX, relY), alpha);
+                    g = alphaBlending(g, drawables[i]->getGreen(relX, relY), alpha);
+                    b = alphaBlending(b, drawables[i]->getBlue(relX, relY), alpha);
+                }
+            }
+            buildBuffer[y][x][0] = r;
+            buildBuffer[y][x][1] = g;
+            buildBuffer[y][x][2] = b;
         }
     }
+    drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
+}
+
+void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
+{
+    for (int32_t y = rect.y1; y < rect.y2; y++)
+    {
+        for (int32_t x = rect.x1; x < rect.x2; x++)
+        {
+            uint8_t r, g, b;
+            r = buildBuffer[y][x][0];
+            g = buildBuffer[y][x][1];
+            b = buildBuffer[y][x][2];
+
+            int32_t relX = x - d->getX(), relY = y - d->getY();
+            const float alpha = d->getAlpha(relX, relY) / 256.0F;
+            r = alphaBlending(r, d->getRed(relX, relY), alpha);
+            g = alphaBlending(g, d->getGreen(relX, relY), alpha);
+            b = alphaBlending(b, d->getBlue(relX, relY), alpha);
+
+            buildBuffer[y][x][0] = r;
+            buildBuffer[y][x][1] = g;
+            buildBuffer[y][x][2] = b;
+        }
+    }
+    drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawNikita()
 {
-    if(!nikita)
-    {
-        auto physAddr = physPages.allocPage(true);
-        auto virtAddr = virtLast1G.allocPage(true);     // type: void*
-        if (!physAddr || !virtAddr) trigger_exception<27>();
+    addDrawable(new Desktop());
+    addDrawable(new Mouse());
 
-        // Why identity mapping? most VMEM maps to high 1G (clobbers kernel!)
-        // LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
-        LOAD_4MB_PAGE(((uint32_t)+virtAddr) >> 22, +physAddr << 22, PG_WRITABLE);
-        RELOAD_CR3();
-
-        nikita = (uint8_t *)+virtAddr;
-
-        File file;
-        theDispatcher->open(file, "landscape");
-        theDispatcher->read(file, nikita, 1024 * 768 * 4);
-        theDispatcher->close(file);
-
-
-        File mouseFile;
-        mouseImg = new uint8_t[5280];
-        theDispatcher->open(mouseFile, "mouse.png.conv");
-        theDispatcher->read(mouseFile, mouseImg, 5280);
-        theDispatcher->close(mouseFile);
-    }
-
-    VBEMemHelp helper = +getMemHelp(+infoMaybe);
-
-    for(int i=0; i<10; i++)
-    {
-        paint_screen(helper, videoMemory, nikita);
-        paint_screen(helper, videoMemory, nikita + 1);
-        paint_screen(helper, videoMemory, nikita + 2);
-        paint_screen(helper, videoMemory, nikita + 3);
-    }
-    moveMouse(0, 0);
+    redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = ScreenWidth, .y2 = ScreenHeight });
 }
 
 void Compositor::enterVideoMode()

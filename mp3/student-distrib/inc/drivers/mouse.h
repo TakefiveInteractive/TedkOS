@@ -12,4 +12,6 @@
 DEFINE_DRIVER_INIT(mouse);
 DEFINE_DRIVER_REMOVE(mouse);
 
+void registerMouseMovementHandler(void (*fn) (int, int));
+
 #endif

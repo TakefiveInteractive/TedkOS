@@ -51,6 +51,7 @@ void send_command(uint8_t command, uint8_t port);
 void init_mouse();
 int mouse_handler();
 
+void (*moveMouse)(int, int) = nullptr;
 
 void send_command(uint8_t command, uint8_t port) {
     write_byte(0xD4, MOUSE_ENABLE_PORT);
@@ -87,6 +88,8 @@ uint8_t try_read_byte() {
 DEFINE_DRIVER_INIT(mouse) {
 
     AutoSpinLock l(&KeyB::keyboard_lock);
+
+    moveMouse = nullptr;
 
     // bind handler to pic
     init_mouse();
@@ -129,8 +132,10 @@ void init_mouse() {
     send_command(0xF4, MOUSE_PORT);
 }
 
-#include <inc/ui/compositor.h>
-extern ui::Compositor *comp;
+void registerMouseMovementHandler(void (*fn) (int, int))
+{
+    moveMouse = fn;
+}
 
 int mouse_handler(int irq, unsigned int saved_reg) {
     AutoSpinLock(&KeyB::keyboard_lock);
@@ -153,8 +158,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                 if (flags & Y_SIGN) {
                     deltay = deltay | 0xFFFFFF00;
                 }
-                // move_mouse(deltax, deltay);
-                comp->moveMouse(deltax, deltay);
+                if (moveMouse) moveMouse(deltax, deltay);
 
                 if (flags & LEFT_BUTTON) {
                     printf("LEFT_BUTTON");

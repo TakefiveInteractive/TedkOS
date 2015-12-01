@@ -8,7 +8,7 @@ namespace vbe
 {
     RawVbeInfoBlock* getVbeInfo()
     {
-        real_context_t context;
+        real_context_t context = { };
 
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
@@ -26,7 +26,7 @@ namespace vbe
 
     RawVbeVideoModeInfo* getVideoModeInfo(uint16_t mode)
     {
-        real_context_t context;
+        real_context_t context = { };
 
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
@@ -105,7 +105,7 @@ namespace vbe
         delete[] modeList;
     }
 
-    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw)
+    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw) : _rawMode(raw)
     {
         xRes = raw.XRes;
         yRes = raw.YRes;
@@ -179,13 +179,13 @@ namespace vbe
         }
     }
 
-    void BGR_copyRegion(uint8_t* vmem, uint8_t* buildBuffer, uint8_t xfrom, uint8_t xto, uint8_t yfrom, uint8_t yto)
+    void BGR_copyRegion(uint8_t* vmem, uint8_t* buildBuffer, int xfrom, int xto, int yfrom, int yto)
     {
-        for(size_t y=yfrom; y<yto; y++)
+        for(int y=yfrom; y<yto; y++)
         {
             uint8_t* writer = &vmem[3*(xfrom + y*1024)];
             uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
-            for(volatile size_t x=xfrom; x<xto; x++)
+            for(volatile int x=xfrom; x<xto; x++)
             {
                 writer[2] = reader[0];
                 writer[1] = reader[1];
@@ -234,9 +234,9 @@ namespace vbe
         );
     }
 
-    void RGBO_copyRegion(uint8_t* vmem, uint8_t* buildBuffer, uint8_t xfrom, uint8_t xto, uint8_t yfrom, uint8_t yto)
+    void RGBO_copyRegion(uint8_t* vmem, uint8_t* buildBuffer, int xfrom, int xto, int yfrom, int yto)
     {
-        for(size_t y=yfrom; y<yto; y++)
+        for(int y=yfrom; y<yto; y++)
         {
             uint8_t* writer = &vmem[4*(xfrom + y*1024)];
             uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
