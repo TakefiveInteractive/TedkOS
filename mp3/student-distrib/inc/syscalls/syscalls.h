@@ -5,4 +5,9 @@
 
 void systemCallHandler(void);
 
+namespace syscall
+{
+bool validUserPointer(void* ptr);
+}
+
 #endif
