@@ -13,15 +13,13 @@ ProcessDesc *static_all_processes[MAX_NUM_PROCESS] = { };
 ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 
 ProcessDesc::ProcessDesc(int32_t _upid, ProcessType processType)
-    : fileDescs(), heapPhysicalPages(),
+    : fileDescs(), fdInitialized(false), heapPhysicalPages(),
     heapStartingPageIdx(0), heapSize(0), numHeapPages(0),
     fileName(nullptr), arg(nullptr)
 {
     mainThreadInfo = new thread_kinfo(this, processType);
 
     upid = _upid;
-
-    init_fs_desc(*this);
 }
 
 ProcessDesc::~ProcessDesc()
