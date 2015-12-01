@@ -12,8 +12,17 @@ using namespace filesystem;
 
 namespace ui {
 
-void paint_screen(uint8_t *pixel, uint8_t *source)
+void paint_screen(VideoModeInfo info, uint8_t *pixel, uint8_t *source)
 {
+    VBEMemHelp helper(info, pixel);
+    const size_t width = info.xRes;
+    const size_t height = info.yRes;
+    for (size_t y = 0; y < height; y++) for (size_t x = 0; x < width; x++)
+    {
+        helper.put(x, y, source[(x + y * width) * 4 + 0], source[(x + y * width) * 4 + 1], source[(x + y * width) * 4 + 2]);
+    }
+
+    /*
     for (size_t x = 0; x < 1024 * 768; x++)
     {
         pixel[2] = source[0];
@@ -22,17 +31,19 @@ void paint_screen(uint8_t *pixel, uint8_t *source)
         pixel += 3;
         source += 4;
     }
+    */
 }
 
 Compositor::Compositor()
 {
     runWithoutNMI([this] () {
-        auto VideoMode = findVideoModeInfo([](VideoModeInfo& modeInfo) {
+        infoMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
             // Locate 1024x768x24 mode
             if (
                 modeInfo.xRes == 1024 &&
                 modeInfo.yRes == 768 &&
-                modeInfo.bitsPerPixel == 8
+                 (modeInfo.bitsPerPixel == 24 ||
+                  modeInfo.bitsPerPixel == 32)
                 )
             {
                 // Ensure there are no reserved bits
@@ -44,12 +55,13 @@ Compositor::Compositor()
             }
             return false;
         });
-        if (!VideoMode)
+        if (!infoMaybe)
         {
             printf("1024*768 24bits mode is NOT supported.\n");
             trigger_exception<27>();
         }
-        VideoModeInfo mode = +VideoMode;
+        else printf("RGBMasks = %s \n", (+infoMaybe).RGBMask);
+        VideoModeInfo mode = +infoMaybe;
         uint32_t ModeMem = mode.physBase;
 
         // Back up current mode.
@@ -92,12 +104,15 @@ void Compositor::moveMouse(int dx, int dy)
 void Compositor::drawNikita()
 {
     auto physAddr = physPages.allocPage(true);
-    if (!physAddr) trigger_exception<27>();
+    auto virtAddr = virtLast1G.allocPage(true);     // type: void*
+    if (!physAddr || !virtAddr) trigger_exception<27>();
 
-    LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
+    // Why identity mapping? most VMEM maps to high 1G (clobbers kernel!)
+    // LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
+    LOAD_4MB_PAGE(((uint32_t)+virtAddr) >> 22, +physAddr << 22, PG_WRITABLE);
     RELOAD_CR3();
 
-    uint8_t *nikita = (uint8_t *)((uint32_t)(+physAddr) << 22);
+    uint8_t *nikita = (uint8_t *)+virtAddr;
 
     File file;
     theDispatcher->open(file, "landscape");
@@ -111,7 +126,7 @@ void Compositor::drawNikita()
     theDispatcher->read(mouseFile, mouseImg, 5280);
     theDispatcher->close(mouseFile);
 
-    paint_screen(videoMemory, nikita);
+    paint_screen(+infoMaybe, videoMemory, nikita);
     moveMouse(0, 0);
 }
 

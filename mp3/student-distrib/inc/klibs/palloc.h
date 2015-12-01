@@ -237,10 +237,14 @@ namespace palloc
     //          to determine which parts of memory actually exist.
     extern PhysPageManager<0xff000000> physPages;
 
-    // 0xc0000000 - 0x3fc00000 is the Last 1GB of virtual address space
+    // 0xc0000000 - 0xffc00000 is the Last 1GB of virtual address space
     extern VirtualMemRegion<0xc0000000, 0x3fc00000> virtLast1G;
 
     extern MemMapManager cpu0_memmap;
+
+    // 2.5G - 3G is allocated for HD VMem
+    // 0xa0000000 - 0xc0000000
+    static constexpr uint32_t virtForHDVmem = 0xa0000000;
 }
 
 //---------------------------------- IMPLEMENTATION -----------------------------------------

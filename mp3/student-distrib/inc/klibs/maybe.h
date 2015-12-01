@@ -28,7 +28,7 @@ template <typename T>
 class Maybe {
 private:
     MaybeUnion<T> val;
-    const bool exists;
+    bool exists;
 
 public:
     Maybe() : exists(false) { }
@@ -42,6 +42,18 @@ public:
     }
     ~Maybe() { if (exists) (&val.v)->~T(); }
     Maybe(const maybe_details::NothingType nothing) : exists(false) { }
+
+    Maybe& operator = (const Maybe& other)
+    {
+        if(exists && (!other.exists))
+            (&val.v)->~T();
+        exists = other.exists;
+        if (exists)
+        {
+            val.v = other.val.v;
+        }
+        return *this;
+    }
 
     const T& operator + () const {
         if (!exists)
