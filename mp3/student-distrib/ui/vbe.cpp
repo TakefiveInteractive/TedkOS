@@ -191,16 +191,10 @@ namespace vbe
 
     VBEMemHelp* VBEMemHelp::copy(uint8_t* buildBuffer)
     {
-        asm volatile (
-            "cld                                                    ;"
-            "movl %0, %%ecx                                         ;"
-            "rep movsb    # copy ECX *bytes* from M[ESI] to M[EDI]  "
-            : /* no outputs */
-            : "rg" (totalSize),
-              "S" (buildBuffer),
-              "D" (vmem)
-            : "cc", "memory", "ecx"
-        );
+        const size_t width = info.xRes;
+        const size_t height = info.yRes;
+        for (size_t y = 0; y < height; y++) for (size_t x = 0; x < width; x++)
+            put(x, y, buildBuffer[(x + y * width) * 4 + 0], buildBuffer[(x + y * width) * 4 + 1], buildBuffer[(x + y * width) * 4 + 2]);
         return this;
     }
 
@@ -243,6 +237,21 @@ namespace vbe
         return (VBEMemHelp*)this;
     }
 
+    VBEMemHelp* VBEMemHelpFactory::HelpRGB::copy(uint8_t* buildBuffer)
+    {
+        const size_t totalPixels = info.xRes * info.yRes;
+        uint8_t* writer = vmem;
+        for(size_t i=0; i < totalPixels; i++)
+        {
+            writer[0] = buildBuffer[0];
+            writer[1] = buildBuffer[1];
+            writer[2] = buildBuffer[2];
+            writer += 3;
+            buildBuffer += 4;
+        }
+        return (VBEMemHelp*)this;
+    }
+
     // -------- Help BGR
 
     VBEMemHelp* VBEMemHelpFactory::HelpBGR::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
@@ -251,6 +260,21 @@ namespace vbe
         vmem[offset + 0] = blue;
         vmem[offset + 1] = green;
         vmem[offset + 2] = red;
+        return (VBEMemHelp*)this;
+    }
+
+    VBEMemHelp* VBEMemHelpFactory::HelpBGR::copy(uint8_t* buildBuffer)
+    {
+        register const size_t totalPixels = info.xRes * info.yRes;
+        uint8_t* writer = vmem;
+        for(size_t i=0; i < totalPixels; i++)
+        {
+            writer[2] = buildBuffer[0];
+            writer[1] = buildBuffer[1];
+            writer[0] = buildBuffer[2];
+            writer += 3;
+            buildBuffer += 4;
+        }
         return (VBEMemHelp*)this;
     }
 
@@ -265,6 +289,21 @@ namespace vbe
         return (VBEMemHelp*)this;
     }
 
+    VBEMemHelp* VBEMemHelpFactory::HelpRGBO::copy(uint8_t* buildBuffer)
+    {
+        const size_t totalPixels = info.xRes * info.yRes;
+        uint8_t* writer = vmem;
+        for(size_t i=0; i < totalPixels; i++)
+        {
+            writer[0] = buildBuffer[0];
+            writer[1] = buildBuffer[1];
+            writer[2] = buildBuffer[2];
+            writer += 4;
+            buildBuffer += 4;
+        }
+        return (VBEMemHelp*)this;
+    }
+
     // -------- Help BGRO
 
     VBEMemHelp* VBEMemHelpFactory::HelpBGRO::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
@@ -273,6 +312,21 @@ namespace vbe
         vmem[offset + 0] = blue;
         vmem[offset + 1] = green;
         vmem[offset + 2] = red;
+        return (VBEMemHelp*)this;
+    }
+
+    VBEMemHelp* VBEMemHelpFactory::HelpBGRO::copy(uint8_t* buildBuffer)
+    {
+        const size_t totalPixels = info.xRes * info.yRes;
+        uint8_t* writer = vmem;
+        for(size_t i=0; i < totalPixels; i++)
+        {
+            writer[2] = buildBuffer[0];
+            writer[1] = buildBuffer[1];
+            writer[0] = buildBuffer[2];
+            writer += 4;
+            buildBuffer += 4;
+        }
         return (VBEMemHelp*)this;
     }
 
