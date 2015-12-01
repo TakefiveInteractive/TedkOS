@@ -12,17 +12,12 @@ size_t ProcessDesc::nextNewProcess = 0;
 ProcessDesc *static_all_processes[MAX_NUM_PROCESS] = { };
 ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 
-ProcessDesc::ProcessDesc(int32_t _upid)
-    : fileDescs(), numFilesInDescs(0),
-    heapPhysicalPages(), heapStartingPageIdx(0), heapSize(0), numHeapPages(0),
+ProcessDesc::ProcessDesc(int32_t _upid, ProcessType processType)
+    : fileDescs(), heapPhysicalPages(),
+    heapStartingPageIdx(0), heapSize(0), numHeapPages(0),
     fileName(nullptr), arg(nullptr)
 {
-    mainThreadInfo = new thread_kinfo;
-
-    mainThreadInfo->pcb.esp0 = NULL;
-    mainThreadInfo->pcb.to_process = this;
-    mainThreadInfo->pcb.next = NULL;
-    mainThreadInfo->pcb.prev = NULL;
+    mainThreadInfo = new thread_kinfo(this, processType);
 
     upid = _upid;
 
@@ -94,8 +89,6 @@ ProcessDesc** ProcessDesc::all()
 
 ProcessDesc& ProcessDesc::get(size_t uniq_pid)
 {
-    if(!all_processes[uniq_pid])
-        all_processes[uniq_pid] = new ProcessDesc(uniq_pid);
     return *all_processes[uniq_pid];
 }
 
@@ -113,14 +106,77 @@ int32_t ProcessDesc::getUniqPid()
     return upid;
 }
 
-size_t ProcessDesc::newProcess()
+ProcessDesc& ProcessDesc::newProcess(int32_t parentPID, ProcessType processType)
 {
-    return nextNewProcess++;
+    const int32_t pid = nextNewProcess;
+    ProcessDesc *p = new ProcessDesc(pid, processType);
+
+    thread_kinfo* parentInfo = NULL;
+    if (parentPID >= 0)
+        parentInfo = ProcessDesc::get(parentPID).mainThreadInfo;
+    p->mainThreadInfo->storage.pcb.prev = parentInfo;
+    if (parentInfo)
+        parentInfo->storage.pcb.next = p->mainThreadInfo;
+
+    if(!all_processes[pid])
+        all_processes[pid] = p;
+
+    nextNewProcess++;
+    return *p;
+}
+
+FileDescArr::FileDescArr()
+{
+    memset(content, 0, sizeof(content));
+    size_t i = 0;
+    for(; i < FD_FIXED_PART; i++)
+        isFDfree.clear(i);
+    for(; i < FD_ARRAY_LENGTH; i++)
+    {
+        isFDfree.set(i);
+        freeFDs.push(i);
+    }
+}
+
+filesystem::File*& FileDescArr::operator[] (const size_t i)
+{
+    return content[i];
+}
+
+Maybe<size_t> FileDescArr::alloc()
+{
+    if(freeFDs.empty())
+        return Maybe<size_t>();
+    else
+    {
+        size_t ans = freeFDs.pop();
+        isFDfree.clear(ans);
+        return ans;
+    }
+}
+
+bool FileDescArr::isValid(size_t i)
+{
+    if(i < 0 || i >= FD_ARRAY_LENGTH)
+        return false;
+    else if(isFDfree.test(i))
+        return false;
+    else if(content[i] == NULL)
+        return false;
+    else return true;
+}
+
+void FileDescArr::recycle(size_t i)
+{
+    if(isFDfree.test(i))
+        return;
+    isFDfree.set(i);
+    freeFDs.push(i);
 }
 
 uint8_t __attribute__((used)) isCurrThreadKernel()
 {
-    return getCurrentThreadInfo()->pcb.isKernelThread;
+    return getCurrentThreadInfo()->isKernel();
 }
 
 

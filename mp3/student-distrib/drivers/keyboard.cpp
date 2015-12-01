@@ -303,7 +303,7 @@ void term_cls(void)
     }
     else if(pcbLoadable)
     {
-        getCurrentThreadInfo()->pcb.to_process->currTerm->cls();
+        getCurrentThreadInfo()->getProcessDesc()->currTerm->cls();
     }
     else
     {
@@ -320,7 +320,7 @@ void term_putc(uint8_t c)
     }
     else if(pcbLoadable)
     {
-        getCurrentThreadInfo()->pcb.to_process->currTerm->putc(c);
+        getCurrentThreadInfo()->getProcessDesc()->currTerm->putc(c);
     }
     else
     {

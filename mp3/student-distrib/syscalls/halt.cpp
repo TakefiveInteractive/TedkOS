@@ -10,6 +10,7 @@
 #include <inc/x86/desc.h>
 #include <inc/x86/stacker.h>
 #include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/syscalls/syscalls.h>
 #include <inc/fs/filesystem.h>
 
 using namespace filesystem;
@@ -23,7 +24,7 @@ namespace syscall { namespace halt {
 
 int32_t syshalt(uint32_t retval)
 {
-    thread_kinfo* prevInfo  = getCurrentThreadInfo()->pcb.prev;
+    thread_kinfo* prevInfo  = getCurrentThreadInfo()->storage.pcb.prev;
     if (prevInfo == NULL)
     {
         printf("Init Process, cannot halt!\n");
@@ -33,15 +34,15 @@ int32_t syshalt(uint32_t retval)
     {
         printf("Halt process with retval=%d!\n", retval);
 
-        *(int32_t*)((uint32_t)prevInfo->pcb.esp0 + 7 * 4) = retval;
-        prepareSwitchTo(prevInfo->pcb.to_process->getUniqPid());
+        *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = retval;
+        scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getUniqPid());
 
         // GET control of stdin.
-        if(getCurrentThreadInfo()->pcb.to_process->currTerm)
-            getCurrentThreadInfo()->pcb.to_process->currTerm->setOwner(prevInfo->pcb.to_process->getUniqPid());
+        if(getCurrentThreadInfo()->getProcessDesc()->currTerm)
+            getCurrentThreadInfo()->getProcessDesc()->currTerm->setOwner(prevInfo->getProcessDesc()->getUniqPid());
 
         // Clean up process
-        ProcessDesc::remove(getCurrentThreadInfo()->pcb.to_process->getUniqPid());
+        ProcessDesc::remove(getCurrentThreadInfo()->getProcessDesc()->getUniqPid());
     }
     return retval;
 }

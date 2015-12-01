@@ -47,7 +47,7 @@ int pit_init(int freq)
 int pit_handler(int irq, unsigned int saved_reg)
 {
     AutoSpinLock lock(&pit_lock);
-    schedMakeDecision();
+    scheduler::makeDecision();
     return 0;
 }
 
