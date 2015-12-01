@@ -1,4 +1,5 @@
 #include <inc/syscalls/exec.h>
+#include <inc/syscalls/syscalls.h>
 #include <inc/error.h>
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
@@ -23,7 +24,8 @@ namespace syscall { namespace exec {
 // Main entry to implementation of exec syscall
 int32_t sysexec(const char* file)
 {
-    if (!file) return -1;
+    if(!validUserPointer(file))
+        return -1;
 
     int32_t child_upid = do_exec(file);
     if (child_upid < 0)
