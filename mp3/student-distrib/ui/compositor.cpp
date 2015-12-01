@@ -13,7 +13,7 @@ using namespace palloc;
 
 namespace ui {
 
-void paint_screen(VideoModeInfo info, uint8_t *pixel, uint8_t *source)
+void paint_screen(VBEMemHelp& helper, uint8_t *pixel, uint8_t *source)
 {
     helper.copy(pixel, source);
 }
@@ -39,11 +39,6 @@ Compositor::Compositor() : numDrawables(0)
                   modeInfo.bitsPerPixel == 32)
                 )
             {
-                // Ensure there are no reserved bits
-                for (size_t i = 32 - 8; i < 33; i++)
-                {
-                    if (modeInfo.RGBMask[i] != '\0') return false;
-                }
                 return true;
             }
             return false;
@@ -65,17 +60,21 @@ Compositor::Compositor() : numDrawables(0)
         PhysAddr physAddr = PhysAddr(ModeMem >> 22, PG_WRITABLE);
         cpu0_memmap.addCommonPage(VirtAddr((void*)ModeMem), physAddr);
 
-        RELOAD_CR3();
-
         videoMemory = (uint8_t *) ModeMem;
         // TODO: assuming we are in text mode initially.
         // Figure this out programmatically
         videoMode = Text;
 
-        drawHelper = new VBEMemHelp(mode);
+        // TODO: free the pages allocated here.
+        buildBuffer = (uint8_t*)+virtLast1G.allocPage(true);
+        cpu0_memmap.addCommonPage(VirtAddr(buildBuffer), PhysAddr((+physPages.allocPage(true)), PG_WRITABLE));
+
+        RELOAD_CR3();
+
+        drawHelper = +getMemHelp(mode);
         drawables = new Drawable*[5];
 
-        memset(buildBuffer, 0, sizeof(buildBuffer));
+        memset(buildBuffer, 0, 1024 * 768 * 4);
     });
 }
 
@@ -117,7 +116,7 @@ void Compositor::redraw(const Rectangle &rect)
             buildBuffer[(x + y * 1024) * 4 + 2] = b;
         }
     }
-    drawHelper->copy(videoMemory, buildBuffer);
+    drawHelper.copy(videoMemory, buildBuffer);
 }
 
 void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
@@ -138,7 +137,7 @@ void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
             buildBuffer[(x + y * 1024) * 4 + 2] = b;
         }
     }
-    drawHelper->copyRegion(videoMemory, buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
+    drawHelper.copyRegion(videoMemory, buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawNikita()

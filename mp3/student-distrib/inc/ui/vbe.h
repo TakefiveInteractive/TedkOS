@@ -106,31 +106,19 @@ namespace vbe
     // A helper to abstract pixel encoding and memory accessing.
     // REQUIREMENT: bits per pixel per COLOR = 8
     // This structure has NO LOCK
-    class VBEMemHelp
+    typedef struct
     {
-    private:
-        // Unit: bytes
-        uint8_t pixelSize;
+        void (*put)(uint8_t* vmem, uint8_t pixel, uint8_t red, uint8_t green, uint8_t blue);
+        void (*cls)(uint8_t* vmem, uint8_t val);
 
-        // Unit: bytes
-        size_t totalSize;
-        const VideoModeInfo info;
-        uint8_t* vmem;
+        // Build Buffer is in the format of "8R:8G:8B:8A"
+        void (*copy)(uint8_t* vmem, uint8_t* buildBuffer); 
 
-        uint8_t colorCode(char colorCharName);
-        uint8_t rCode, gCode, bCode, oCode;
-        uint8_t maskCode[4];
-    public:
+        // [xfrom, xto) [yfrom, yto) (the interval contains left endpoint, and excludes right endpoint)
+        void (*copyRegion)(uint8_t* vmem, uint8_t* buildBuffer, uint8_t xfrom, uint8_t xto, uint8_t yfrom, uint8_t yto);
+    } VBEMemHelp;
 
-        // vmem should be decided by Virtual Memory Manager
-        VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem);
-        ~VBEMemHelp();
-
-        VBEMemHelp& put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue);
-        VBEMemHelp& get(size_t x, size_t y, uint8_t *red, uint8_t *green, uint8_t *blue);
-        VBEMemHelp& cls(uint8_t val);
-        VBEMemHelp& copy(uint8_t* buildBuffer);
-    };
+    Maybe<VBEMemHelp> getMemHelp(const VideoModeInfo& _info);
 
     // WARNING: previously returned information is clobbered when calling any of
     //      these functions. Please make a backup if necessary.
