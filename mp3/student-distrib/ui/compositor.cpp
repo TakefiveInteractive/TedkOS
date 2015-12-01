@@ -30,26 +30,27 @@ Compositor* Compositor::getInstance()
 Compositor::Compositor() : numDrawables(0)
 {
     runWithoutNMI([this] () {
-        infoMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
+        auto videoModeMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
             // Locate ScreenWidth x ScreenHeight 8BPP mode
             if (
                 modeInfo.xRes == ScreenWidth &&
                 modeInfo.yRes == ScreenHeight &&
-                 (modeInfo.bitsPerPixel == 24 ||
-                  modeInfo.bitsPerPixel == 32)
+                modeInfo._rawMode.RedMaskSize == 8 &&
+                modeInfo._rawMode.GreenMaskSize == 8 &&
+                modeInfo._rawMode.BlueMaskSize == 8
                 )
             {
                 return true;
             }
             return false;
         });
-        if (!infoMaybe)
+        if (!videoModeMaybe)
         {
             printf("%d * %d 8BPP mode is NOT supported.\n", ScreenWidth, ScreenHeight);
             trigger_exception<27>();
         }
-        else printf("RGBMasks = %s \n", (+infoMaybe).RGBMask);
-        VideoModeInfo mode = +infoMaybe;
+        VideoModeInfo mode = +videoModeMaybe;
+        printf("RGBMasks = %s \n", mode.RGBMask);
         uint32_t ModeMem = mode.physBase;
 
         // Back up current mode.
@@ -69,12 +70,11 @@ Compositor::Compositor() : numDrawables(0)
         buildBuffer = (PixelRow*) +virtLast1G.allocPage(true);
         cpu0_memmap.addCommonPage(VirtAddr(buildBuffer), PhysAddr((+physPages.allocPage(true)), PG_WRITABLE));
 
-        RELOAD_CR3();
-
         drawHelper = +getMemHelp(mode);
         drawables = new Drawable*[5];
 
         memset(buildBuffer, 0, ScreenWidth * ScreenHeight * 4);
+        memset(videoMemory, 0, ScreenWidth * ScreenHeight * 4);
     });
 }
 

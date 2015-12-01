@@ -8,7 +8,7 @@ namespace vbe
 {
     RawVbeInfoBlock* getVbeInfo()
     {
-        real_context_t context;
+        real_context_t context = { };
 
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
@@ -26,7 +26,7 @@ namespace vbe
 
     RawVbeVideoModeInfo* getVideoModeInfo(uint16_t mode)
     {
-        real_context_t context;
+        real_context_t context = { };
 
         // Set output at physical address = REAL_MODE_FREE_SEG << 4 + 0
         context.es = REAL_MODE_FREE_SEG;
@@ -105,7 +105,7 @@ namespace vbe
         delete[] modeList;
     }
 
-    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw)
+    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw) : _rawMode(raw)
     {
         xRes = raw.XRes;
         yRes = raw.YRes;

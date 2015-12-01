@@ -90,6 +90,8 @@ namespace vbe
         // All pointers below are kmalloc-ed, and need deleted
         ~VideoModeInfo();
 
+        RawVbeVideoModeInfo _rawMode;
+
         // The RGBMask looks like: "rrrrr___ggggggggbbbbb___"
         //      where '_' represents not present
         //      and if there is only 24 bits BPP, the last 8+1 chars are '\0'
