@@ -1,14 +1,14 @@
 #include <inc/ui/compositor.h>
-#include <inc/fs/filesystem.h>
+#include <inc/ui/drawable.h>
+#include <inc/ui/desktop.h>
+#include <inc/ui/mouse.h>
 #include <inc/ui/vbe.h>
-#include <inc/klibs/palloc.h>
-#include <inc/syscalls/filesystem_wrapper.h>
 #include <inc/x86/err_handler.h>
 #include <inc/x86/idt_init.h>
+#include <inc/klibs/palloc.h>
 
 using namespace vbe;
 using namespace palloc;
-using namespace filesystem;
 
 namespace ui {
 
@@ -21,20 +21,18 @@ void paint_screen(VideoModeInfo info, uint8_t *pixel, uint8_t *source)
     {
         helper.put(x, y, source[(x + y * width) * 4 + 0], source[(x + y * width) * 4 + 1], source[(x + y * width) * 4 + 2]);
     }
-
-    /*
-    for (size_t x = 0; x < 1024 * 768; x++)
-    {
-        pixel[2] = source[0];
-        pixel[1] = source[1];
-        pixel[0] = source[2];
-        pixel += 3;
-        source += 4;
-    }
-    */
 }
 
-Compositor::Compositor()
+Compositor* Compositor::comp = nullptr;
+
+Compositor* Compositor::getInstance()
+{
+    if (comp) return comp;
+    comp = new Compositor();
+    return comp;
+}
+
+Compositor::Compositor() : numDrawables(0)
 {
     runWithoutNMI([this] () {
         infoMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
@@ -78,56 +76,75 @@ Compositor::Compositor()
         // TODO: assuming we are in text mode initially.
         // Figure this out programmatically
         videoMode = Text;
+
+        drawHelper = new VBEMemHelp(mode, videoMemory);
+        drawables = new Drawable*[5];
     });
 }
 
-void Compositor::moveMouse(int dx, int dy)
+void Compositor::addDrawable(Drawable *d)
 {
-    mouseX += dx;
-    mouseY -= dy;
-    if (mouseX < 0) mouseX = 0;
-    if (mouseX > 1024 - 30) mouseX = 1024 - 30;
-    if (mouseY < 0) mouseY = 0;
-    if (mouseY > 768 - 44) mouseY = 768 - 44;
-    for (size_t y = 0; y < 44; y++)
+    drawables[numDrawables] = d;
+    numDrawables++;
+}
+
+float alphaBlending(float p1, float p2, float alpha)
+{
+    return p1 * (1.0F - alpha) + p2 * alpha;
+}
+
+void Compositor::redraw(const Rectangle &rect)
+{
+    for (int32_t y = rect.y1; y < rect.y2; y++)
     {
-        for (size_t x = 0; x < 30; x++)
+        for (int32_t x = rect.x1; x < rect.x2; x++)
         {
-            float alpha = (float) mouseImg[(30 * y + x) * 4 + 3] / 256.0F;
-            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 0] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 0] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 2];
-            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 1] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 1] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 1];
-            videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 2] = videoMemory[(1024 * (mouseY + y) + mouseX + x) * 3 + 2] * (1.0F - alpha) + alpha * mouseImg[(30 * y + x) * 4 + 0];
+            // Fill it with black ink
+            float r = 0.0F;
+            float g = 0.0F;
+            float b = 0.0F;
+            // Draw all drawables
+            for (int32_t i = 0; i < numDrawables; i++)
+            {
+                if (drawables[i]->isPixelInRange(x, y))
+                {
+                    int32_t relX = x - drawables[i]->getX(), relY = y - drawables[i]->getY();
+                    const float alpha = drawables[i]->getAlpha(relX, relY) / 256.0F;
+                    r = alphaBlending(r, drawables[i]->getRed(relX, relY), alpha);
+                    g = alphaBlending(g, drawables[i]->getGreen(relX, relY), alpha);
+                    b = alphaBlending(b, drawables[i]->getBlue(relX, relY), alpha);
+                }
+            }
+            drawHelper->put(x, y, r, g, b);
+        }
+    }
+}
+
+void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
+{
+    for (int32_t y = rect.y1; y < rect.y2; y++)
+    {
+        for (int32_t x = rect.x1; x < rect.x2; x++)
+        {
+            uint8_t r, g, b;
+            drawHelper->get(x, y, &r, &g, &b);
+
+            int32_t relX = x - d->getX(), relY = y - d->getY();
+            const float alpha = d->getAlpha(relX, relY) / 256.0F;
+            r = alphaBlending(r, d->getRed(relX, relY), alpha);
+            g = alphaBlending(g, d->getGreen(relX, relY), alpha);
+            b = alphaBlending(b, d->getBlue(relX, relY), alpha);
+            drawHelper->put(x, y, r, g, b);
         }
     }
 }
 
 void Compositor::drawNikita()
 {
-    auto physAddr = physPages.allocPage(true);
-    auto virtAddr = virtLast1G.allocPage(true);     // type: void*
-    if (!physAddr || !virtAddr) trigger_exception<27>();
+    addDrawable(new Desktop());
+    addDrawable(new Mouse());
 
-    // Why identity mapping? most VMEM maps to high 1G (clobbers kernel!)
-    // LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
-    LOAD_4MB_PAGE(((uint32_t)+virtAddr) >> 22, +physAddr << 22, PG_WRITABLE);
-    RELOAD_CR3();
-
-    uint8_t *nikita = (uint8_t *)+virtAddr;
-
-    File file;
-    theDispatcher->open(file, "landscape");
-    theDispatcher->read(file, nikita, 1024 * 768 * 4);
-    theDispatcher->close(file);
-
-
-    File mouseFile;
-    mouseImg = new uint8_t[5280];
-    theDispatcher->open(mouseFile, "mouse.png.conv");
-    theDispatcher->read(mouseFile, mouseImg, 5280);
-    theDispatcher->close(mouseFile);
-
-    paint_screen(+infoMaybe, videoMemory, nikita);
-    moveMouse(0, 0);
+    redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = 1024, .y2 = 768 });
 }
 
 void Compositor::enterVideoMode()

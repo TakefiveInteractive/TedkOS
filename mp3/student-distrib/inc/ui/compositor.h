@@ -7,20 +7,22 @@
 #include <inc/ui/vbe.h>
 #include <inc/klibs/maybe.h>
 
+using vbe::VBEMemHelp;
+
 namespace ui {
 
-class Drawable {
-    private:
-        int32_t width;
-        int32_t height;
-
-        int32_t x;
-        int32_t y;
-};
+class Drawable;
 
 enum VideoMode {
     Video,
     Text
+};
+
+struct Rectangle {
+    int32_t x1;     // top left
+    int32_t y1;
+    int32_t x2;     // bottom right
+    int32_t y2;
 };
 
 class Compositor {
@@ -31,18 +33,28 @@ class Compositor {
         VideoMode videoMode;
         uint8_t *mouseImg;
 
-        uint32_t mouseX = 512;
-        uint32_t mouseY = 384;
-
         Maybe<vbe::VideoModeInfo> infoMaybe;
 
-    public:
+        Drawable **drawables;
+        int32_t numDrawables;
+        VBEMemHelp *drawHelper;
+
+        // Compositor singleton object
+        static Compositor *comp;
         Compositor();
+
+    public:
+        static Compositor* getInstance();
+
         void enterVideoMode();
         void enterTextMode();
 
         void drawNikita();
         void moveMouse(int, int);
+
+        void redraw(const Rectangle &rect);
+        void addDrawable(Drawable *d);
+        void drawSingle(Drawable *d, const Rectangle &rect);
 };
 
 }
