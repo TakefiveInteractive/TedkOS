@@ -6,7 +6,7 @@
 
 namespace vbe
 {
-    Maybe<RawVbeInfoBlock> getVbeInfo()
+    RawVbeInfoBlock* getVbeInfo()
     {
         real_context_t context;
 
@@ -19,12 +19,12 @@ namespace vbe
         legacyInt(0x10, context);
 
         if(context.ax != 0x004f)
-            return Nothing;
+            return NULL;
 
-        return *(RawVbeInfoBlock*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
+        return (RawVbeInfoBlock*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
     }
 
-    Maybe<RawVbeVideoModeInfo> getVideoModeInfo(uint16_t mode)
+    RawVbeVideoModeInfo* getVideoModeInfo(uint16_t mode)
     {
         real_context_t context;
 
@@ -38,24 +38,25 @@ namespace vbe
         legacyInt(0x10, context);
 
         if(context.ax != 0x004f)
-            return Nothing;
+            return NULL;
 
-        return *(RawVbeVideoModeInfo*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
+        return (RawVbeVideoModeInfo*) RealModePtr(REAL_MODE_FREE_SEG, 0).get32();
     }
 
     Maybe<VideoModeInfo> findVideoModeInfo(function<bool (VideoModeInfo)> predicate)
     {
         // Iterate over all video modes and return the first one which satisfies the predicate
-        auto vbeInfoMaybe = getVbeInfo();
-        if (vbeInfoMaybe)
+        auto rawVbeInfo = getVbeInfo();
+        if (rawVbeInfo)
         {
-            VbeInfo vbeInfo(+vbeInfoMaybe);
+            VbeInfo vbeInfo(*rawVbeInfo);
             for (size_t i = 0; i < vbeInfo.numModes; i++)
             {
                 auto rawVbeInfoMaybe = getVideoModeInfo(vbeInfo.modeList[i]);
                 if (rawVbeInfoMaybe)
                 {
-                    VideoModeInfo videoInfo(+rawVbeInfoMaybe);
+                    VideoModeInfo videoInfo(*rawVbeInfoMaybe);
+                    printf("Mode 0x %x RGB = %s\n", vbeInfo.modeList[i], videoInfo.RGBMask);
                     if (predicate(videoInfo)) return videoInfo;
                 }
             }
@@ -124,6 +125,18 @@ namespace vbe
         for(i = 0; i < raw.RsvMaskSize; i++)
             RGBMask[i + raw.RsvFieldPosition] = '_';
     }
+
+    VideoModeInfo::VideoModeInfo(const VideoModeInfo& other)
+    {
+        memcpy(this, &other, sizeof(VideoModeInfo));
+    }
+
+    VideoModeInfo& VideoModeInfo::operator= (const VideoModeInfo& other)
+    {
+        memcpy(this, &other, sizeof(VideoModeInfo));
+        return *this;
+    }
+
     VideoModeInfo::~VideoModeInfo()
     {
     }

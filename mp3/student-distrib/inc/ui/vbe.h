@@ -84,6 +84,9 @@ namespace vbe
     public:
         VideoModeInfo(const RawVbeVideoModeInfo& raw);
 
+        VideoModeInfo(const VideoModeInfo& other);
+        VideoModeInfo& operator= (const VideoModeInfo& other);
+
         // All pointers below are kmalloc-ed, and need deleted
         ~VideoModeInfo();
 
@@ -132,8 +135,8 @@ namespace vbe
     //      these functions. Please make a backup if necessary.
     //          It does not help you back them up because most of the information
     //      is not very crucial and doing the backup might waste both time and memory.
-    Maybe<RawVbeInfoBlock> getVbeInfo();
-    Maybe<RawVbeVideoModeInfo> getVideoModeInfo(uint16_t mode);
+    RawVbeInfoBlock* getVbeInfo();
+    RawVbeVideoModeInfo* getVideoModeInfo(uint16_t mode);
     Maybe<VideoModeInfo> findVideoModeInfo(function<bool (VideoModeInfo)> fn);
 }
 

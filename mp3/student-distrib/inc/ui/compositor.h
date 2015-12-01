@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/x86/real.h>
+#include <inc/ui/vbe.h>
+#include <inc/klibs/maybe.h>
 
 namespace ui {
 
@@ -31,6 +33,8 @@ class Compositor {
 
         uint32_t mouseX = 512;
         uint32_t mouseY = 384;
+
+        Maybe<vbe::VideoModeInfo> infoMaybe;
 
     public:
         Compositor();
