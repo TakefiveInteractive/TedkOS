@@ -185,7 +185,7 @@ namespace vbe
         {
             uint8_t* writer = &vmem[3*(xfrom + y*1024)];
             uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
-            for(size_t x=xfrom; x<xto; x++)
+            for(volatile size_t x=xfrom; x<xto; x++)
             {
                 writer[2] = reader[0];
                 writer[1] = reader[1];
@@ -238,7 +238,7 @@ namespace vbe
     {
         for(size_t y=yfrom; y<yto; y++)
         {
-            uint8_t* writer = &vmem[3*(xfrom + y*1024)];
+            uint8_t* writer = &vmem[4*(xfrom + y*1024)];
             uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
             asm volatile (
                 "cld                                                    ;"
