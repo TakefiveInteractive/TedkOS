@@ -89,6 +89,9 @@ int32_t kb_close(void* fdEntity)
 // !!!! Warning: this function does NOT lock term_lock !!!!
 void term2kb_readover(int terminal_id)
 {
-    isThisTerminalWaitingForEnter[terminal_id] = 0;
+	// term_lock is already locked.
+	if(isThisTerminalWaitingForEnter[terminal_id]!=0)
+		isThisTerminalWaitingForEnter[terminal_id] = 0;
+	else term_buf_pos = 0;
 }
 
