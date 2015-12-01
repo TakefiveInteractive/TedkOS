@@ -5,6 +5,7 @@
 #include <inc/syscalls/filesystem_wrapper.h>
 #include <inc/x86/err_handler.h>
 #include <inc/x86/idt_init.h>
+#include <inc/ece391syscall.h>
 
 using namespace vbe;
 using namespace palloc;
@@ -12,9 +13,8 @@ using namespace filesystem;
 
 namespace ui {
 
-void paint_screen(VideoModeInfo info, uint8_t *pixel, uint8_t *source)
+void paint_screen(VBEMemHelp* helper, uint8_t *pixel, uint8_t *source)
 {
-    VBEMemHelp* helper = VBEMemHelpFactory::getInstance(info, pixel);
     helper->copy(source);
 
     /*
@@ -98,30 +98,41 @@ void Compositor::moveMouse(int dx, int dy)
 
 void Compositor::drawNikita()
 {
-    auto physAddr = physPages.allocPage(true);
-    auto virtAddr = virtLast1G.allocPage(true);     // type: void*
-    if (!physAddr || !virtAddr) trigger_exception<27>();
+    if(!nikita)
+    {
+        auto physAddr = physPages.allocPage(true);
+        auto virtAddr = virtLast1G.allocPage(true);     // type: void*
+        if (!physAddr || !virtAddr) trigger_exception<27>();
 
-    // Why identity mapping? most VMEM maps to high 1G (clobbers kernel!)
-    // LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
-    LOAD_4MB_PAGE(((uint32_t)+virtAddr) >> 22, +physAddr << 22, PG_WRITABLE);
-    RELOAD_CR3();
+        // Why identity mapping? most VMEM maps to high 1G (clobbers kernel!)
+        // LOAD_4MB_PAGE(+physAddr, +physAddr << 22, PG_WRITABLE);
+        LOAD_4MB_PAGE(((uint32_t)+virtAddr) >> 22, +physAddr << 22, PG_WRITABLE);
+        RELOAD_CR3();
 
-    uint8_t *nikita = (uint8_t *)+virtAddr;
+        nikita = (uint8_t *)+virtAddr;
 
-    File file;
-    theDispatcher->open(file, "landscape");
-    theDispatcher->read(file, nikita, 1024 * 768 * 4);
-    theDispatcher->close(file);
+        File file;
+        theDispatcher->open(file, "landscape");
+        theDispatcher->read(file, nikita, 1024 * 768 * 4);
+        theDispatcher->close(file);
 
 
-    File mouseFile;
-    mouseImg = new uint8_t[5280];
-    theDispatcher->open(mouseFile, "mouse.png.conv");
-    theDispatcher->read(mouseFile, mouseImg, 5280);
-    theDispatcher->close(mouseFile);
+        File mouseFile;
+        mouseImg = new uint8_t[5280];
+        theDispatcher->open(mouseFile, "mouse.png.conv");
+        theDispatcher->read(mouseFile, mouseImg, 5280);
+        theDispatcher->close(mouseFile);
+    }
 
-    paint_screen(+infoMaybe, videoMemory, nikita);
+    VBEMemHelp* helper = VBEMemHelpFactory::getInstance(+infoMaybe, videoMemory);
+
+    for(int i=0; i<10; i++)
+    {
+        paint_screen(helper, videoMemory, nikita);
+        paint_screen(helper, videoMemory, nikita + 1);
+        paint_screen(helper, videoMemory, nikita + 2);
+        paint_screen(helper, videoMemory, nikita + 3);
+    }
     moveMouse(0, 0);
 }
 
