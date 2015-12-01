@@ -16,6 +16,9 @@ class Drawable;
 constexpr int32_t ScreenWidth = 1024;
 constexpr int32_t ScreenHeight = 768;
 
+template<int32_t width, int32_t height>
+constexpr size_t RGBASize = width * height * 4;
+
 enum VideoMode {
     Video,
     Text
@@ -26,6 +29,13 @@ struct Rectangle {
     int32_t y1;
     int32_t x2;     // bottom right
     int32_t y2;
+
+    static int32_t BoundX(int32_t input) { return input < 0 ? 0 : input >= ScreenWidth ? ScreenWidth - 1 : input; }
+    static int32_t BoundY(int32_t input) { return input < 0 ? 0 : input >= ScreenHeight ? ScreenHeight - 1 : input; }
+
+    const Rectangle bound() const {
+        return Rectangle { .x1 = BoundX(x1), .y1 = BoundY(y1), .x2 = BoundX(x2), .y2 = BoundY(y2) };
+    }
 };
 
 typedef uint8_t (RGBAGroup)[4];

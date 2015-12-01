@@ -89,8 +89,9 @@ float alphaBlending(float p1, float p2, float alpha)
     return p1 * (1.0F - alpha) + p2 * alpha;
 }
 
-void Compositor::redraw(const Rectangle &rect)
+void Compositor::redraw(const Rectangle &_rect)
 {
+    const Rectangle &rect = _rect.bound();
     for (int32_t y = rect.y1; y < rect.y2; y++)
     {
         for (int32_t x = rect.x1; x < rect.x2; x++)
@@ -119,8 +120,9 @@ void Compositor::redraw(const Rectangle &rect)
     drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
-void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
+void Compositor::drawSingle(Drawable *d, const Rectangle &_rect)
 {
+    const Rectangle &rect = _rect.bound();
     for (int32_t y = rect.y1; y < rect.y2; y++)
     {
         for (int32_t x = rect.x1; x < rect.x2; x++)
