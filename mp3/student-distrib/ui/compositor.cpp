@@ -41,11 +41,6 @@ Compositor::Compositor()
                   modeInfo.bitsPerPixel == 32)
                 )
             {
-                // Ensure there are no reserved bits
-                for (size_t i = 32 - 8; i < 33; i++)
-                {
-                    if (modeInfo.RGBMask[i] != '\0') return false;
-                }
                 return true;
             }
             return false;
