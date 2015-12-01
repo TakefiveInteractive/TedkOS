@@ -6,6 +6,7 @@
 #include <inc/x86/err_handler.h>
 #include <inc/x86/idt_init.h>
 #include <inc/klibs/palloc.h>
+#include <inc/klibs/lib.h>
 
 using namespace vbe;
 using namespace palloc;
@@ -14,13 +15,7 @@ namespace ui {
 
 void paint_screen(VideoModeInfo info, uint8_t *pixel, uint8_t *source)
 {
-    VBEMemHelp helper(info, pixel);
-    const size_t width = info.xRes;
-    const size_t height = info.yRes;
-    for (size_t y = 0; y < height; y++) for (size_t x = 0; x < width; x++)
-    {
-        helper.put(x, y, source[(x + y * width) * 4 + 0], source[(x + y * width) * 4 + 1], source[(x + y * width) * 4 + 2]);
-    }
+    helper.copy(pixel, source);
 }
 
 Compositor* Compositor::comp = nullptr;
@@ -77,8 +72,10 @@ Compositor::Compositor() : numDrawables(0)
         // Figure this out programmatically
         videoMode = Text;
 
-        drawHelper = new VBEMemHelp(mode, videoMemory);
+        drawHelper = new VBEMemHelp(mode);
         drawables = new Drawable*[5];
+
+        memset(buildBuffer, 0, sizeof(buildBuffer));
     });
 }
 
@@ -115,9 +112,12 @@ void Compositor::redraw(const Rectangle &rect)
                     b = alphaBlending(b, drawables[i]->getBlue(relX, relY), alpha);
                 }
             }
-            drawHelper->put(x, y, r, g, b);
+            buildBuffer[(x + y * 1024) * 4 + 0] = r;
+            buildBuffer[(x + y * 1024) * 4 + 1] = g;
+            buildBuffer[(x + y * 1024) * 4 + 2] = b;
         }
     }
+    drawHelper->copy(videoMemory, buildBuffer);
 }
 
 void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
@@ -127,16 +127,18 @@ void Compositor::drawSingle(Drawable *d, const Rectangle &rect)
         for (int32_t x = rect.x1; x < rect.x2; x++)
         {
             uint8_t r, g, b;
-            drawHelper->get(x, y, &r, &g, &b);
+            r = buildBuffer[(x + y * 1024) * 4 + 0];
+            g = buildBuffer[(x + y * 1024) * 4 + 1];
+            b = buildBuffer[(x + y * 1024) * 4 + 2];
 
             int32_t relX = x - d->getX(), relY = y - d->getY();
             const float alpha = d->getAlpha(relX, relY) / 256.0F;
-            r = alphaBlending(r, d->getRed(relX, relY), alpha);
-            g = alphaBlending(g, d->getGreen(relX, relY), alpha);
-            b = alphaBlending(b, d->getBlue(relX, relY), alpha);
-            drawHelper->put(x, y, r, g, b);
+            buildBuffer[(x + y * 1024) * 4 + 0] = r;
+            buildBuffer[(x + y * 1024) * 4 + 1] = g;
+            buildBuffer[(x + y * 1024) * 4 + 2] = b;
         }
     }
+    drawHelper->copyRegion(videoMemory, buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawNikita()
