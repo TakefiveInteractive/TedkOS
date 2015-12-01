@@ -7,7 +7,7 @@ void systemCallHandler(void);
 
 namespace syscall
 {
-bool validUserPointer(void* ptr);
+bool validUserPointer(const void* ptr);
 }
 
 #endif

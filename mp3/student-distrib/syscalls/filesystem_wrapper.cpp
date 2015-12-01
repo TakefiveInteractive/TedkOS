@@ -1,4 +1,5 @@
 #include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/syscalls/syscalls.h>
 #include <inc/fs/filesystem.h>
 #include <inc/proc/tasks.h>
 
@@ -16,6 +17,8 @@ bool check_valid_fd(int32_t fd, ProcessDesc *processDesc)
 
 int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
+    if(!validUserPointer(buf))
+        return -1;
     sti();
     auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     if (!check_valid_fd(fd, processDesc)) return -1;
@@ -24,15 +27,19 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
 
 int32_t write(int32_t fd, const void *buf, int32_t nbytes)
 {
+    if(!validUserPointer(buf))
+        return -1;
     auto processDesc = getCurrentThreadInfo()->getProcessDesc();
-    if (!check_valid_fd(fd, processDesc)) return -1;
+    if (!processDesc->fileDescs.isValid(fd)) return -1;
     return theDispatcher->write(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
 int32_t open(const char *filename)
 {
+    if(!validUserPointer(filename))
+        return -1;
     auto processDesc = getCurrentThreadInfo()->getProcessDesc();
-    File *fd = new File;
+    File *fd = new File();
     if (processDesc->numFilesInDescs >= FD_ARRAY_LENGTH)
         return -1;
     bool res = theDispatcher->open(*fd, filename);

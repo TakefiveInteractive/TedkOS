@@ -1,5 +1,6 @@
 #include "sbrk.h"
 #include <inc/proc/tasks.h>
+#include <inc/syscalls/syscalls.h>
 
 namespace syscall { namespace sbrk {
 
