@@ -14,12 +14,12 @@ namespace ui {
 
 void paint_screen(VideoModeInfo info, uint8_t *pixel, uint8_t *source)
 {
-    VBEMemHelp helper(info, pixel);
+    VBEMemHelp* helper = VBEMemHelpFactory::getInstance(info, pixel);
     const size_t width = info.xRes;
     const size_t height = info.yRes;
     for (size_t y = 0; y < height; y++) for (size_t x = 0; x < width; x++)
     {
-        helper.put(x, y, source[(x + y * width) * 4 + 0], source[(x + y * width) * 4 + 1], source[(x + y * width) * 4 + 2]);
+        helper->put(x, y, source[(x + y * width) * 4 + 0], source[(x + y * width) * 4 + 1], source[(x + y * width) * 4 + 2]);
     }
 
     /*

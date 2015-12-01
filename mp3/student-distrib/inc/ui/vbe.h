@@ -108,27 +108,81 @@ namespace vbe
     // This structure has NO LOCK
     class VBEMemHelp
     {
-    private:
+    protected:
         // Unit: bytes
         uint8_t pixelSize;
 
         // Unit: bytes
         size_t totalSize;
+
         const VideoModeInfo info;
         uint8_t* vmem;
-
-        uint8_t colorCode(char colorCharName);
-        uint8_t rCode, gCode, bCode, oCode;
-        uint8_t maskCode[4];
     public:
-
         // vmem should be decided by Virtual Memory Manager
         VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem);
-        ~VBEMemHelp();
+        virtual ~VBEMemHelp();
 
-        VBEMemHelp& put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
-        VBEMemHelp& cls(uint8_t val);
-        VBEMemHelp& copy(uint8_t* buildBuffer); 
+        virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue) = 0; 
+        virtual VBEMemHelp* cls(uint8_t val);
+        virtual VBEMemHelp* copy(uint8_t* buildBuffer); 
+    };
+
+    class VBEMemHelpFactory
+    {
+    public:
+        static VBEMemHelp* getInstance(const VideoModeInfo& _info, uint8_t* vmem);
+    private:
+        // this is a slow, general implementation.
+        class HelpSlow : public VBEMemHelp
+        {
+        private:
+            uint8_t colorCode(char colorCharName);
+            uint8_t rCode, gCode, bCode, oCode;
+            uint8_t maskCode[4];
+        public:
+            // vmem should be decided by Virtual Memory Manager
+            HelpSlow(const VideoModeInfo& _info, uint8_t* vmem);
+            virtual ~HelpSlow();
+
+            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        };
+
+        class HelpRGB : public VBEMemHelp
+        {
+        public:
+            // vmem should be decided by Virtual Memory Manager
+            HelpRGB(const VideoModeInfo& _info, uint8_t* vmem);
+            virtual ~HelpRGB();
+
+            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        };
+        class HelpRGBO : public VBEMemHelp
+        {
+        public:
+            // vmem should be decided by Virtual Memory Manager
+            HelpRGBO(const VideoModeInfo& _info, uint8_t* vmem);
+            virtual ~HelpRGBO();
+
+            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        };
+        class HelpBGR : public VBEMemHelp
+        {
+        public:
+            // vmem should be decided by Virtual Memory Manager
+            HelpBGR(const VideoModeInfo& _info, uint8_t* vmem);
+            virtual ~HelpBGR();
+
+            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        };
+        class HelpBGRO : public VBEMemHelp
+        {
+        public:
+            // vmem should be decided by Virtual Memory Manager
+            HelpBGRO(const VideoModeInfo& _info, uint8_t* vmem);
+            virtual ~HelpBGRO();
+
+            virtual VBEMemHelp* put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue); 
+        };
     };
 
     // WARNING: previously returned information is clobbered when calling any of
