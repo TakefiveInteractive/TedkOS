@@ -56,7 +56,7 @@ namespace vbe
                 if (rawVbeInfoMaybe)
                 {
                     VideoModeInfo videoInfo(*rawVbeInfoMaybe);
-                    printf("Mode 0x %x RGB = %s\n", vbeInfo.modeList[i], videoInfo.RGBMask);
+                    printf("Mode 0x %x RGB = %s BPP = %d\n", vbeInfo.modeList[i], videoInfo.RGBMask, videoInfo.bitsPerPixel);
                     if (predicate(videoInfo)) return videoInfo;
                 }
             }
@@ -140,15 +140,16 @@ namespace vbe
     VideoModeInfo::~VideoModeInfo()
     {
     }
+
+    // ---------- VBEMemHelp : subclasses' CONSTRUCTORS
     VBEMemHelp::VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem) : info(_info)
     {
-        pixelSize = 0;
-        while(info.RGBMask[pixelSize]!='\0')
-            pixelSize++;
-        pixelSize = pixelSize >> 3;
+        pixelSize = info.bitsPerPixel >> 3;
         totalSize = (size_t)pixelSize * info.xRes * info.yRes;
         this->vmem = vmem;
-
+    }
+    VBEMemHelpFactory::HelpSlow::HelpSlow(const VideoModeInfo& _info, uint8_t* vmem) : VBEMemHelp(_info, vmem)
+    {
         rCode = colorCode('r');
         gCode = colorCode('g');
         bCode = colorCode('b');
@@ -157,35 +158,22 @@ namespace vbe
         for(int i=0; i<4; i++)
             maskCode[i] = colorCode(info.RGBMask[i * 8]);
     }
+    VBEMemHelpFactory::HelpRGB ::HelpRGB (const VideoModeInfo& _info, uint8_t* vmem) : VBEMemHelp(_info, vmem) {}
+    VBEMemHelpFactory::HelpBGR ::HelpBGR (const VideoModeInfo& _info, uint8_t* vmem) : VBEMemHelp(_info, vmem) {}
+    VBEMemHelpFactory::HelpRGBO::HelpRGBO(const VideoModeInfo& _info, uint8_t* vmem) : VBEMemHelp(_info, vmem) {}
+    VBEMemHelpFactory::HelpBGRO::HelpBGRO(const VideoModeInfo& _info, uint8_t* vmem) : VBEMemHelp(_info, vmem) {}
+
+    // ---------- VBEMemHelp : subclasses' DESTRUCTORS
     VBEMemHelp::~VBEMemHelp() {}
+    VBEMemHelpFactory::HelpSlow::~HelpSlow() {}
+    VBEMemHelpFactory::HelpRGB ::~HelpRGB () {}
+    VBEMemHelpFactory::HelpBGR ::~HelpBGR () {}
+    VBEMemHelpFactory::HelpRGBO::~HelpRGBO() {}
+    VBEMemHelpFactory::HelpBGRO::~HelpBGRO() {}
 
-    uint8_t VBEMemHelp::colorCode(char colorCharName)
-    {
-        switch (colorCharName)
-        {
-        case 'r': return 1;
-        case 'g': return 2;
-        case 'b': return 3;
-        default: return 0;
-        }
-    }
+    // ---------- VBEMemHelp : base class functions
 
-    VBEMemHelp& VBEMemHelp::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
-    {
-        size_t offset = (x + y * info.xRes) * pixelSize;
-        uint8_t colorByCode[4];
-        colorByCode[rCode] = red;
-        colorByCode[gCode] = green;
-        colorByCode[bCode] = blue;
-        colorByCode[oCode] = 0;
-
-        for(int i=0; i<pixelSize; i++)
-            vmem[offset + i] = colorByCode[maskCode[i]];
-
-        return *this;
-    }
-
-    VBEMemHelp& VBEMemHelp::cls(uint8_t val)
+    VBEMemHelp* VBEMemHelp::cls(uint8_t val)
     {
         asm volatile (
             "cld                                                    ;"
@@ -198,10 +186,10 @@ namespace vbe
               "D" (vmem)
             : "cc", "memory", "ecx", "eax"
         );
-        return *this;
+        return this;
     }
 
-    VBEMemHelp& VBEMemHelp::copy(uint8_t* buildBuffer)
+    VBEMemHelp* VBEMemHelp::copy(uint8_t* buildBuffer)
     {
         asm volatile (
             "cld                                                    ;"
@@ -213,7 +201,98 @@ namespace vbe
               "D" (vmem)
             : "cc", "memory", "ecx"
         );
-        return *this;
+        return this;
+    }
+
+    // -------- Help Slow
+
+    uint8_t VBEMemHelpFactory::HelpSlow::colorCode(char colorCharName)
+    {
+        switch (colorCharName)
+        {
+        case 'r': return 1;
+        case 'g': return 2;
+        case 'b': return 3;
+        default: return 0;
+        }
+    }
+
+    VBEMemHelp* VBEMemHelpFactory::HelpSlow::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        size_t offset = (x + y * info.xRes) * pixelSize;
+        uint8_t colorByCode[4];
+        colorByCode[rCode] = red;
+        colorByCode[gCode] = green;
+        colorByCode[bCode] = blue;
+        colorByCode[oCode] = 0;
+
+        for(int i=0; i<pixelSize; i++)
+            vmem[offset + i] = colorByCode[maskCode[i]];
+
+        return (VBEMemHelp*)this;
+    }
+
+    // -------- Help RGB
+
+    VBEMemHelp* VBEMemHelpFactory::HelpRGB::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        const size_t offset = (x + y * info.xRes) * 3;
+        vmem[offset + 0] = red;
+        vmem[offset + 1] = green;
+        vmem[offset + 2] = blue;
+        return (VBEMemHelp*)this;
+    }
+
+    // -------- Help BGR
+
+    VBEMemHelp* VBEMemHelpFactory::HelpBGR::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        const size_t offset = (x + y * info.xRes) * 3;
+        vmem[offset + 0] = blue;
+        vmem[offset + 1] = green;
+        vmem[offset + 2] = red;
+        return (VBEMemHelp*)this;
+    }
+
+    // -------- Help RGBO
+
+    VBEMemHelp* VBEMemHelpFactory::HelpRGBO::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        size_t offset = (x + y * info.xRes) * 4;
+        vmem[offset + 0] = red;
+        vmem[offset + 1] = green;
+        vmem[offset + 2] = blue;
+        return (VBEMemHelp*)this;
+    }
+
+    // -------- Help BGRO
+
+    VBEMemHelp* VBEMemHelpFactory::HelpBGRO::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        const size_t offset = (x + y * info.xRes) * 4;
+        vmem[offset + 0] = blue;
+        vmem[offset + 1] = green;
+        vmem[offset + 2] = red;
+        return (VBEMemHelp*)this;
+    }
+
+    VBEMemHelp* VBEMemHelpFactory::getInstance(const VideoModeInfo& _info, uint8_t* vmem)
+    {
+        if(_info.RGBMask[0] == 'r' && _info.RGBMask[1] == 'g' && _info.RGBMask[2] == 'b')
+        {
+            if(_info.bitsPerPixel == 24)
+                return (VBEMemHelp*)new VBEMemHelpFactory::HelpRGB(_info, vmem);
+            else if(_info.bitsPerPixel == 32)
+                return (VBEMemHelp*)new VBEMemHelpFactory::HelpRGBO(_info, vmem);
+        }
+        if(_info.RGBMask[0] == 'b' && _info.RGBMask[1] == 'g' && _info.RGBMask[2] == 'r')
+        {
+            if(_info.bitsPerPixel == 24)
+                return (VBEMemHelp*)new VBEMemHelpFactory::HelpBGR(_info, vmem);
+            else if(_info.bitsPerPixel == 32)
+                return (VBEMemHelp*)new VBEMemHelpFactory::HelpBGRO(_info, vmem);
+        }
+        return (VBEMemHelp*)new VBEMemHelpFactory::HelpSlow(_info, vmem);
     }
 }
 
