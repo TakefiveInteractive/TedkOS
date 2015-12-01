@@ -56,7 +56,7 @@ namespace vbe
                 if (rawVbeInfoMaybe)
                 {
                     VideoModeInfo videoInfo(*rawVbeInfoMaybe);
-                    printf("Mode 0x %x RGB = %s\n", vbeInfo.modeList[i], videoInfo.RGBMask);
+                    printf("Mode 0x %x RGB = %s BPP = %d\n", vbeInfo.modeList[i], videoInfo.RGBMask, videoInfo.bitsPerPixel);
                     if (predicate(videoInfo)) return videoInfo;
                 }
             }
@@ -140,73 +140,12 @@ namespace vbe
     VideoModeInfo::~VideoModeInfo()
     {
     }
-    VBEMemHelp::VBEMemHelp(const VideoModeInfo& _info, uint8_t* vmem) : info(_info)
-    {
-        pixelSize = 0;
-        while(info.RGBMask[pixelSize]!='\0')
-            pixelSize++;
-        pixelSize = pixelSize >> 3;
-        totalSize = (size_t)pixelSize * info.xRes * info.yRes;
-        this->vmem = vmem;
 
-        rCode = colorCode('r');
-        gCode = colorCode('g');
-        bCode = colorCode('b');
-        oCode = colorCode('_');
+    // ---------- VBEMemHelp : IMPLEMENTATIONS
 
-        for(int i=0; i<4; i++)
-            maskCode[i] = colorCode(info.RGBMask[i * 8]);
-    }
-    VBEMemHelp::~VBEMemHelp() {}
+    // ---------- BGR
 
-    uint8_t VBEMemHelp::colorCode(char colorCharName)
-    {
-        switch (colorCharName)
-        {
-        case 'r': return 1;
-        case 'g': return 2;
-        case 'b': return 3;
-        default: return 0;
-        }
-    }
-
-    VBEMemHelp& VBEMemHelp::put(size_t x, size_t y, uint8_t red, uint8_t green, uint8_t blue)
-    {
-        size_t offset = (x + y * info.xRes) * pixelSize;
-        uint8_t colorByCode[4];
-        colorByCode[rCode] = red;
-        colorByCode[gCode] = green;
-        colorByCode[bCode] = blue;
-        colorByCode[oCode] = 0;
-
-        for(int i = 0; i < pixelSize; i++)
-            vmem[offset + i] = colorByCode[maskCode[i]];
-
-        return *this;
-    }
-
-    VBEMemHelp& VBEMemHelp::get(size_t x, size_t y, uint8_t *red, uint8_t *green, uint8_t *blue)
-    {
-        size_t offset = (x + y * info.xRes) * pixelSize;
-        uint8_t *colorByCode[4];
-        colorByCode[rCode] = red;
-        colorByCode[gCode] = green;
-        colorByCode[bCode] = blue;
-        colorByCode[oCode] = NULL;
-
-        for (int i = 0; i < pixelSize; i++)
-        {
-            if (colorByCode[maskCode[i]])
-            {
-                *colorByCode[maskCode[i]] = vmem[offset + i];
-            }
-        }
-
-        return *this;
-    }
-
-
-    VBEMemHelp& VBEMemHelp::cls(uint8_t val)
+    void BGR_cls(uint8_t* vmem, uint8_t val)
     {
         asm volatile (
             "cld                                                    ;"
@@ -214,27 +153,133 @@ namespace vbe
             "movl %1, %%eax                                         ;"
             "rep stosb    # reset ECX *byte*                        "
             : /* no outputs */
-            : "rg" (totalSize),
+            : "rg" (1024 * 768 * 3),
               "rg" (val),
               "D" (vmem)
             : "cc", "memory", "ecx", "eax"
         );
-        return *this;
     }
 
-    VBEMemHelp& VBEMemHelp::copy(uint8_t* buildBuffer)
+    void BGR_put(uint8_t* vmem, uint8_t pixel, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        vmem[pixel*3 + 0] = blue;
+        vmem[pixel*3 + 1] = green;
+        vmem[pixel*3 + 2] = red;
+    }
+
+    void BGR_copy(uint8_t* vmem, uint8_t* buildBuffer)
+    {
+        for(size_t i=0; i < 1024 * 768; i++)
+        {
+            vmem[2] = buildBuffer[0];
+            vmem[1] = buildBuffer[1];
+            vmem[0] = buildBuffer[2];
+            vmem += 3;
+            buildBuffer += 4;
+        }
+    }
+
+    void BGR_copyRegion(uint8_t* vmem, uint8_t* buildBuffer, uint8_t xfrom, uint8_t xto, uint8_t yfrom, uint8_t yto)
+    {
+        for(size_t y=yfrom; y<yto; y++)
+        {
+            uint8_t* writer = &vmem[3*(xfrom + y*1024)];
+            uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
+            for(size_t x=xfrom; x<xto; x++)
+            {
+                writer[2] = reader[0];
+                writer[1] = reader[1];
+                writer[0] = reader[2];
+                writer += 3;
+                reader += 4;
+            }
+        }
+    }
+
+    // ---------- RGBO
+
+    void RGBO_cls(uint8_t* vmem, uint8_t val)
     {
         asm volatile (
             "cld                                                    ;"
             "movl %0, %%ecx                                         ;"
-            "rep movsb    # copy ECX *bytes* from M[ESI] to M[EDI]  "
+            "movl %1, %%eax                                         ;"
+            "rep stosb    # reset ECX *byte*                        "
             : /* no outputs */
-            : "rg" (totalSize),
+            : "rg" (1024 * 768 * 4),
+              "rg" (val),
+              "D" (vmem)
+            : "cc", "memory", "ecx", "eax"
+        );
+    }
+
+    void RGBO_put(uint8_t* vmem, uint8_t pixel, uint8_t red, uint8_t green, uint8_t blue)
+    {
+        vmem[pixel*4 + 0] = blue;
+        vmem[pixel*4 + 1] = green;
+        vmem[pixel*4 + 2] = red;
+    }
+
+    void RGBO_copy(uint8_t* vmem, uint8_t* buildBuffer)
+    {
+        asm volatile (
+            "cld                                                    ;"
+            "movl %0, %%ecx                                         ;"
+            "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
+            : /* no outputs */
+            : "i" (1024 * 768 * 4 / 4),
               "S" (buildBuffer),
               "D" (vmem)
             : "cc", "memory", "ecx"
         );
-        return *this;
+    }
+
+    void RGBO_copyRegion(uint8_t* vmem, uint8_t* buildBuffer, uint8_t xfrom, uint8_t xto, uint8_t yfrom, uint8_t yto)
+    {
+        for(size_t y=yfrom; y<yto; y++)
+        {
+            uint8_t* writer = &vmem[3*(xfrom + y*1024)];
+            uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
+            asm volatile (
+                "cld                                                    ;"
+                "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
+                : /* no outputs */
+                : "ecx" (xto - xfrom),
+                  "S" (reader),
+                  "D" (writer)
+                : "cc", "memory"
+            );
+        }
+    }
+
+    // --------- VBEMemHelp objects
+    VBEMemHelp HelpRGBO = {
+        .put        = RGBO_put,
+        .cls        = RGBO_cls,
+        .copy       = RGBO_copy,
+        .copyRegion = RGBO_copyRegion
+    };
+
+    VBEMemHelp HelpBGR  = {
+        .put        = BGR_put,
+        .cls        = BGR_cls,
+        .copy       = BGR_copy,
+        .copyRegion = BGR_copyRegion
+    };
+
+    Maybe<VBEMemHelp> getMemHelp(const VideoModeInfo& _info)
+    {
+        if(_info.RGBMask[0] == 'r' && _info.RGBMask[8] == 'g' && _info.RGBMask[16] == 'b')
+        {
+            if(_info.bitsPerPixel == 32)
+                return HelpRGBO;
+        }
+        if(_info.RGBMask[0] == 'b' && _info.RGBMask[8] == 'g' && _info.RGBMask[16] == 'r')
+        {
+            if(_info.bitsPerPixel == 24)
+                return HelpBGR;
+        }
+        return Nothing;
     }
 }
 

@@ -27,20 +27,21 @@ struct Rectangle {
 
 class Compositor {
     private:
+        uint8_t* nikita = NULL;
         real_context_t real_context;
         uint16_t orig_mode;
 
         // buildBuffer format: RGBA. + alignment.
-        uint8_t buildBuffer[1024 * 768 * 4] __attribute__((aligned (4)));
-        uint8_t *videoMemory;
+        uint8_t* buildBuffer;
+        uint8_t* videoMemory;
         VideoMode videoMode;
-        uint8_t *mouseImg;
+        uint8_t* mouseImg;
 
         Maybe<vbe::VideoModeInfo> infoMaybe;
 
         Drawable **drawables;
         int32_t numDrawables;
-        VBEMemHelp *drawHelper;
+        VBEMemHelp drawHelper;
 
         // Compositor singleton object
         static Compositor *comp;
