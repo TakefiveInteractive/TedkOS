@@ -28,25 +28,22 @@ Compositor::Compositor()
 {
     runWithoutNMI([this] () {
         auto VideoMode = findVideoModeInfo([](VideoModeInfo& modeInfo) {
-            // Locate 1024x768x24 mode
+            // Locate 1024x768 8BPP mode
             if (
                 modeInfo.xRes == 1024 &&
                 modeInfo.yRes == 768 &&
-                modeInfo.bitsPerPixel == 8
+                modeInfo._rawMode.RedMaskSize == 8 &&
+                modeInfo._rawMode.GreenMaskSize == 8 &&
+                modeInfo._rawMode.BlueMaskSize == 8
                 )
             {
-                // Ensure there are no reserved bits
-                for (size_t i = 32 - 8; i < 33; i++)
-                {
-                    if (modeInfo.RGBMask[i] != '\0') return false;
-                }
                 return true;
             }
             return false;
         });
         if (!VideoMode)
         {
-            printf("1024*768 24bits mode is NOT supported.\n");
+            printf("1024*768 8BPP mode is NOT supported.\n");
             trigger_exception<27>();
         }
         VideoModeInfo mode = +VideoMode;
