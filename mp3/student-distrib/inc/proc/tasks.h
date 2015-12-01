@@ -116,6 +116,7 @@ public:
     int32_t getUniqPid();
 
     FileDescArr fileDescs;
+    bool fdInitialized;
 
     // Currently no multithread
     thread_kinfo * mainThreadInfo;

@@ -7,6 +7,10 @@
 
 namespace syscall { namespace fops {
 
+// Helps initializes the file descriptors of uniq_pid:
+//  It assumes that the fd array is FILLED with NULL
+bool ensureFdInitialized(ProcessDesc* proc);
+
 int32_t read(int32_t fd, void *buf, int32_t nbytes);
 int32_t write(int32_t fd, const void *buf, int32_t nbytes);
 int32_t open(const char *filename);
@@ -16,8 +20,5 @@ int32_t lseek(int32_t fd, int32_t offset, int32_t whence);
 
 } }
 
-// Helps initializes the file descriptors of uniq_pid:
-//  It assumes that the fd array is FILLED with NULL
-int32_t init_fs_desc(ProcessDesc& proc);
 
 #endif

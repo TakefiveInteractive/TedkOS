@@ -76,22 +76,22 @@ uint32_t KBascii[128] =
     /* keycode here is all pressed keycode */
     0,/* unused,nothing happened */
     KKC_ESC,/* esc */
-	'1','2','3','4','5','6','7','8','9','0','-','=',
-	KKC_BACKSPACE,/* Backspace */
-	KKC_TAB,/* Tab */
-	'q','w','e','r','t','y','u','i','o','p','[',']',
-	KKC_ENTER,	/* Enter key */
+    '1','2','3','4','5','6','7','8','9','0','-','=',
+    KKC_BACKSPACE,/* Backspace */
+    KKC_TAB,/* Tab */
+    'q','w','e','r','t','y','u','i','o','p','[',']',
+    KKC_ENTER,	/* Enter key */
     KKC_CTRL,	/* left Control */
-	'a','s','d','f','g','h','j','k','l',
+    'a','s','d','f','g','h','j','k','l',
     ';',	/* 39 */
-	'\'', '`',
-	KKC_SHIFT,	/* Left shift */
-	'\\', 'z', 'x', 'c', 'v', 'b', 'n',			/* 49 */
-	'm', ',', '.', '/',
-	KKC_SHIFT,	/* Right shift */
-	'*',
+    '\'', '`',
+    KKC_SHIFT,	/* Left shift */
+    '\\', 'z', 'x', 'c', 'v', 'b', 'n',			/* 49 */
+    'm', ',', '.', '/',
+    KKC_SHIFT,	/* Right shift */
+    '*',
     KKC_ALT,	/* left Alt */
-	' ',/* Space */
+    ' ',/* Space */
     KKC_CAPSLOCK,	/* Caps lock */
     KKC_F1, KKC_F2, KKC_F3, KKC_F4, KKC_F5, KKC_F6, KKC_F7, KKC_F8, KKC_F9, KKC_F10,
     0,	/* 69 - Num lock*/
@@ -99,11 +99,11 @@ uint32_t KBascii[128] =
     KKC_HOME,	/* Home key */
     KKC_UP,	/* Up Arrow */
     KKC_PAGEUP,	/* Page Up */
-	'-',
+    '-',
     KKC_LEFT,	/* Left Arrow */
     0,
     KKC_RIGHT,	/* Right Arrow */
-	'+',
+    '+',
     KKC_END,	/* 79 - End key*/
     KKC_DOWN,	/* Down Arrow */
     KKC_PAGEDOWN,	/* Page Down */
