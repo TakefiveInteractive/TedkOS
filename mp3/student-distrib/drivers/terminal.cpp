@@ -165,10 +165,10 @@ namespace Term
         // Firstly: check owner
         if (OwnedByPid == -1)
         {
-            OwnedByPid = getCurrentThreadInfo()->getProcessDesc()->getUniqPid();
+            OwnedByPid = getCurrentThreadInfo()->getProcessDesc()->getPid();
             UserWaitingRead = false;
         }
-        else if (OwnedByPid != getCurrentThreadInfo()->getProcessDesc()->getUniqPid())
+        else if (OwnedByPid != getCurrentThreadInfo()->getProcessDesc()->getPid())
         {
             return -EFOPS;
         }

@@ -12,14 +12,14 @@ size_t ProcessDesc::nextNewProcess = 0;
 ProcessDesc *static_all_processes[MAX_NUM_PROCESS] = { };
 ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 
-ProcessDesc::ProcessDesc(int32_t _upid, ProcessType processType)
+ProcessDesc::ProcessDesc(int32_t _pid, ProcessType processType)
     : fileDescs(), fdInitialized(false), heapPhysicalPages(),
     heapStartingPageIdx(0), heapSize(0), numHeapPages(0),
     fileName(nullptr), arg(nullptr)
 {
     mainThreadInfo = new thread_kinfo(this, processType);
 
-    upid = _upid;
+    pid = _pid;
 }
 
 ProcessDesc::~ProcessDesc()
@@ -85,23 +85,23 @@ ProcessDesc** ProcessDesc::all()
     return all_processes;
 }
 
-ProcessDesc& ProcessDesc::get(size_t uniq_pid)
+ProcessDesc& ProcessDesc::get(size_t pid)
 {
-    return *all_processes[uniq_pid];
+    return *all_processes[pid];
 }
 
-void ProcessDesc::remove(size_t uniq_pid)
+void ProcessDesc::remove(size_t pid)
 {
-    if (all_processes[uniq_pid])
+    if (all_processes[pid])
     {
-        delete all_processes[uniq_pid];
-        all_processes[uniq_pid] = nullptr;
+        delete all_processes[pid];
+        all_processes[pid] = nullptr;
     }
 }
 
-int32_t ProcessDesc::getUniqPid()
+int32_t ProcessDesc::getPid() const
 {
-    return upid;
+    return pid;
 }
 
 ProcessDesc& ProcessDesc::newProcess(int32_t parentPID, ProcessType processType)

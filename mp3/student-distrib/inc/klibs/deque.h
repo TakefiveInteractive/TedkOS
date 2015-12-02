@@ -181,7 +181,7 @@ public:
             expandCap(2 * mCapacity);
 
         mSize ++;
-        
+
         size_t pos = (mBack + 1) % mCapacity;
         contents[pos] = new T(val);
         mBack = pos;
@@ -214,7 +214,7 @@ public:
             expandCap(2 * mCapacity);
 
         mSize ++;
-        
+
         size_t pos = (mFront - 1 + mCapacity) % mCapacity;
         contents[pos] = new T(val);
         mFront = pos;
