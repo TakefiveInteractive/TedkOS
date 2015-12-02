@@ -22,6 +22,5 @@ def convert(arg):
                 for i in range((stdColLen - len(row))):
                     f.write(bytearray([0]))
 
-
 for arg in args:
     convert(arg)
