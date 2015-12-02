@@ -5,6 +5,8 @@
 #include <inc/drivers/mouse.h>
 #include <inc/d2d/k2m.h>
 #include <inc/drivers/kbterm.h>
+#include <inc/drivers/pit.h>
+
 
 using namespace KeyB;
 using namespace Term;
