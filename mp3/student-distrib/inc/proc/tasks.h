@@ -26,6 +26,8 @@ using namespace util;
 
 class ProcessDesc;
 struct thread_kinfo;
+typedef int32_t Pid;
+typedef int32_t Tid;
 
 // This type stores the esp of the kernel stack of the thread to switch to.
 //      Use NULL if not going to switch.
@@ -37,6 +39,15 @@ enum ProcessType
     USER_PROCESS
 };
 
+enum ThreadState
+{
+    New = 1,
+    Ready,
+    Running,
+    Waiting,
+    Terminated
+};
+
 // because we saves all register states in kernel stack,
 //   here we do not repeat those states.
 struct thread_pcb
@@ -46,6 +57,8 @@ struct thread_pcb
     ProcessDesc* to_process;
 
     ProcessType type;
+
+    ThreadState runState;
 
     // Following is a simple list used by "scheduling"
     //    Simplest scheduling: process is paused and the next process
@@ -61,6 +74,8 @@ struct __attribute__ ((__packed__)) thread_kinfo
         thread_pcb pcb;
     } storage;
 
+    thread_pcb* getPCB() { return &storage.pcb; }
+
     ProcessDesc* getProcessDesc() { return storage.pcb.to_process; }
 
     bool isKernel() { return storage.pcb.type == KERNEL_PROCESS; }
@@ -72,6 +87,7 @@ struct __attribute__ ((__packed__)) thread_kinfo
         storage.pcb.next = NULL;
         storage.pcb.prev = NULL;
         storage.pcb.type = processType;
+        storage.pcb.runState = New;
     }
 };
 
@@ -104,22 +120,22 @@ private:
     static size_t nextNewProcess;
     static ProcessDesc** all_processes;
     ProcessDesc(int32_t _upid, ProcessType processType);
-    int32_t upid;
+    Pid pid;
 
 public:
     static ProcessDesc** all();
-    static ProcessDesc& get(size_t uniq_pid);
-    static void remove(size_t uniq_pid);
+    static ProcessDesc& get(Pid pid);
+    static void remove(Pid pid);
     static ProcessDesc& newProcess(int32_t _upid, ProcessType processType);
 
     ~ProcessDesc();
-    int32_t getUniqPid();
+    Pid getPid() const;
 
     FileDescArr fileDescs;
     bool fdInitialized;
 
-    // Currently no multithread
-    thread_kinfo * mainThreadInfo;
+    // Currently no multi-thread support
+    thread_kinfo *mainThreadInfo;
     TinyMemMap memmap;
 
     util::Stack<uint16_t, 1024> heapPhysicalPages;

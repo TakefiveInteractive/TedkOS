@@ -33,7 +33,7 @@ int32_t syshalt(uint32_t retval)
     else    // has prev
     {
         printf("Halt process with retval=%d!\n", retval);
-        scheduler::halt(getCurrentThreadInfo()->storage.pcb, retval);
+        scheduler::halt(*getCurrentThreadInfo()->getPCB(), retval);
     }
     return retval;
 }
