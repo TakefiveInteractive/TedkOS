@@ -102,19 +102,19 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
         printf("\n");
         if (prevInfo == NULL)
         {
-            printf("Init Process crashed!\n");
+            printf("A kernel thread crashed!\n");
             __asm__("1: hlt; jmp 1b;");
         }
         else    // has prev
         {
-            printf("Squashing process %d ...\n", getCurrentThreadInfo()->getProcessDesc()->getUniqPid());
-            scheduler::halt(getCurrentThreadInfo()->storage.pcb, 256);
-
-            // Must return here, otherwise it will halt.
-            return;
+            printf("Squashing process %d ...\n", getCurrentThreadInfo()->getProcessDesc()->getPid());
+            scheduler::halt(*getCurrentThreadInfo()->getPCB(), 256);
         }
     }
+    else
+    {
+        __asm__("1: hlt; jmp 1b;");
+    }
 
-    __asm__("1: hlt; jmp 1b;");
 }
 

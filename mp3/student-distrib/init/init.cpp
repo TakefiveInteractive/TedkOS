@@ -33,7 +33,7 @@ __attribute__((used)) void init_main(void* arg)
 
     auto thread = makeKThread(launcher);
 
-    ece391_dotask(thread->getProcessDesc()->getUniqPid());
+    ece391_dotask(thread->getProcessDesc()->getPid());
 
     // this part is NEVER REACHED
     asm volatile("1: hlt; jmp 1b;");
