@@ -49,4 +49,88 @@ TEST(LargeAdd, AWholeTest) {
     ASSERT_TRUE(q2.empty());
 }
 
+TEST(SchedulerNeeds, AWholeTest) {
+    const size_t len = 10240;
+    Deque<int> q;
+    std::deque<int> ans;
+
+    for(size_t i=0; i<len; i++)
+    {
+        int op = rand() % 5;
+        if(op == 0 || op == 1)             // push_back new element.
+        {
+            int val = rand();
+            q.push_back(val);
+            ans.push_back(val);
+        }
+        else if(op == 2 || op == 3)        // pop_front an element.
+        {
+            ASSERT_TRUE(q.size() == ans.size());
+            if(!q.empty())
+            {
+                ASSERT_TRUE(*q.front()==ans.front());
+                q.pop_front();
+                ans.pop_front();
+            }
+        }
+        else                    // clear deque
+        {
+            q.clear();
+            ans.clear();
+        }
+
+        ASSERT_TRUE(q.size()==ans.size());
+        for(size_t j=0; j<q.size(); j++)
+            ASSERT_TRUE(q[j]==ans[j]);
+    }
+}
+
+TEST(MessyPushPop, AWholeTest) {
+    const size_t len = 10240;
+    Deque<int> q;
+    std::deque<int> ans;
+
+    for(size_t i=0; i<len; i++)
+    {
+        int op = rand() % 4;
+        if(op == 0)             // push_back new element.
+        {
+            int val = rand();
+            q.push_back(val);
+            ans.push_back(val);
+        }
+        else if(op == 1)        // push_front
+        {
+            int val = rand();
+            q.push_front(val);
+            ans.push_front(val);
+        }
+        else if(op == 2)        // pop_front an element.
+        {
+            ASSERT_TRUE(q.size() == ans.size());
+            if(!q.empty())
+            {
+                ASSERT_TRUE(*q.front()==ans.front());
+                q.pop_front();
+                ans.pop_front();
+            }
+        }
+        else if(op == 3)        // pop_back an element.
+        {
+            ASSERT_TRUE(q.size() == ans.size());
+            if(!q.empty())
+            {
+                ASSERT_TRUE(*q.back()==ans.back());
+                q.pop_back();
+                ans.pop_back();
+            }
+        }
+
+        ASSERT_TRUE(q.size()==ans.size());
+        for(size_t j=0; j<q.size(); j++)
+            ASSERT_TRUE(q[j]==ans[j]);
+    }
+}
+
+
 #endif
