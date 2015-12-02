@@ -100,9 +100,9 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
 
 void forceStartThread(thread_kinfo* thread)
 {
-    cli();
     if(!thread)
         return;
+    cli();
     if(!cpu0_memmap.isStarted())
     {
         // Update fallback_txt_vmem for fallback putc() and clear()
