@@ -1,6 +1,9 @@
 #ifndef _KLIBS_DEQUE_H
 #define _KLIBS_DEQUE_H
 
+#include <stddef.h>
+#include <stdint.h>
+
 // No lock.
 // This D.S. stores value as instance, not as reference
 // (Making two copies and changing one of them will not affect the other)
@@ -10,7 +13,7 @@ class Deque
 private:
 
     // sInitialCapacity must be a NON-ZERO value
-    static constexpr size_t sInitialCapacity = 2;
+    static const size_t sInitialCapacity = 2;
 
     size_t mCapacity;
     size_t mSize;
@@ -21,17 +24,17 @@ private:
     size_t mFront, mBack;
 
     // array of pointers to element.
-    T** contents;
+    T** mContents;
 
-    // delete every pointer INSIDE contents array
-    // it does not delete[] contents
+    // delete every pointer INSIDE mContents array
+    // it does not delete[] mContents
     void nullifyContent()
     {
         size_t item = mFront;
         for(size_t i = 0; i < mSize; i++)
         {
-            delete contents[item];
-            contests[item] = NULL;
+            delete mContents[item];
+            mContents[item] = NULL;
             item = (item + 1) % mCapacity;
         }
     }
@@ -40,8 +43,8 @@ private:
     void _clear()
     {
         nullifyContent();
-        delete[] contents;
-        contents = NULL;
+        delete[] mContents;
+        mContents = NULL;
     }
 
     // copy other to *this
@@ -53,11 +56,11 @@ private:
         mFront = other.mFront;
         mBack  = other.mBack;
 
-        contents = new T*[mCapacity];
+        mContents = new T*[mCapacity];
         size_t item = mFront;
         for(size_t i = 0; i < mSize; i++)
         {
-            contents[item] = new T(other.contents[item]);
+            mContents[item] = new T(*other.mContents[item]);
             item = (item + 1) % mCapacity;
         }
     }
@@ -68,18 +71,29 @@ private:
         mCapacity = sInitialCapacity;
         mSize = 0;
         mFront = mBack = -1;
-        contents = new T*[mCapacity];
-        memset(contents, NULL, sizeof(T*) * mCapacity);
+        mContents = new T*[mCapacity];
+        memset(mContents, 0, sizeof(T*) * mCapacity);
     }
 
-    void shrinkCap(size_t newCap)
+    void resetCap(size_t newCap)
     {
+        if(newCap <= mSize)
+            return;
+
         T** newArr = new T*[newCap];
-    }
-    
-    void expandCap(size_t newCap)
-    {
-        T** newArr = new T*[newCap];
+        size_t item = mFront;
+        for(size_t i = 0; i < mSize; i++)
+        {
+            newArr[i] = mContents[item];
+            item = (item + 1) % mCapacity;
+        }
+
+        mFront = 0;
+        mBack = mSize - 1;
+        mCapacity = newCap;
+
+        delete[] mContents;
+        mContents = newArr;
     }
 
 public:
@@ -110,7 +124,7 @@ public:
         {
             printf("Exception: Deque Access Out of Bound!\n");
         }
-        return *contents[(mFront + pos) % mCapacity];
+        return *mContents[(mFront + pos) % mCapacity];
     }
 
     const T& operator[] (size_t pos) const
@@ -119,7 +133,7 @@ public:
         {
             printf("Exception: Deque Access Out of Bound!\n");
         }
-        return *contents[(mFront + pos) % mCapacity];
+        return *mContents[(mFront + pos) % mCapacity];
     }
 
     bool empty() const
@@ -172,18 +186,18 @@ public:
     {
         if(mSize == 0)
         {
-            content[0] = new T(val);
+            mContents[0] = new T(val);
             mBack = mFront = 0;
             mSize ++;
             return;
         }
         if(mSize == mCapacity)
-            expandCap(2 * mCapacity);
+            resetCap(2 * mCapacity);
 
         mSize ++;
 
         size_t pos = (mBack + 1) % mCapacity;
-        contents[pos] = new T(val);
+        mContents[pos] = new T(val);
         mBack = pos;
     }
 
@@ -192,31 +206,31 @@ public:
         if(mSize == 0)
             return;
 
-        delete contents[mBack];
-        contents[mBack] = NULL;
+        delete mContents[mBack];
+        mContents[mBack] = NULL;
         mBack = (mBack - 1 + mCapacity) % mCapacity;
 
         mSize --;
         if(mSize <= mCapacity/2)
-            shrinkCap(mCapacity/2);
+            resetCap(mCapacity/2);
     }
 
     void push_front(const T& val)
     {
         if(mSize == 0)
         {
-            content[0] = new T(val);
+            mContents[0] = new T(val);
             mBack = mFront = 0;
             mSize ++;
             return;
         }
         if(mSize == mCapacity)
-            expandCap(2 * mCapacity);
+            resetCap(2 * mCapacity);
 
         mSize ++;
 
         size_t pos = (mFront - 1 + mCapacity) % mCapacity;
-        contents[pos] = new T(val);
+        mContents[pos] = new T(val);
         mFront = pos;
     }
 
@@ -225,13 +239,13 @@ public:
         if(mSize == 0)
             return;
 
-        delete contents[mFront];
-        contents[mFront] = NULL;
+        delete mContents[mFront];
+        mContents[mFront] = NULL;
         mFront = (mFront + 1) % mCapacity;
 
         mSize --;
         if(mSize <= mCapacity/2)
-            shrinkCap(mCapacity/2);
+            resetCap(mCapacity/2);
     }
 
 };
