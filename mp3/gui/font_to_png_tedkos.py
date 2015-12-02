@@ -12,7 +12,7 @@ def convert(arg):
     switcher = {
         "1": 20,
         "2": 28,
-        "3": 40,
+        "3": 42,
     }
     stdColLen = switcher[os.path.basename(arg)[0]]
     with open(arg + '.conv', 'wb') as f:
