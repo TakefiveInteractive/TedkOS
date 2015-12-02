@@ -144,6 +144,30 @@ public:
         _init();
     }
 
+    const T* front() const
+    {
+        if(mSize == 0)
+            return NULL;
+        return mContents[mFront];
+    }
+
+    T* front()
+    {
+        return const_cast<T*>(const_cast<const Deque*>(this)->front());
+    }
+
+    const T* back() const
+    {
+        if(mSize == 0)
+            return NULL;
+        return mContents[mBack];
+    }
+
+    T* back()
+    {
+        return const_cast<T*>(const_cast<const Deque*>(this)->back());
+    }
+
     void push_back(const T& val)
     {
         if(mSize == 0)
