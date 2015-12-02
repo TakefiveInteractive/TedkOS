@@ -102,7 +102,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
         printf("\n");
         if (prevInfo == NULL)
         {
-            printf("Init Process crashed!\n");
+            printf("A kernel thread crashed!\n");
             __asm__("1: hlt; jmp 1b;");
         }
         else    // has prev

@@ -85,12 +85,12 @@ ProcessDesc** ProcessDesc::all()
     return all_processes;
 }
 
-ProcessDesc& ProcessDesc::get(size_t pid)
+ProcessDesc& ProcessDesc::get(Pid pid)
 {
     return *all_processes[pid];
 }
 
-void ProcessDesc::remove(size_t pid)
+void ProcessDesc::remove(Pid pid)
 {
     if (all_processes[pid])
     {
