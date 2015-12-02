@@ -6,6 +6,7 @@
 #include <inc/x86/stacker.h>
 #include <inc/drivers/pit.h>
 #include <inc/drivers/kbterm.h>
+#include <inc/klibs/deque.h>
 
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
@@ -16,6 +17,8 @@ namespace scheduler {
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
 
+Deque<Pid> *runQueue;
+
 void setTSS(const thread_pcb& pcb)
 {
     if(pcb.type == KERNEL_PROCESS)
@@ -25,6 +28,7 @@ void setTSS(const thread_pcb& pcb)
 
 void enablePreemptiveScheduling()
 {
+    runQueue = new Deque<Pid>();
     pit_init(20);   // switch every 50ms
 }
 
@@ -34,14 +38,14 @@ void makeDecision()
     // call "prepareSwitchTo" to schedule a context switch
 }
 
-int32_t newPausedProcess(int32_t parentPID, ProcessType processType)
+Pid newPausedProcess(int32_t parentPID, ProcessType processType)
 {
     ProcessDesc& pd = ProcessDesc::newProcess(parentPID, processType);
 
     // TODO: FIXME: Currently all processes are binded to terminal 0
     pd.currTerm = KeyB::getFirstTextTerm();
 
-    return pd.getUniqPid();
+    return pd.getPid();
 }
 
 // pass -1 to cancel a prepared switch.
@@ -108,7 +112,7 @@ void forceStartThread(thread_kinfo* thread)
         // Update fallback_txt_vmem for fallback putc() and clear()
         Maybe<uint32_t> vmemBase = virtOfPage0();
         char* vmemPage = NULL;
-        if(vmemBase)
+        if (vmemBase)
             vmemPage = (char*)(+vmemBase);
         else
         {

@@ -26,6 +26,8 @@ using namespace util;
 
 class ProcessDesc;
 struct thread_kinfo;
+typedef int32_t Pid;
+typedef int32_t Tid;
 
 // This type stores the esp of the kernel stack of the thread to switch to.
 //      Use NULL if not going to switch.
@@ -104,7 +106,7 @@ private:
     static size_t nextNewProcess;
     static ProcessDesc** all_processes;
     ProcessDesc(int32_t _upid, ProcessType processType);
-    int32_t upid;
+    Pid pid;
 
 public:
     static ProcessDesc** all();
@@ -113,13 +115,13 @@ public:
     static ProcessDesc& newProcess(int32_t _upid, ProcessType processType);
 
     ~ProcessDesc();
-    int32_t getUniqPid();
+    int32_t getPid() const;
 
     FileDescArr fileDescs;
     bool fdInitialized;
 
-    // Currently no multithread
-    thread_kinfo * mainThreadInfo;
+    // Currently no multi-thread support
+    thread_kinfo *mainThreadInfo;
     TinyMemMap memmap;
 
     util::Stack<uint16_t, 1024> heapPhysicalPages;

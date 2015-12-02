@@ -65,10 +65,10 @@ void store_arg(unique_ptr<char[]>& filename, uint32_t filename_len, uint32_t arg
     pd.arg[arg_len] = '\0';
 }
 
-// Returns the uniq_pid of new process.
-int32_t do_exec(const char* arg0)
+// Returns the pid of new process.
+Pid do_exec(const char* arg0)
 {
-    return runWithoutNMI([arg0] () -> int32_t
+    return runWithoutNMI([arg0] () -> Pid
     {
         uint32_t filename_len = strlen(arg0);
         unique_ptr<char[]> file(new char[filename_len + 1]);
@@ -84,8 +84,8 @@ int32_t do_exec(const char* arg0)
             // "no such command"
             return -1;
         }
-        int32_t child_upid = scheduler::newPausedProcess(
-            getCurrentThreadInfo()->getProcessDesc()->getUniqPid(),
+        Pid child_upid = scheduler::newPausedProcess(
+            getCurrentThreadInfo()->getProcessDesc()->getPid(),
             USER_PROCESS);
 
         if (child_upid < 0)
