@@ -11,16 +11,16 @@
 const static int32_t PIT_IRQ = 0;
 const static int32_t PIT_ID = 0;
 const static int32_t PIT_POLICY = 0;
-const static int32_t PIT_MAX_FREQ = 1193182;//hz
-const static int32_t PIT_MIN_FREQ = 19;//hz
+const static uint32_t PIT_MAX_FREQ = 1193182;//hz
+const static uint32_t PIT_MIN_FREQ = 19;//hz
 const static int32_t PIT_CMD_PORT = 0x43;
 
 
 int pit_handler(int irq, unsigned int saved_reg);
-int pit_config(int channel, int mode, int32_t freq);
-int pit_init(int32_t freq);
-int32_t pit_gettick();
-int32_t pit_tick2time(int32_t tick);
+int pit_config(int channel, int mode, uint32_t freq);
+int pit_init(uint32_t freq);
+uint32_t pit_gettick();
+uint32_t pit_tick2time(uint32_t tick);
 
 
 DEFINE_DRIVER_INIT(pit);

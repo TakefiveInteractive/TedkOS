@@ -5,7 +5,6 @@
 #include <inc/drivers/mouse.h>
 #include <inc/d2d/k2m.h>
 #include <inc/drivers/kbterm.h>
-#include <inc/drivers/pit.h>
 
 
 using namespace KeyB;
@@ -40,10 +39,13 @@ click_handler left_click_handler[MAX_HANDLERS];
 click_handler right_click_handler[MAX_HANDLERS];
 
 uint8_t mouse_enable_scancode;
-
+constexpr uint32_t DOUBLE_CLICK_THRESHOLD = 3e8;//0.3 second
 bool last_read;
 //  true for  ReadSuccess
 //  false for ReadFailure
+
+uint32_t click_tick = 0;//in nanosecond
+
 
 void write_byte(uint8_t data, uint8_t port);
 uint8_t read_byte();
@@ -139,6 +141,7 @@ void registerMouseMovementHandler(void (*fn) (int, int))
     moveMouse = fn;
 }
 
+
 int mouse_handler(int irq, unsigned int saved_reg) {
     AutoSpinLock(&KeyB::keyboard_lock);
 
@@ -163,18 +166,31 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                 if (moveMouse) moveMouse(deltax, deltay);
 
                 if (flags & LEFT_BUTTON) {
-                    printf("LEFT_BUTTON");
-                    int i;
-                    for (i = 0; i < MAX_HANDLERS; i++) {
-                        if (left_click_handler[i] != nullptr) {
-                            //left_click_handler[i]();
-                        }
+                    printf("LEFT_BUTTON\n");
+                    uint32_t delta_click_time;
+                    uint32_t new_click_tick = pit_gettick();
+                    delta_click_time = pit_tick2time(new_click_tick - click_tick);//nanosecond
+                    click_tick = new_click_tick;
+                    if(delta_click_time <= DOUBLE_CLICK_THRESHOLD)
+                    {
+                        printf("DOUBLE_LEFT_BUTTON\n");
+                        //call DOUBLE_LEFT_BUTTON click handler
                     }
+                    else
+                    {
+                        //call LEFT_BUTTON click handler
+                    }
+
+                    // for (int i = 0; i < MAX_HANDLERS; i++) {
+                    //     if (left_click_handler[i] != nullptr) {
+                    //         //left_click_handler[i]();
+                    //
+                    //     }
+                    // }
                 }
                 if (flags & RIGHT_BUTTON) {
-                    printf("RIGHT_BUTTON");
-                    int i;
-                    for (i = 0; i < MAX_HANDLERS; i++) {
+                    printf("RIGHT_BUTTON\n");
+                    for (int i = 0; i < MAX_HANDLERS; i++) {
                         if (right_click_handler[i] != nullptr) {
                             //right_click_handler[i]();
                         }

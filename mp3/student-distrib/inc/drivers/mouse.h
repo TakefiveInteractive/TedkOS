@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/drivers/common.h>
+#include <inc/drivers/pit.h>
 
 #ifdef __cplusplus
 

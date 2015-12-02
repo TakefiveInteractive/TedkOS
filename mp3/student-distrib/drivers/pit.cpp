@@ -3,8 +3,8 @@
 #include <inc/proc/sched.h>
 
 spinlock_t pit_lock = SPINLOCK_UNLOCKED;
-int32_t tick_counter = 0;//counter will inc 1 every time when irq
-int32_t freq_copy = 0;
+volatile int32_t tick_counter = 0;//counter will inc 1 every time when irq
+uint32_t freq_copy = 0;
 
 int PIT_DATA_PORT(int channel) { return 0x40 + channel; }
 
@@ -17,7 +17,7 @@ int PIT_DATA_PORT(int channel) { return 0x40 + channel; }
  * @param  freq    has to between 19 and 1193182
  * @return         return -1 if error occured
  */
-int pit_config(int channel, int mode, int32_t freq)
+int pit_config(int channel, int mode, uint32_t freq)
 {
     AutoSpinLock lock(&pit_lock);
 
@@ -45,7 +45,7 @@ int pit_config(int channel, int mode, int32_t freq)
     return 0;
 }
 
-int pit_init(int32_t freq)
+int pit_init(uint32_t freq)
 {
     return pit_config(0, 2, freq);
 }
@@ -58,15 +58,13 @@ int pit_handler(int irq, unsigned int saved_reg)
     return 0;
 }
 
-int32_t pit_gettick()
+uint32_t pit_gettick()
 {
-    AutoSpinLock lock(&pit_lock);
     return tick_counter;
 }
-int32_t pit_tick2time(int32_t tick)
+uint32_t pit_tick2time(uint32_t tick)
 {
-    AutoSpinLock lock(&pit_lock);
-    return 1e9/(tick*freq_copy);
+    return (uint32_t)(tick*(1e9/freq_copy));
 }
 
 
