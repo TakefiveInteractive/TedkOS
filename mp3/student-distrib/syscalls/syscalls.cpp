@@ -16,13 +16,6 @@ using namespace boost;
 
 namespace syscall {
 
-int32_t dotask(int32_t pid)
-{
-    if(getCurrentThreadInfo()->isKernel())
-        scheduler::prepareSwitchTo(pid);
-    return -1;
-}
-
 #define HAS_FLAG(X, FLAG) (((X) & (FLAG)) == (FLAG))
 
 bool validUserPointer(const void* ptr)
@@ -46,6 +39,21 @@ bool validUserPointer(const void* ptr)
 }
 
 #undef HAS_FLAG
+
+int32_t dotask(int32_t pid)
+{
+    if(getCurrentThreadInfo()->isKernel())
+        scheduler::prepareSwitchTo(pid);
+    return -1;
+}
+
+int32_t vidmap(uint8_t** ans)
+{
+    if(!validUserPointer(ans))
+        return -EFOPS;
+    *ans = getCurrentThreadInfo()->currTerm->enableVidmap();
+    return 0;
+}
 
 template<typename F>
 F super_cast(uint32_t input)

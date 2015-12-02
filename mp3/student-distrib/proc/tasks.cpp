@@ -76,7 +76,7 @@ void* ProcessDesc::sbrk(int32_t delta)
         // Delete it from paging system
         memmap.remove(virtAddr, physAddr);
     }
-    if (!cpu0_memmap.loadProcessMap(memmap)) return NULL;
+    if (!cpu0_memmap.loadProcessMap(this)) return NULL;
     return reinterpret_cast<void *>(heapStartingPageIdx * 4_MB + oldHeapSize);
 }
 

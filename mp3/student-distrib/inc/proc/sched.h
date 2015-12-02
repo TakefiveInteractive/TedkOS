@@ -38,6 +38,9 @@ namespace scheduler {
     // Cede current time slice
     void yield();
 
+    // Common code to halt/squash a process
+    void halt(thread_pcb& pcb, int32_t retval);
+
 }
 #endif
 

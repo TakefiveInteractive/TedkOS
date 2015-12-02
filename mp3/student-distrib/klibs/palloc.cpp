@@ -274,8 +274,9 @@ namespace palloc
         return true;
     }
 
-    bool MemMapManager::loadProcessMap(const TinyMemMap& map)
+    bool MemMapManager::loadProcessMap(const ProcessDesc* proc)
     {
+        const TinyMemMap& map = proc->map;
         if(!bIsStarted)
             return false;
         AutoSpinLock lock(cpu_cr3_lock);

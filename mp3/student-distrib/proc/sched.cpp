@@ -119,7 +119,7 @@ void forceStartThread(thread_kinfo* thread)
 
         cpu0_memmap.start();
     }
-    cpu0_memmap.loadProcessMap(thread->getProcessDesc()->memmap);
+    cpu0_memmap.loadProcessMap(thread->getProcessDesc());
 
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)thread->storage.pcb.esp0;
@@ -163,7 +163,7 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     setTSS(desc.mainThreadInfo->storage.pcb);
 
     // Switch Page Directory
-    cpu0_memmap.loadProcessMap(desc.memmap);
+    cpu0_memmap.loadProcessMap(&desc);
 
     currentlyRunning = wantToSwitchTo;
     // Reset dispatch decision state.
@@ -176,6 +176,24 @@ void yield()
 {
 }
 
+void halt(thread_pcb& pcb, int32_t retval)
+{
+    thread_kinfo* prevInfo = pcb.prev;
+    *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = retval;
+    scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getUniqPid());
+
+    auto term = pcb.to_process->currTerm;
+    // GET control of stdin.
+    if(term)
+    {
+        if(term->isVidmapEnabled())
+            term->disableVidmap();
+        term->setOwner(prevInfo->getProcessDesc()->getUniqPid());
+    }
+
+    // Clean up process
+    ProcessDesc::remove(pcb.to_process->getUniqPid());
+}
 
 }   // namespace scheduler
 

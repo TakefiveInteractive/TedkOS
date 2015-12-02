@@ -33,16 +33,7 @@ int32_t syshalt(uint32_t retval)
     else    // has prev
     {
         printf("Halt process with retval=%d!\n", retval);
-
-        *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = retval;
-        scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getUniqPid());
-
-        // GET control of stdin.
-        if(getCurrentThreadInfo()->getProcessDesc()->currTerm)
-            getCurrentThreadInfo()->getProcessDesc()->currTerm->setOwner(prevInfo->getProcessDesc()->getUniqPid());
-
-        // Clean up process
-        ProcessDesc::remove(getCurrentThreadInfo()->getProcessDesc()->getUniqPid());
+        scheduler::halt(getCurrentThreadInfo()->storage.pcb, retval);
     }
     return retval;
 }
