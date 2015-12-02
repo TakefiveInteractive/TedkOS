@@ -184,7 +184,7 @@ void halt(thread_pcb& pcb, int32_t retval)
 {
     thread_kinfo* prevInfo = pcb.prev;
     *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = retval;
-    scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getUniqPid());
+    scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getPid());
 
     auto term = pcb.to_process->currTerm;
     // GET control of stdin.
@@ -192,11 +192,11 @@ void halt(thread_pcb& pcb, int32_t retval)
     {
         if(term->isVidmapEnabled())
             term->disableVidmap();
-        term->setOwner(prevInfo->getProcessDesc()->getUniqPid());
+        term->setOwner(prevInfo->getProcessDesc()->getPid());
     }
 
     // Clean up process
-    ProcessDesc::remove(pcb.to_process->getUniqPid());
+    ProcessDesc::remove(pcb.to_process->getPid());
 }
 
 }   // namespace scheduler
