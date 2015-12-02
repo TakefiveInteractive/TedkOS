@@ -18,6 +18,8 @@
 using memory::operator "" _KB;
 using memory::operator "" _MB;
 
+class ProcessDesc;
+
 namespace palloc
 {
     static constexpr uint32_t PhysIdxLength = 12;
@@ -215,7 +217,7 @@ namespace palloc
         // to RELEASE the ACTUAL SPACE, call Phys/VirtAddrManager.freePage
         bool delCommonPage(const VirtAddr& virt);
         bool delCommonPage(const PhysAddr& phys);
-        bool loadProcessMap(const TinyMemMap& map);
+        bool loadProcessMap(const ProcessDesc* proc);
 
         bool isStarted();
 

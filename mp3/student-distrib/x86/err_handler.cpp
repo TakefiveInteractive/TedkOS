@@ -108,14 +108,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
         else    // has prev
         {
             printf("Squashing process %d ...\n", getCurrentThreadInfo()->getProcessDesc()->getUniqPid());
-
-            // Notify parent process that child crashed.
-            *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = 256;
-
-            scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getUniqPid());
-
-            // Clean up process
-            ProcessDesc::remove(getCurrentThreadInfo()->getProcessDesc()->getUniqPid());
+            scheduler::halt(getCurrentThreadInfo()->storage.pcb, 256);
 
             // Must return here, otherwise it will halt.
             return;

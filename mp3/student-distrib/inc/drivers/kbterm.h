@@ -103,6 +103,12 @@ namespace Term
     class TermPainter
     {
     public:
+
+        // Returns a VIRT pointer to USER-RW page
+        virtual uint8_t* enableVidmap() = 0;
+        virtual void disableVidmap() = 0;
+        virtual bool isVidmapEnabled();
+
         // !! ALL Painters have their own lock, separate from Term's lock !!
         virtual void clearScreen() = 0;
         virtual void scrollDown() = 0;
@@ -131,6 +137,11 @@ namespace Term
     public:
         TextModePainter();
         virtual void show();
+
+        // Returns a VIRT pointer to USER-RW page
+        virtual uint8_t* enableVidmap();
+        virtual void disableVidmap();
+        virtual bool isVidmapEnabled();
 
         virtual void clearScreen();
         virtual void scrollDown();
@@ -193,6 +204,11 @@ namespace Term
         virtual int32_t helpFinishRead(char* buffer, int32_t nbytes) final;
     public:
         Term();
+
+        // Returns a VIRT pointer to USER-RW page
+        virtual uint8_t* enableVidmap();
+        virtual void disableVidmap();
+        virtual bool isVidmapEnabled();
 
         virtual void key(uint32_t kkc, bool capslock) final;
         virtual void keyDown(uint32_t kkc, bool capslock) final;

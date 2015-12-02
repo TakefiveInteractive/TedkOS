@@ -51,7 +51,7 @@ namespace Term
             // This must only occur at process 0
             UserWaitingRead = false;
             auto& proc = ProcessDesc::get(OwnedByPid);
-            cpu0_memmap.loadProcessMap(proc.memmap);
+            cpu0_memmap.loadProcessMap(&proc);
             getRegs(proc.mainThreadInfo)->eax = helpFinishRead(UserWaitingBuffer, UserWaitingLen);
             scheduler::prepareSwitchTo(OwnedByPid);
         }
