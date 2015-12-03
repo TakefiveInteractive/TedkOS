@@ -45,7 +45,6 @@ bool last_read;// t for  Success;f for Failure
 bool left_botton_pressed;
 
 uint32_t click_tick = 0;//in nanosecond
-uint32_t press_tick = 0;//diff between press & release
 
 
 void write_byte(uint8_t data, uint8_t port);
@@ -184,7 +183,6 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     left_botton_pressed = true;
                     printf("LEFT_BUTTON_PRESSED\n");
 
-                    press_tick = pit_gettick();//only updt if pressed
                     if (mouse_moved)//mouse is moving
                     {
                         printf("DRAG handler\n");
@@ -220,7 +218,6 @@ int mouse_handler(int irq, unsigned int saved_reg) {
 
                 }
                 return 0;
-
             }
         }
     }
