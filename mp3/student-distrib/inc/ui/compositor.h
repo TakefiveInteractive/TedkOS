@@ -45,7 +45,9 @@ class Compositor {
     private:
         uint8_t* nikita = NULL;
         real_context_t real_context;
-        uint16_t orig_mode;
+
+        uint16_t originalVideoModeIndex;
+        uint16_t videoModeIndex;
 
         // buildBuffer format: RGBA. + alignment.
         PixelRow *buildBuffer;
