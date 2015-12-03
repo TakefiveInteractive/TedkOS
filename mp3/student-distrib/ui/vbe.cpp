@@ -170,7 +170,7 @@ namespace vbe
 
     void BGR_copy(uint8_t* vmem, uint8_t* buildBuffer)
     {
-        for(size_t i=0; i < 1024 * 768; i++)
+        for(int i=0; i < 1024 * 768; i++)
         {
             vmem[2] = buildBuffer[0];
             vmem[1] = buildBuffer[1];
@@ -186,7 +186,7 @@ namespace vbe
         {
             uint8_t* writer = &vmem[3*(xfrom + y*1024)];
             uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
-            for(volatile int x=xfrom; x<xto; x++)
+            for(int x=xfrom; x<xto; x++)
             {
                 writer[2] = reader[0];
                 writer[1] = reader[1];
