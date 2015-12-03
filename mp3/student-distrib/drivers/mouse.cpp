@@ -18,7 +18,7 @@ using namespace Term;
 #define LEFT_BUTTON (1 << 0)
 #define RIGHT_BUTTON (1 << 1)
 #define MIDDLE_BUTTON (1 << 2)
-#define MOVEMENT_ONE (1 << 3)
+#define MOVEMENT_ONE (1 << 3)//always 1
 #define X_SIGN (1 << 4)
 #define Y_SIGN (1 << 5)
 #define X_OVERFLOW (1 << 6)
@@ -40,11 +40,12 @@ click_handler right_click_handler[MAX_HANDLERS];
 
 uint8_t mouse_enable_scancode;
 constexpr uint32_t DOUBLE_CLICK_THRESHOLD = 3e8;//0.3 second
-bool last_read;
-//  true for  ReadSuccess
-//  false for ReadFailure
+
+bool last_read;// t for  Success;f for Failure
+bool left_botton_pressed;
 
 uint32_t click_tick = 0;//in nanosecond
+uint32_t press_tick = 0;//diff between press & release
 
 
 void write_byte(uint8_t data, uint8_t port);
@@ -141,6 +142,15 @@ void registerMouseMovementHandler(void (*fn) (int, int))
     moveMouse = fn;
 }
 
+void print_d2bin(uint8_t input)//debug helper function
+{
+    for(int i = 0;i < 8;i++)
+    {
+        printf("%d",(input & ( 1<<(7-i) ) ) >>(7-i) );
+    }
+    printf("\n");
+}
+bool mouse_moved;
 
 int mouse_handler(int irq, unsigned int saved_reg) {
     AutoSpinLock(&KeyB::keyboard_lock);
@@ -155,6 +165,8 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     (flags & X_OVERFLOW) == 0 &&
                     (flags & Y_OVERFLOW) == 0)
             {
+                //print_d2bin(flags);
+
                 int32_t deltax = read_byte();
                 if (flags & X_SIGN) {
                     deltax = deltax | 0xFFFFFF00;
@@ -164,37 +176,48 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     deltay = deltay | 0xFFFFFF00;
                 }
                 if (moveMouse) moveMouse(deltax, deltay);
+                if (deltax || deltay) mouse_moved = true;
 
-                if (flags & LEFT_BUTTON) {
-                    printf("LEFT_BUTTON\n");
+
+
+                if (flags & LEFT_BUTTON) {// LEFT_BUTTON pressed
+                    left_botton_pressed = true;
+                    printf("LEFT_BUTTON_PRESSED\n");
+
+                    press_tick = pit_gettick();//only updt if pressed
+                    if (mouse_moved)//mouse is moving
+                    {
+                        printf("DRAG handler\n");
+                        //call DRAG handler
+                    }
+                }
+                else//LEFT_BUTTON not pressed
+                {
+                    if (left_botton_pressed)//left button is already pressed before
+                    {
+                        left_botton_pressed = false;
+                        printf("LEFT_BUTTON_RELEASED\n");
+                    }
+
                     uint32_t delta_click_time;
                     uint32_t new_click_tick = pit_gettick();
-                    delta_click_time = pit_tick2time(new_click_tick - click_tick);//nanosecond
+                    delta_click_time = pit_tick2time(new_click_tick - click_tick);
                     click_tick = new_click_tick;
                     if(delta_click_time <= DOUBLE_CLICK_THRESHOLD)
                     {
-                        printf("DOUBLE_LEFT_BUTTON\n");
+                        printf("DOUBLE CLICK handler\n");
                         //call DOUBLE_LEFT_BUTTON click handler
                     }
                     else
                     {
+                        printf("LEFT CLICK handler\n");
                         //call LEFT_BUTTON click handler
                     }
-
-                    // for (int i = 0; i < MAX_HANDLERS; i++) {
-                    //     if (left_click_handler[i] != nullptr) {
-                    //         //left_click_handler[i]();
-                    //
-                    //     }
-                    // }
                 }
                 if (flags & RIGHT_BUTTON) {
-                    printf("RIGHT_BUTTON\n");
-                    for (int i = 0; i < MAX_HANDLERS; i++) {
-                        if (right_click_handler[i] != nullptr) {
-                            //right_click_handler[i]();
-                        }
-                    }
+                    printf("RIGHT_BUTTON handler\n");
+                    //call RIGHT_BUTTON click handler
+
                 }
                 return 0;
 
