@@ -68,7 +68,7 @@ Compositor::Compositor() : numDrawables(0)
         videoMemory = (uint8_t *) modeMemVirt;
         // TODO: assuming we are in text mode initially.
         // Figure this out programmatically
-        videoMode = Text;
+        displayMode = Text;
 
         // TODO: free the pages allocated here.
         buildBuffer = (PixelRow*) +virtLast1G.allocPage(true);
@@ -86,6 +86,8 @@ void Compositor::addDrawable(Drawable *d)
 {
     drawables[numDrawables] = d;
     numDrawables++;
+    // draw this thing
+    redraw(d->getBoundingRectangle());
 }
 
 float alphaBlending(float p1, float p2, float alpha)
@@ -121,7 +123,8 @@ void Compositor::redraw(const Rectangle &_rect)
             buildBuffer[y][x][2] = b;
         }
     }
-    drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
+    if (displayMode == Video)
+        drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawSingle(Drawable *d, const Rectangle &_rect)
@@ -147,35 +150,36 @@ void Compositor::drawSingle(Drawable *d, const Rectangle &_rect)
             buildBuffer[y][x][2] = b;
         }
     }
-    drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
+    if (displayMode == Video)
+        drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
 void Compositor::drawNikita()
 {
     addDrawable(new Desktop());
     addDrawable(new Mouse());
-
-    redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = ScreenWidth, .y2 = ScreenHeight });
 }
 
 void Compositor::enterVideoMode()
 {
     runWithoutNMI([this] () {
-        if (videoMode == Video) return;
+        if (displayMode == Video) return;
         real_context.ax = 0x4F02;
         real_context.bx = 0x8118;
         legacyInt(0x10, real_context);
-        videoMode = Video;
+        displayMode = Video;
+        // Trigger whole screen update
+        redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = ScreenWidth, .y2 = ScreenHeight });
     });
 }
 
 void Compositor::enterTextMode()
 {
     runWithoutNMI([this] () {
-        if (videoMode == Text) return;
+        if (displayMode == Text) return;
         real_context.ax = orig_mode;
         legacyInt(0x10, real_context);
-        videoMode = Text;
+        displayMode = Text;
     });
 }
 

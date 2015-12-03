@@ -8,6 +8,16 @@ namespace ui {
 // Whenever a drawable is moved around, it should trigger redraw on every pixel
 // in its old location, and draw itself onto its new location.
 class Drawable {
+    public:
+
+        int32_t getX() const { return x; }
+        int32_t getY() const { return y; }
+
+        const Rectangle getBoundingRectangle() const
+        {
+            return Rectangle { .x1 = x, .y1 = y, .x2 = x + width, .y2 = y + height };
+        }
+
     protected:
 
         int32_t width;
@@ -16,6 +26,8 @@ class Drawable {
         // coordinates of the top left corner
         int32_t x;
         int32_t y;
+
+    public:
 
         Drawable(int32_t _width, int32_t _height, int32_t _x, int32_t _y) : width(_width), height(_height), x(_x), y(_y)
         {
@@ -35,13 +47,9 @@ class Drawable {
             // erase old drawable
             Compositor::getInstance()->redraw(Rectangle { .x1 = oldX, .y1 = oldY, .x2 = oldX + width, .y2 = oldY + height });
 
-            Compositor::getInstance()->drawSingle(this, Rectangle { .x1 = x, .y1 = y, .x2 = x + width, .y2 = y + height });
+            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
         }
 
-    public:
-
-        int32_t getX() const { return x; }
-        int32_t getY() const { return y; }
 
         bool isPixelInRange(int32_t tx, int32_t ty)
         {

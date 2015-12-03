@@ -19,7 +19,7 @@ constexpr int32_t ScreenHeight = 768;
 template<int32_t width, int32_t height>
 constexpr size_t RGBASize = width * height * 4;
 
-enum VideoMode {
+enum DisplayMode {
     Video,
     Text
 };
@@ -50,7 +50,7 @@ class Compositor {
         // buildBuffer format: RGBA. + alignment.
         PixelRow *buildBuffer;
         uint8_t* videoMemory;
-        VideoMode videoMode;
+        DisplayMode displayMode;
 
         Maybe<vbe::VideoModeInfo> infoMaybe;
 
