@@ -28,6 +28,21 @@ namespace Term
 
     }
 
+    uint8_t* Term::enableVidmap()
+    {
+        return getTermPainter()->enableVidmap();
+    }
+
+    void Term::disableVidmap()
+    {
+        getTermPainter()->disableVidmap();
+    }
+
+    bool Term::isVidmapEnabled()
+    {
+        return getTermPainter()->isVidmapEnabled();
+    }
+
     // Warning: these handlers DO NOT LOCK spinlocks !!!
     void Term::nolock_enter_handler(uint32_t keycode)
     {

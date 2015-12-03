@@ -2,6 +2,7 @@
 #include <inc/klibs/AutoSpinLock.h>
 #include <inc/proc/tasks.h>
 #include <inc/x86/paging.h>
+#include <inc/init.h>
 
 namespace palloc
 {
@@ -307,6 +308,12 @@ namespace palloc
         spareMemMaps[1 - loadedMap] += commonMemMap;
         spareMemMaps[1 - loadedMap].loadToCR3();
         loadedMap = 1 - loadedMap;
+
+        if(proc->currTerm->isVidmapEnabled())
+        {
+            LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
+            RELOAD_CR3();
+        }
         return true;
     }
 
