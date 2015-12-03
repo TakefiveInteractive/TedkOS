@@ -112,9 +112,9 @@ ProcessDesc& ProcessDesc::newProcess(int32_t parentPID, ProcessType processType)
     thread_kinfo* parentInfo = NULL;
     if (parentPID >= 0)
         parentInfo = ProcessDesc::get(parentPID).mainThreadInfo;
-    p->mainThreadInfo->storage.pcb.prev = parentInfo;
+    p->mainThreadInfo->storage.pcb.execParent = parentInfo;
     if (parentInfo)
-        parentInfo->storage.pcb.next = p->mainThreadInfo;
+        parentInfo->storage.pcb.execChild = p->mainThreadInfo;
 
     if(!all_processes[pid])
         all_processes[pid] = p;
