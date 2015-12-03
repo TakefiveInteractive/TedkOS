@@ -43,6 +43,8 @@ constexpr uint32_t DOUBLE_CLICK_THRESHOLD = 3e8;//0.3 second
 
 bool last_read;// t for  Success;f for Failure
 bool left_botton_pressed;
+bool right_botton_pressed;
+
 
 uint32_t click_tick = 0;//in nanosecond
 
@@ -176,46 +178,60 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                 }
                 if (moveMouse) moveMouse(deltax, deltay);
                 if (deltax || deltay) mouse_moved = true;
+                else mouse_moved = false;
 
 
 
-                if (flags & LEFT_BUTTON) {// LEFT_BUTTON pressed
+                if (flags & LEFT_BUTTON)
+                {
                     left_botton_pressed = true;
-                    printf("LEFT_BUTTON_PRESSED\n");
+                    //printf("LEFT_BUTTON PRESS\n");
 
                     if (mouse_moved)//mouse is moving
                     {
-                        printf("DRAG handler\n");
+                        //printf("DRAG handler\n");
                         //call DRAG handler
                     }
+
                 }
                 else//LEFT_BUTTON not pressed
                 {
                     if (left_botton_pressed)//left button is already pressed before
                     {
                         left_botton_pressed = false;
-                        printf("LEFT_BUTTON_RELEASED\n");
-                    }
+                        //printf("LEFT_BUTTON RELEASE\n");
 
-                    uint32_t delta_click_time;
-                    uint32_t new_click_tick = pit_gettick();
-                    delta_click_time = pit_tick2time(new_click_tick - click_tick);
-                    click_tick = new_click_tick;
-                    if(delta_click_time <= DOUBLE_CLICK_THRESHOLD)
-                    {
-                        printf("DOUBLE CLICK handler\n");
-                        //call DOUBLE_LEFT_BUTTON click handler
+                    if (!mouse_moved) {
+                        uint32_t delta_click_time;
+                        uint32_t new_click_tick = pit_gettick();
+                        delta_click_time = pit_tick2time(new_click_tick - click_tick);
+                        click_tick = new_click_tick;
+                        if (delta_click_time <= DOUBLE_CLICK_THRESHOLD)
+                        {
+                            //printf("DOUBLE CLICK handler\n");
+                            //call DOUBLE_LEFT_BUTTON click handler
+                        }
+                        else
+                        {
+                            //printf("LEFT CLICK handler\n");
+                            //call LEFT_BUTTON click handler
+                        }
                     }
-                    else
-                    {
-                        printf("LEFT CLICK handler\n");
-                        //call LEFT_BUTTON click handler
                     }
                 }
                 if (flags & RIGHT_BUTTON) {
-                    printf("RIGHT_BUTTON handler\n");
+                    right_botton_pressed = true;
+                    //printf("RIGHT_BUTTON PRESS\n");
                     //call RIGHT_BUTTON click handler
+                }
+                else
+                {
+                    if (right_botton_pressed)
+                    {
+                        right_botton_pressed = false;
+                        //printf("RIGHT_BUTTON RELEASE\n");
 
+                    }
                 }
                 return 0;
             }
