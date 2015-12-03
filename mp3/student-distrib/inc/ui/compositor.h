@@ -43,7 +43,6 @@ typedef RGBAGroup (PixelRow)[ScreenWidth];
 
 class Compositor {
     private:
-        uint8_t* nikita = NULL;
         real_context_t real_context;
 
         uint16_t originalVideoModeIndex;
@@ -71,7 +70,6 @@ class Compositor {
         void enterTextMode();
 
         void drawNikita();
-        void moveMouse(int, int);
 
         void redraw(const Rectangle &rect);
         void addDrawable(Drawable *d);
