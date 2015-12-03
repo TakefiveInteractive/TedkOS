@@ -61,9 +61,9 @@ struct thread_pcb
     ThreadState runState;
 
     // Following is a simple list used by "scheduling"
-    //    Simplest scheduling: process is paused and the next process
+    //    EXEC     scheduling: process is paused and the next process
     //    to be executed is stored as current pcb->next.
-    thread_kinfo *next, *prev;
+    thread_kinfo *execChild, *execParent;
 };
 
 //!!!! thread_kinfo must be aligned in memory !!!!
@@ -84,8 +84,8 @@ struct __attribute__ ((__packed__)) thread_kinfo
     {
         storage.pcb.esp0 = NULL;
         storage.pcb.to_process = parent;
-        storage.pcb.next = NULL;
-        storage.pcb.prev = NULL;
+        storage.pcb.execChild = NULL;
+        storage.pcb.execParent = NULL;
         storage.pcb.type = processType;
         storage.pcb.runState = New;
     }

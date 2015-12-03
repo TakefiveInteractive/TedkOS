@@ -17,7 +17,8 @@ namespace scheduler {
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
 
-Deque<Pid> *runQueue;
+Deque<Pid> activeQueue;
+Deque<Pid> pausedQueue;
 
 void setTSS(const thread_pcb& pcb)
 {
@@ -182,7 +183,7 @@ void yield()
 
 void halt(thread_pcb& pcb, int32_t retval)
 {
-    thread_kinfo* prevInfo = pcb.prev;
+    thread_kinfo* prevInfo = pcb.execParent;
     *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = retval;
     scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getPid());
 
