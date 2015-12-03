@@ -107,7 +107,7 @@ namespace Term
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap() = 0;
         virtual void disableVidmap() = 0;
-        virtual bool isVidmapEnabled();
+        virtual bool isVidmapEnabled() = 0;
 
         // !! ALL Painters have their own lock, separate from Term's lock !!
         virtual void clearScreen() = 0;
@@ -292,4 +292,3 @@ DEFINE_DRIVER_REMOVE(kb);
 
 
 #endif//_KB_TERM_DRIVER_H
-
