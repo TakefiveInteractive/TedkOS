@@ -35,10 +35,6 @@
 // pic/list.h must be included after irqaction type has been declared.
 #include <pic/list.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct {
     unsigned int status;            /* IRQ status, currently NOT used */
     unsigned int depth;             /* nested irq disables */
@@ -88,9 +84,5 @@ int bind_irq(unsigned int irq, unsigned int device_id,
 
 // Similar to free_irq in linux. Unbinds handler of device_id from irq
 void unbind_irq(unsigned int irq, unsigned int device_id);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* _I8259_H */

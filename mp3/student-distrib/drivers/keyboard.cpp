@@ -120,7 +120,7 @@ uint32_t KBascii[128] =
 #define RELEASE_OFFSET      0x80
 
 int8_t  pending_special = 0;
-extern "C" int kb_handler(int irq, unsigned int saved_reg);
+int kb_handler(int irq, unsigned int saved_reg);
 
 DEFINE_DRIVER_INIT(kb) {
     AutoSpinLock l(&KeyB::keyboard_lock);

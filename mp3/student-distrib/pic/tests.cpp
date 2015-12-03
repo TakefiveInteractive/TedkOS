@@ -17,19 +17,19 @@ typedef struct {
     int size;           // How many data are actually stored
 	irqaction_t data[_PIC_ACTION_LIST_SIZE];
     irqaction_t *head, *tail;
-    // Note that if either of head, tail is NULL, both are NULL. 
-    //           if either of head, tail is NOT NULL, both are NOT NULL. 
+    // Note that if either of head, tail is NULL, both are NULL.
+    //           if either of head, tail is NOT NULL, both are NOT NULL.
 } irqaction_list;
 
-extern "C" void init_list(irqaction_list* list);
+void init_list(irqaction_list* list);
 
-extern "C" int add_action(irqaction_list* list, irq_good_handler_t handler, unsigned int policy_flags, unsigned int mask, unsigned int dev_id);
+int add_action(irqaction_list* list, irq_good_handler_t handler, unsigned int policy_flags, unsigned int mask, unsigned int dev_id);
 
-extern "C" irqaction* first_action(irqaction_list* list);
+irqaction* first_action(irqaction_list* list);
 
-extern "C" irqaction* find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find);
+irqaction* find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find);
 
-extern "C" void remove_action(irqaction_list* list, irqaction* item);
+void remove_action(irqaction_list* list, irqaction* item);
 
 TEST(NextPrevPointers, SimpleAdds) {
 	irqaction_list list;
