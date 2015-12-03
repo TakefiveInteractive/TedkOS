@@ -1,14 +1,16 @@
 #include "ata_priv.h"
+#include <inc/klibs/lib.h>
 
 namespace ata {
 
 char dbgbuf[256];
 
-syscall_table *SYSCALL_TABLE;
-
 drv_driver ata_driver;
 
 lock ata_lock, ata_drv_lock;
+
+#define dbgpf printf
+#define dbgout printf
 
 static void ata_io_wait(struct ata_device * dev) {
     inb(dev->io_base + ATA_REG_ALTSTATUS);
@@ -25,7 +27,7 @@ int ata_wait(struct ata_device * dev, int advanced) {
 
     while ((status = inb(dev->io_base + ATA_REG_STATUS)) & ATA_SR_BSY) {
         //dbgpf("ATA: Status: %x\n", inb(dev->io_base + ATA_REG_STATUS));
-        yield();
+        //yield();
     }
 
     if (advanced) {
@@ -307,7 +309,6 @@ char *ata_desc(){
 extern "C" int module_main(syscall_table *systbl, char *params){
     drv_driver driver={ata_open, ata_close, ata_read, ata_write, ata_seek, ata_ioctl, ata_type, ata_desc};
     ata_driver=driver;
-    SYSCALL_TABLE=systbl;
     dbgout("ATA: Init...\n");
     init_lock(&ata_lock);
     init_lock(&ata_drv_lock);

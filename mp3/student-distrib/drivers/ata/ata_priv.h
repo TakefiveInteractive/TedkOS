@@ -5,6 +5,9 @@
 #ifndef _INC_ATA_HPP_
 #define _INC_ATA_HPP_
 
+#include <stdint.h>
+#include <stddef.h>
+
 namespace ata {
 
 constexpr uint16_t ATA_SR_BSY      = 0x80;
