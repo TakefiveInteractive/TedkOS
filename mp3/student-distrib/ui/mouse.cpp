@@ -15,8 +15,8 @@ Mouse *mouseObj;
 constexpr int MouseWidth = 30;
 constexpr int MouseHeight = 44;
 
-constexpr int ClickPointOffsetX = 5;
-constexpr int ClickPointOffsetY = 7;
+constexpr int ClickPointOffsetX = 6;
+constexpr int ClickPointOffsetY = 8;
 
 void moveOurMouse(int dx, int dy)
 {

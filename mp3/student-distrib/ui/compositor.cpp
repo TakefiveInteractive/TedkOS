@@ -80,8 +80,7 @@ Compositor::Compositor() : numDrawables(0)
         drawHelper = +getMemHelp(mode);
         drawables = new Drawable*[5];
 
-        memset(buildBuffer, 0, ScreenWidth * ScreenHeight * 4);
-        memset(videoMemory, 0, ScreenWidth * ScreenHeight * 4);
+        memset(buildBuffer, 0, RGBASize<ScreenWidth, ScreenHeight>);
     });
 }
 
