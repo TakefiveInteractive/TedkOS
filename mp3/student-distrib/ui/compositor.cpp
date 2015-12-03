@@ -13,11 +13,6 @@ using namespace palloc;
 
 namespace ui {
 
-void paint_screen(VBEMemHelp& helper, uint8_t *pixel, uint8_t *source)
-{
-    helper.copy(pixel, source);
-}
-
 Compositor* Compositor::comp = nullptr;
 
 Compositor* Compositor::getInstance()
