@@ -70,6 +70,7 @@ namespace Term
             getRegs(proc.mainThreadInfo)->eax = helpFinishRead(UserWaitingBuffer, UserWaitingLen);
             scheduler::prepareSwitchTo(OwnedByPid);
         }
+        else term_buf_pos = 0;
     }
 
     void Term::nolock_backspace_handler(uint32_t keycode)

@@ -20,9 +20,8 @@ namespace Term
         else return backupBuffer;
     }
 
-    void TextModePainter::clearScreen()
+    void TextModePainter::clearScreenNolock()
     {
-        AutoSpinLock l(&lock);
         asm volatile (
             "cld                                                    ;"
             "movl %0, %%ecx                                         ;"
@@ -44,6 +43,12 @@ namespace Term
             return;
 
         helpSetCursor(0, 0);
+    }
+
+    void TextModePainter::clearScreen()
+    {
+        AutoSpinLock l(&lock);
+        clearScreenNolock();
     }
 
     // Scroll the whole screen down by 1 line.
@@ -201,6 +206,7 @@ namespace Term
     uint8_t* TextModePainter::enableVidmap()
     {
         AutoSpinLock l(&lock);
+        clearScreenNolock();
         bIsVidmapEnabled = true;
         LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
         RELOAD_CR3();
@@ -210,6 +216,7 @@ namespace Term
     void TextModePainter::disableVidmap()
     {
         AutoSpinLock l(&lock);
+        clearScreenNolock();
         bIsVidmapEnabled = false;
         global_cr3val[0] = 0x0;
         RELOAD_CR3();
