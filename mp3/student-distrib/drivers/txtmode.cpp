@@ -1,5 +1,6 @@
 #include <inc/drivers/kbterm.h>
 #include <inc/klibs/palloc.h>
+#include <inc/init.h>
 
 using palloc::virtOfPage0;
 
@@ -195,6 +196,29 @@ namespace Term
     TextModePainter::TextModePainter() : TermPainter()
     {
         clearScreen();
+    }
+
+    uint8_t* TextModePainter::enableVidmap()
+    {
+        AutoSpinLock l(&lock);
+        bIsVidmapEnabled = true;
+        LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
+        RELOAD_CR3();
+        return (uint8_t*)PRE_INIT_VIDEO;
+    }
+
+    void TextModePainter::disableVidmap()
+    {
+        AutoSpinLock l(&lock);
+        bIsVidmapEnabled = false;
+        global_cr3val[0] = 0x0;
+        RELOAD_CR3();
+        return;
+    }
+
+    bool TextModePainter::isVidmapEnabled()
+    {
+        return bIsVidmapEnabled;
     }
 }
 

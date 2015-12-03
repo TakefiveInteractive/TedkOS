@@ -128,6 +128,7 @@ namespace Term
         uint8_t backupBuffer[SCREEN_WIDTH * SCREEN_HEIGHT * 2];
         uint32_t cursorX = 0, cursorY = 0;
         bool isLoadedInVmem;
+        bool bIsVidmapEnabled = false;
 
         // this is just helper. this does NOT lock spinlock
         uint8_t* videoMem();
@@ -206,9 +207,9 @@ namespace Term
         Term();
 
         // Returns a VIRT pointer to USER-RW page
-        virtual uint8_t* enableVidmap();
-        virtual void disableVidmap();
-        virtual bool isVidmapEnabled();
+        virtual uint8_t* enableVidmap() final;
+        virtual void disableVidmap() final;
+        virtual bool isVidmapEnabled() final;
 
         virtual void key(uint32_t kkc, bool capslock) final;
         virtual void keyDown(uint32_t kkc, bool capslock) final;
