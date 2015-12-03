@@ -30,8 +30,8 @@ struct Rectangle {
     int32_t x2;     // bottom right
     int32_t y2;
 
-    static int32_t BoundX(int32_t input) { return input < 0 ? 0 : input >= ScreenWidth ? ScreenWidth - 1 : input; }
-    static int32_t BoundY(int32_t input) { return input < 0 ? 0 : input >= ScreenHeight ? ScreenHeight - 1 : input; }
+    static int32_t BoundX(int32_t input) { return input < 0 ? 0 : input > ScreenWidth ? ScreenWidth : input; }
+    static int32_t BoundY(int32_t input) { return input < 0 ? 0 : input > ScreenHeight ? ScreenHeight : input; }
 
     const Rectangle bound() const {
         return Rectangle { .x1 = BoundX(x1), .y1 = BoundY(y1), .x2 = BoundX(x2), .y2 = BoundY(y2) };
