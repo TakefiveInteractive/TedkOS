@@ -5,11 +5,14 @@
 #include <inc/klibs/fixedmemorypool.h>
 using namespace util;
 
+constexpr size_t LambdaMaxSizeOfCapture = 64;
+typedef MemoryPool<uint8_t[LambdaMaxSizeOfCapture], 2> LambdaPool;
+
 template<typename Result,typename ...Args>
 struct abstract_function
 {
     virtual Result operator()(Args... args) = 0;
-    virtual abstract_function *clone(MemoryPool<uint8_t[64], 2> &pool) const = 0;
+    virtual abstract_function *clone(LambdaPool &pool) const = 0;
     virtual ~abstract_function() = default;
 };
 
@@ -24,13 +27,16 @@ public:
         return f(args...);
     }
 
-    concrete_function *clone(MemoryPool<uint8_t[64], 2> &pool) const override
+    concrete_function *clone(LambdaPool &pool) const override
     {
         return new (pool) concrete_function { f };
     }
 
     // custom new and delete
-    void *operator new(size_t s, MemoryPool<uint8_t[64], 2>& hp)   { return reinterpret_cast<concrete_function*>(hp.get()); }
+    void *operator new(size_t s, LambdaPool &hp)
+    {
+        return reinterpret_cast<concrete_function*>(hp.get());
+    }
 };
 
 template<typename Func, typename ...Args>
@@ -44,13 +50,15 @@ public:
         f(args...);
     }
 
-    concrete_function *clone(MemoryPool<uint8_t[64], 2> &pool) const override
+    concrete_function *clone(LambdaPool &pool) const override
     {
         return new (pool) concrete_function { f };
     }
 
     // custom new and delete
-    void *operator new(size_t s, MemoryPool<uint8_t[64], 2>& hp)   { return reinterpret_cast<concrete_function*>(hp.get()); }
+    void *operator new(size_t s, LambdaPool &hp) {
+        return reinterpret_cast<concrete_function*>(hp.get());
+    }
 };
 
 template<typename Func>
@@ -72,7 +80,7 @@ class function<Result(Args...)>
 {
     abstract_function<Result, Args...> *f;
     // Size-agnostic pool. 64 should be enough for most functions
-    MemoryPool<uint8_t[64], 2> pool;
+    LambdaPool pool;
 
 public:
     function() : f(nullptr) { }
@@ -98,7 +106,7 @@ public:
     ~function()
     {
         f->~abstract_function<Result, Args...>();
-        pool.release(reinterpret_cast<uint8_t(*)[64]>(f));
+        pool.release(reinterpret_cast<uint8_t(*)[LambdaMaxSizeOfCapture]>(f));
     }
 };
 
@@ -107,7 +115,7 @@ class function<void(Args...)>
 {
     abstract_function<void, Args...> *f;
     // Size-agnostic pool. 64 should be enough for most functions
-    MemoryPool<uint8_t[64], 2> pool;
+    LambdaPool pool;
 
 public:
     function() : f(nullptr) { }
@@ -131,7 +139,7 @@ public:
     ~function()
     {
         f->~abstract_function<void, Args...>();
-        pool.release(reinterpret_cast<uint8_t(*)[64]>(f));
+        pool.release(reinterpret_cast<uint8_t(*)[LambdaMaxSizeOfCapture]>(f));
     }
 };
 
