@@ -3,6 +3,8 @@
  */
 
 #include <inc/klibs/lib.h>
+#include <inc/klibs/palloc.h>
+
 #define NUM_COLS 80
 #define NUM_ROWS 25
 #define ATTRIB 0x7
@@ -78,7 +80,7 @@ printf(const char *format, ...)
 	const char* buf = format;
 
 	/* Stack pointer for the other parameters */
-	int32_t* esp = (void *)&format;
+	int32_t* esp = (int32_t *)&format;
 	esp++;
 
 	while(*buf != '\0') {
@@ -211,7 +213,7 @@ puts(const char* s)
 void
 orig_putc(uint8_t c)
 {
-    if(c == '\n' || c == '\r') {
+    if (c == '\n' || c == '\r') {
         screen_y++;
         screen_x=0;
     } else {
@@ -524,8 +526,7 @@ memmove(void* dest, const void* src, uint32_t n)
 int32_t
 strncmp(const char* s1, const char* s2, uint32_t n)
 {
-	int32_t i;
-	for(i=0; i<n; i++) {
+	for(uint32_t i=0; i<n; i++) {
 		if( (s1[i] != s2[i]) ||
 				(s1[i] == '\0') /* || s2[i] == '\0' */ ) {
 
@@ -574,7 +575,7 @@ strcpy(char* dest, const char* src)
 char*
 strncpy(char* dest, const char* src, uint32_t n)
 {
-	int32_t i=0;
+	uint32_t i=0;
 	while(src[i] != '\0' && i < n) {
 		dest[i] = src[i];
 		i++;

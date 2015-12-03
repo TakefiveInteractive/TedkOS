@@ -9,8 +9,8 @@ typedef struct {
     int size;           // How many data are actually stored
 	irqaction_t data[_PIC_ACTION_LIST_SIZE];
     irqaction_t *head, *tail;
-    // Note that if either of head, tail is NULL, both are NULL. 
-    //           if either of head, tail is NOT NULL, both are NOT NULL. 
+    // Note that if either of head, tail is NULL, both are NULL.
+    //           if either of head, tail is NOT NULL, both are NOT NULL.
 } irqaction_list;
 
 /****
@@ -40,7 +40,7 @@ extern irqaction* first_action(irqaction_list* list);
 // IF hander_to_find == NULL, then match only using deviceId_to_find
 // IF device_id < 0, match only using handler.
 // IF both NULL and dev < 0, then match everything.
-extern irqaction* find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find);
+extern irqaction* find_action(irqaction_list* list, unsigned int deviceId_to_find, irq_good_handler_t handler_to_find);
 
 // Pass the index to remove as itemIdx
 extern void remove_action(irqaction_list* list, irqaction* item);

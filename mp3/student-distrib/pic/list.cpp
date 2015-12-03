@@ -51,7 +51,7 @@ irqaction* first_action(irqaction_list* list)
     return list->head;
 }
 
-irqaction* find_action(irqaction_list* list, int deviceId_to_find, irq_good_handler_t handler_to_find)
+irqaction* find_action(irqaction_list* list, unsigned int deviceId_to_find, irq_good_handler_t handler_to_find)
 {
     int i;
     const int len = list->size;
