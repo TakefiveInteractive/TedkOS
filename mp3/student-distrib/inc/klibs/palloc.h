@@ -74,6 +74,8 @@ namespace palloc
         // Fails when memory is Full.
         Maybe<uint16_t> allocPage(bool isCommonPage);
 
+        void markPageAsUsed(uint16_t pageIndex);
+
         // if this page is NOT in use, do nothing.
         void freePage(uint16_t pageIndex);
 
@@ -348,6 +350,16 @@ Maybe<uint16_t> PhysPageManager<MaxMemory>::allocPage(bool isCommonPage)
     if(isCommonPage)
         this->isCommonPage.set(top);
     return Maybe<uint16_t>(top);
+}
+
+template <uint32_t MaxMemory>
+void PhysPageManager<MaxMemory>::markPageAsUsed(uint16_t pageIndex)
+{
+    AutoSpinLock l(&lock);
+    if(isPhysAddrFree.test(pageIndex) == false) return;
+    // Remove the page from manager
+    isPhysAddrFree.clear(pageIndex);
+    freePhysAddr.dropFirst([pageIndex](auto _pageIndex) { return pageIndex == _pageIndex; });
 }
 
 template <uint32_t MaxMemory>

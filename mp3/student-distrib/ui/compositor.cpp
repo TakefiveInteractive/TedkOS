@@ -51,17 +51,21 @@ Compositor::Compositor() : numDrawables(0)
         }
         VideoModeInfo mode = +videoModeMaybe;
         printf("RGBMasks = %s \n", mode.RGBMask);
-        uint32_t ModeMem = mode.physBase;
+        uint32_t modeMem = mode.physBase;
+        uint16_t modePageIdx = modeMem >> 22;
 
         // Back up current mode.
         real_context.ax = 0x0f00;
         legacyInt(0x10, real_context);
         orig_mode = real_context.ax & 0x00ff;
 
-        PhysAddr physAddr = PhysAddr(ModeMem >> 22, PG_WRITABLE);
-        cpu0_memmap.addCommonPage(VirtAddr((void*)ModeMem), physAddr);
+        PhysAddr physAddr = PhysAddr(modePageIdx, PG_WRITABLE);
+        // Don't let others use the physical video memory
+        physPages.markPageAsUsed(modePageIdx);
+        void *modeMemVirt = +virtLast1G.allocPage(true);
+        cpu0_memmap.addCommonPage(modeMemVirt, physAddr);
 
-        videoMemory = (uint8_t *) ModeMem;
+        videoMemory = (uint8_t *) modeMemVirt;
         // TODO: assuming we are in text mode initially.
         // Figure this out programmatically
         videoMode = Text;
