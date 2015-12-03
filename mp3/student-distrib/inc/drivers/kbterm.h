@@ -135,6 +135,7 @@ namespace Term
 
         // this helper simply sets the cursor, without considering lock or ownership AT ALL.
         void helpSetCursor(uint32_t x, uint32_t y);
+        void clearScreenNolock();
     public:
         TextModePainter();
         virtual void show();
