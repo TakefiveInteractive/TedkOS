@@ -9,12 +9,12 @@ case "$(uname -s)" in
 		else
 			echo
 			echo "Now we can build system withOUT third party tools"
-			echo 
+			echo
 			echo "** you may need to modify qemu settings **"
 			echo
 			echo -ne "Use OS X safe build? (y/*) __\b\b"
 			read -n 1 confirm
-			echo 
+			echo
 		fi
         if [ "$confirm" == "y" ];
         then
@@ -42,7 +42,7 @@ case "$(uname -s)" in
             echo
             if [ "$confirm" == "y" ];
             then
-                (qemu-system-i386 -hda ./osx/grub.img -hdb ./osx/tedkos.img -m 256 -gdb tcp:127.0.0.1:1234 -name "TedkOS (hdb)")&
+                (qemu-system-i386 -hda ./osx/grub.img -hdb ./osx/tedkos.img -soundhw all -m 256 -gdb tcp:127.0.0.1:1234 -name "TedkOS (hdb)")&
                 echo "PID of qemu = $!"
             fi
             exit 0
@@ -102,4 +102,3 @@ cp -f /tmp/mp3/mp3.img ./
 chmod 666 ./mp3.img
 rm -rf /tmp/mp3
 rmdir /mnt/tmpmp3
-
