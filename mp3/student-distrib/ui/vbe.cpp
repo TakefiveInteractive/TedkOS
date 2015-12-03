@@ -52,11 +52,11 @@ namespace vbe
             VbeInfo vbeInfo(*rawVbeInfo);
             for (size_t i = 0; i < vbeInfo.numModes; i++)
             {
-                auto rawVbeInfoMaybe = getVideoModeInfo(vbeInfo.modeList[i]);
-                if (rawVbeInfoMaybe)
+                auto rawVbeInfo = getVideoModeInfo(vbeInfo.modeList[i]);
+                if (rawVbeInfo)
                 {
-                    VideoModeInfo videoInfo(*rawVbeInfoMaybe);
-                    printf("Mode 0x %x RGB = %s BPP = %d\n", vbeInfo.modeList[i], videoInfo.RGBMask, videoInfo.bitsPerPixel);
+                    VideoModeInfo videoInfo(*rawVbeInfo, vbeInfo.modeList[i]);
+                    printf("Mode 0x%x RGB = %s BPP = %d\n", vbeInfo.modeList[i], videoInfo.RGBMask, videoInfo.bitsPerPixel);
                     if (predicate(videoInfo)) return videoInfo;
                 }
             }
@@ -105,7 +105,8 @@ namespace vbe
         delete[] modeList;
     }
 
-    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw) : _rawMode(raw)
+    VideoModeInfo::VideoModeInfo(const RawVbeVideoModeInfo& raw, const uint16_t index)
+        : _rawMode(raw), _index(index)
     {
         xRes = raw.XRes;
         yRes = raw.YRes;

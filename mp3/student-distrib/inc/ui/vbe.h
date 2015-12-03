@@ -54,6 +54,10 @@ typedef struct  {
 
 namespace vbe
 {
+
+    // VBE Bios Calls
+    constexpr uint16_t SELECT_VISA_VIDEO_MODE = 0x4F02;
+
     // VbeInfo <= RawVbeInfoBlock
     class VbeInfo
     {
@@ -82,7 +86,7 @@ namespace vbe
     class VideoModeInfo
     {
     public:
-        VideoModeInfo(const RawVbeVideoModeInfo& raw);
+        VideoModeInfo(const RawVbeVideoModeInfo& raw, const uint16_t index);
 
         VideoModeInfo(const VideoModeInfo& other);
         VideoModeInfo& operator= (const VideoModeInfo& other);
@@ -91,6 +95,7 @@ namespace vbe
         ~VideoModeInfo();
 
         RawVbeVideoModeInfo _rawMode;
+        uint16_t _index;
 
         // The RGBMask looks like: "rrrrr___ggggggggbbbbb___"
         //      where '_' represents not present

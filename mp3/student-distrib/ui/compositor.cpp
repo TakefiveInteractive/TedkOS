@@ -57,7 +57,10 @@ Compositor::Compositor() : numDrawables(0)
         // Back up current mode.
         real_context.ax = 0x0f00;
         legacyInt(0x10, real_context);
-        orig_mode = real_context.ax & 0x00ff;
+        originalVideoModeIndex = real_context.ax & 0x00ff;
+
+        // Obtain target video mode
+        videoModeIndex = mode._index;
 
         PhysAddr physAddr = PhysAddr(modePageIdx, PG_WRITABLE);
         // Don't let others use the physical video memory
@@ -164,8 +167,8 @@ void Compositor::enterVideoMode()
 {
     runWithoutNMI([this] () {
         if (displayMode == Video) return;
-        real_context.ax = 0x4F02;
-        real_context.bx = 0x8118;
+        real_context.ax = SELECT_VISA_VIDEO_MODE;
+        real_context.bx = 0x8000 | videoModeIndex;
         legacyInt(0x10, real_context);
         displayMode = Video;
         // Trigger whole screen update
@@ -177,7 +180,7 @@ void Compositor::enterTextMode()
 {
     runWithoutNMI([this] () {
         if (displayMode == Text) return;
-        real_context.ax = orig_mode;
+        real_context.ax = originalVideoModeIndex;
         legacyInt(0x10, real_context);
         displayMode = Text;
     });
