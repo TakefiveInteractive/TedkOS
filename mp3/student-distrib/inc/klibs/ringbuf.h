@@ -26,9 +26,9 @@
 // Similar to queues, but different:
 //      if queue is full, nothing is pushed in
 //      if ringbuf is full, it kicks out the oldest element
-typedef struct 
+typedef struct
 {
-    // stores the actual RINGBUF_SIZE 
+    // stores the actual RINGBUF_SIZE
     //  this value varies by .c file,
     //  thus the implementation must know it.
 
@@ -60,10 +60,6 @@ typedef struct
     (BUF)->_macro_ringbuf_size = RINGBUF_SIZE;              \
     (BUF)->_macro_ringbuf_type_size = sizeof(RINGBUF_TYPE); \
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 int32_t ringbuf_length(ringbuf_t* buf);
 
@@ -97,9 +93,5 @@ void* ringbuf_back_nocp(ringbuf_t* buf);
 
 void ringbuf_pop_front(ringbuf_t* buf);
 void ringbuf_pop_back(ringbuf_t* buf);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* _KLIBS_RINGBUF_H */

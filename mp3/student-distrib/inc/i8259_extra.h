@@ -10,7 +10,7 @@ typedef struct irqaction_t {
     irq_good_handler_t handler;
     unsigned int policy_flags;
     unsigned int mask;
-    unsigned int dev_id;     /* A interger to differentiate different devices */
+    unsigned int dev_id;     /* A integer to differentiate different devices */
     struct irqaction_t *next, *prev; /* not used for now */
 } irqaction;
 typedef irqaction irqaction_t;
