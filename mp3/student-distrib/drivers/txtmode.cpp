@@ -182,6 +182,11 @@ namespace Term
                 : "cc", "memory", "ecx"
             );
             currShowing->isLoadedInVmem = false;
+            if(pcbLoadable && currShowing->isVidmapEnabled())
+            {
+                // TODO: cooperate with sched after sched supports categorizing process according to terminal
+                ;
+            }
         }
         asm volatile (
             "cld                                                    ;"
@@ -196,6 +201,13 @@ namespace Term
         currShowing = this;
         isLoadedInVmem = true;
         helpSetCursor(cursorX, cursorY);
+
+        if(pcbLoadable && !currShowing->isVidmapEnabled())
+        {
+            // TODO: cooperate with sched after sched supports categorizing process according to terminal
+            global_cr3val[0] = 0x0;             // disable vidmapping
+            RELOAD_CR3();
+        }
     }
 
     TextModePainter::TextModePainter() : TermPainter()
