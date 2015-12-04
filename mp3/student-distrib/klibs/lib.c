@@ -18,6 +18,15 @@ char* fallback_txt_vmem = (char *)PRE_INIT_VIDEO;
 #include <inc/drivers/kbterm.h>
 #endif
 
+void sti(void)
+{
+	asm volatile("sti"                  \
+			:                       \
+			:                       \
+			: "memory", "cc"        \
+			);                      \
+}
+
 void clear(void)
 {
 #ifndef LEGACY_PUTC

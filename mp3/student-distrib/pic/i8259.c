@@ -242,11 +242,7 @@ static int setup_irq(unsigned int irq, unsigned int device_id,
     spin_lock_irqsave(&this_desc->actionsLock, flag);
     if(!first_action(list))
     {
-        spin_unlock(&this_desc->actionsLock); sti();
-        cli(); spin_lock(&this_desc->lock);
         enable_irq_nolock(irq);
-        spin_unlock(&this_desc->lock); sti();
-        cli(); spin_lock(&this_desc->actionsLock);
     }
     if(add_action(list, handler, policy_flags, 0, device_id) != 0)
         ret = -ENOMEM;

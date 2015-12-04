@@ -20,20 +20,29 @@ spinlock_t sched_lock = SPINLOCK_UNLOCKED;
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
 
-Deque<thread_kinfo*> rrQueue;
+Deque<thread_kinfo*> *rrQueue = NULL;
+
+void init()
+{
+    sched_lock = SPINLOCK_UNLOCKED;
+    rrQueue = new Deque<thread_kinfo*>();
+}
 
 void attachThread(thread_kinfo* pcb, ThreadState newState)
 {
     AutoSpinLock l(&sched_lock);
     pcb->getPCB()->runState = newState;
-    rrQueue.push_back(pcb);
+    rrQueue->push_back(pcb);
 }
 
 void setTSS(const thread_pcb& pcb)
 {
+    /*
     if(pcb.type == KERNEL_PROCESS)
         tss.esp0 = (uint32_t)pcb.esp0 + (8 + 3) * 4;
     else tss.esp0 = (uint32_t)pcb.esp0 + (8 + 5) * 4;
+    */
+    tss.esp0 = (uint32_t)pcb.esp0;
 }
 
 void enablePreemptiveScheduling()
@@ -50,23 +59,22 @@ void makeDecision()
 
     // !! Principle: front of queue must be the process to run.
     //  Upon entrance of makeDecision(), the front is the NEXT process to run.
-    if(rrQueue.empty())
+    if(rrQueue->empty())
         return;
 
     // find the process to run
-    thread_kinfo* next = *rrQueue.front();
+    thread_kinfo* next = *(rrQueue->front());
 
     // schedule to run this process
     wantToSwitchTo = next->getProcessDesc()->getPid();
 
     // store the next process to run at queue front.
     // There is at least one thread that's "Running"
-    while(next->getPCB()->runState != Running)
-    {
-        rrQueue.pop_front();
-        rrQueue.push_back(next);
-        next = *rrQueue.front();
-    }
+    do {
+        rrQueue->pop_front();
+        rrQueue->push_back(next);
+        next = *(rrQueue->front());
+    } while(next->getPCB()->runState != Running);
 
 }
 
@@ -137,7 +145,8 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
 
 void forceStartThread(thread_kinfo* thread)
 {
-    AutoSpinLock l(&sched_lock);
+    uint32_t flags;
+    spin_lock_irqsave(&sched_lock, flags);
 
     if(!thread)
         return;
@@ -163,8 +172,12 @@ void forceStartThread(thread_kinfo* thread)
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)thread->storage.pcb.esp0;
 
+    thread->getPCB()->runState = Running;
+
     // Add this thread to scheduler
-    rrQueue.push_back(thread);
+    rrQueue->push_back(thread);
+
+    spin_unlock(&sched_lock);
 
     asm volatile (
         "movl %0, %%esp         ;\n"
@@ -192,10 +205,6 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     }
     if (currentlyRunning == wantToSwitchTo)
         return NULL;
-
-    // Firstly save current esp0 to current thread's pcb
-    // Should only be saved if this is the outmost interrupt.
-    getCurrentThreadInfo()->storage.pcb.esp0 = currentESP;
 
     ProcessDesc& desc = ProcessDesc::get(wantToSwitchTo);
 
@@ -243,6 +252,19 @@ void halt(thread_pcb& pcb, int32_t retval)
 }
 
 }   // namespace scheduler
+
+// ESP points to [pushal, iret, ... 
+void __attribute__((used)) schedBackupState(target_esp0 currentESP)
+{
+    AutoSpinLock l(&scheduler::sched_lock);
+
+    // Should only be saved if this is the outmost interrupt.
+    if (num_nest_int() > 0)
+        return;
+
+    // save current esp0 to current thread's pcb
+    getCurrentThreadInfo()->storage.pcb.esp0 = currentESP;
+}
 
 target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 {
