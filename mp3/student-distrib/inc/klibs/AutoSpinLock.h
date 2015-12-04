@@ -46,4 +46,30 @@ class AutoSpinLock: NonCopyable // Scoped Lock idiom
         uint32_t flag_;
 };
 
+class AutoSpinLockKeepIF: NonCopyable // Scoped Lock idiom, without changing Interrupt Flag
+{
+    public:
+        AutoSpinLockKeepIF(spinlock_t *l) : lock_(l)
+        {
+            spin_lock(lock_);
+        }
+        ~AutoSpinLockKeepIF() throw()
+        {
+            spin_unlock(lock_);
+        }
+
+        void waitUntil(function<bool (void)> fn)
+        {
+            spin_unlock(lock_);
+            for (;;)
+            {
+                spin_lock(lock_);
+                if(fn()) break;
+                spin_unlock(lock_);
+            }
+        }
+    private:
+        spinlock_t *lock_;
+};
+
 #endif

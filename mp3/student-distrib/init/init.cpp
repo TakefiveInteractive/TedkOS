@@ -28,7 +28,7 @@ __attribute__((used)) void init_main(void* arg)
 
     spin_lock_init(multitask_lock);
     {
-        AutoSpinLock l(&KeyB::keyboard_lock);
+        AutoSpinLockKeepIF l(&KeyB::keyboard_lock);
         for(size_t i=0; i<KeyB::KbClients::numTextTerms; i++)
             termNumbers->push_back(i);
     }
@@ -41,7 +41,7 @@ __attribute__((used)) void init_main(void* arg)
     ece391_fork();
 
     {
-        AutoSpinLock l(multitask_lock);
+        AutoSpinLockKeepIF l(multitask_lock);
         size_t freeTerm = *termNumbers->back();
         termNumbers->pop_back();
 
@@ -70,7 +70,7 @@ __attribute__((used)) void launcher(void* arg)
 {
     printf("=> I am the guard process to ensure terminals have shells running in them!\n");
 
-    draw_nikita();
+    //draw_nikita();
 
     /* Enable interrupts */
     sti();
