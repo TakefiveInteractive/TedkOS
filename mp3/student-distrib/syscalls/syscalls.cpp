@@ -11,8 +11,11 @@
 #include <inc/syscalls/halt.h>
 #include "getargs.h"
 #include "sbrk.h"
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
 
 using namespace boost;
+using namespace scheduler;
 
 namespace syscall {
 
@@ -42,8 +45,11 @@ bool validUserPointer(const void* ptr)
 
 int32_t dotask(int32_t pid)
 {
-    if(getCurrentThreadInfo()->isKernel())
-        scheduler::prepareSwitchTo(pid);
+    if(ProcessDesc::has(pid))
+    {
+        scheduler::attachThread(ProcessDesc::get(pid).mainThreadInfo, Running);
+        scheduler::makeDecision();
+    }
     return -1;
 }
 
@@ -52,6 +58,24 @@ int32_t vidmap(uint8_t** ans)
     if(!validUserPointer(ans))
         return -EFOPS;
     *ans = getCurrentThreadInfo()->getProcessDesc()->currTerm->enableVidmap();
+    return 0;
+}
+
+int32_t fork()
+{
+    // TODO: FIXME: change to use thread inside the same process.
+    //              current version can only be used with init (proc 0).
+
+    auto child = ProcessDesc::get(newDetachedProcess(-1, getCurrentThreadInfo()->getPCB()->type));
+
+    child.mainThreadInfo->copy(*getCurrentThreadInfo());
+    child.mainThreadInfo->getPCB()->to_process = &child;
+    
+    child.memmap = getCurrentThreadInfo()->getProcessDesc()->memmap;
+
+    attachThread(child.mainThreadInfo, Running);
+
+    // TODO: change retval to TID
     return 0;
 }
 
@@ -148,6 +172,7 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
         case SYS_FSTAT:         retval = systemCallRunner(fops::fstat, p1, p2, p3); break;
         case SYS_LSEEK:         retval = systemCallRunner(fops::lseek, p1, p2, p3); break;
         case SYS_DOTASK:        retval = systemCallRunner(dotask, p1, p2, p3);  break;
+        case SYS_FORK:          retval = systemCallRunner(fork, p1, p2, p3); break;
 
         /* Unknown syscall */
         default: retval = -1; break;

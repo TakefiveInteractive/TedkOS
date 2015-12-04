@@ -8,6 +8,7 @@
 // Otherwise: getCurrentThreadInfo() will work fine.
 extern volatile bool pcbLoadable;
 extern volatile bool canUseCpp;
+extern volatile bool isFallbackTerm;
 extern uint32_t userFirst4MBTable[1024];
 
 extern "C"

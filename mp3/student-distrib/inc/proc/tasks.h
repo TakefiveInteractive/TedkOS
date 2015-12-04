@@ -42,9 +42,8 @@ enum ProcessType
 enum ThreadState
 {
     New = 1,
-    Ready,
     Running,
-    Waiting,
+    Waiting,            // Waiting -- not able to be scheduled
     Terminated
 };
 
@@ -74,6 +73,10 @@ struct __attribute__ ((__packed__)) thread_kinfo
         thread_pcb pcb;
     } storage;
 
+    const uint8_t* getStackBoundary () const { return storage.kstack; }
+
+    uint8_t* getStackBoundary () { return storage.kstack; }
+
     thread_pcb* getPCB() { return &storage.pcb; }
 
     ProcessDesc* getProcessDesc() { return storage.pcb.to_process; }
@@ -88,6 +91,19 @@ struct __attribute__ ((__packed__)) thread_kinfo
         storage.pcb.execParent = NULL;
         storage.pcb.type = processType;
         storage.pcb.runState = New;
+    }
+
+    void copy(const struct thread_kinfo& other)
+    {
+        memcpy(this, &other, sizeof(thread_kinfo));
+        storage.pcb.esp0 = ((target_esp0)((int32_t)other.storage.pcb.esp0 - (int32_t)other.getStackBoundary() + (int32_t)getStackBoundary()));
+    }
+
+    // Completely copy (not changing anything except actual stack address)
+    thread_kinfo(const struct thread_kinfo& other)
+    {
+        memcpy(this, &other, sizeof(thread_kinfo));
+        storage.pcb.esp0 = ((target_esp0)((int32_t)other.storage.pcb.esp0 - (int32_t)other.getStackBoundary() + (int32_t)getStackBoundary()));
     }
 };
 
@@ -124,6 +140,7 @@ private:
 
 public:
     static ProcessDesc** all();
+    static bool has(Pid pid);
     static ProcessDesc& get(Pid pid);
     static void remove(Pid pid);
     static ProcessDesc& newProcess(int32_t _upid, ProcessType processType);

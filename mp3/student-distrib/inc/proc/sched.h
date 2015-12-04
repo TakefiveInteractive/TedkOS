@@ -17,7 +17,9 @@ namespace scheduler {
     //          valid PD  (thus FD)
     //          No executable in memory
     //          No PAGE TABLEs
-    Pid newPausedProcess(Pid parentPID, ProcessType processType);
+    Pid newDetachedProcess(Pid parentPID, ProcessType processType);
+
+    void attachThread(thread_kinfo* pcb, ThreadState newState);
 
     // Currently all switches are blocking:
     //      Parent process will wait for child to finish

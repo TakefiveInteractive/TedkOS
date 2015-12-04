@@ -25,6 +25,7 @@ DO_CALL(ece391_sigreturn,SYS_SIGRETURN)
 DO_CALL(ece391_sbrk,SYS_SBRK)
 DO_CALL(ece391_fstat,SYS_FSTAT)
 DO_CALL(ece391_lseek,SYS_LSEEK)
+DO_CALL(ece391_fork,SYS_FORK)
 
 /* Only Kernel threads can call this */
 DO_CALL(ece391_dotask, SYS_DOTASK)
