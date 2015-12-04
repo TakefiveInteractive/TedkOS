@@ -106,7 +106,7 @@ void Compositor::redraw(const Rectangle &_rect)
             // Draw all drawables
             for (int32_t i = 0; i < numDrawables; i++)
             {
-                if (drawables[i]->isPixelInRange(x, y))
+                if (drawables[i]->isVisible() && drawables[i]->isPixelInRange(x, y))
                 {
                     int32_t relX = x - drawables[i]->getX(), relY = y - drawables[i]->getY();
                     const float alpha = drawables[i]->getAlpha(relX, relY) / 256.0F;
@@ -126,6 +126,8 @@ void Compositor::redraw(const Rectangle &_rect)
 
 void Compositor::drawSingle(Drawable *d, const Rectangle &_rect)
 {
+    if (d->isVisible() == false) return;
+
     const Rectangle &rect = _rect.bound();
     for (int32_t y = rect.y1; y < rect.y2; y++)
     {
