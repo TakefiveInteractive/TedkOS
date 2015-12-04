@@ -27,9 +27,12 @@ class Drawable {
         int32_t x;
         int32_t y;
 
+        bool visible;
+
     public:
 
-        Drawable(int32_t _width, int32_t _height, int32_t _x, int32_t _y) : width(_width), height(_height), x(_x), y(_y)
+        Drawable(int32_t _width, int32_t _height, int32_t _x, int32_t _y)
+            : width(_width), height(_height), x(_x), y(_y), visible(true)
         {
         }
 
@@ -50,6 +53,22 @@ class Drawable {
             Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
         }
 
+        void show()
+        {
+            visible = true;
+            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
+        }
+
+        void hide()
+        {
+            visible = false;
+            Compositor::getInstance()->redraw(getBoundingRectangle());
+        }
+
+        bool isVisible() const
+        {
+            return visible;
+        }
 
         bool isPixelInRange(int32_t tx, int32_t ty)
         {
