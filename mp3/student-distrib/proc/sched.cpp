@@ -81,7 +81,6 @@ void makeDecision()
         rrQueue->push_back(next);
         next = *(rrQueue->front());
     } while(next->getPCB()->runState != Running);
-
 }
 
 Pid newDetachedProcess(int32_t parentPID, ProcessType processType)
@@ -249,9 +248,9 @@ void unblock(thread_kinfo* thread)
 void halt(thread_pcb& pcb, int32_t retval)
 {
     AutoSpinLock l(&sched_lock);
+
     thread_kinfo* prevInfo = pcb.execParent;
-    *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = retval;
-    scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getPid());
+    getRegs(prevInfo)->eax = retval;
 
     auto term = pcb.to_process->currTerm;
     // GET control of stdin.
@@ -259,18 +258,27 @@ void halt(thread_pcb& pcb, int32_t retval)
     {
         if(term->isVidmapEnabled())
             term->disableVidmap();
-        term->setOwner(true, prevInfo->getProcessDesc()->getPid());
+        //term->setOwner(true, prevInfo->getProcessDesc()->getPid());
+        term->setOwner(true, -1);
     }
 
     // Clean up process
     ProcessDesc::remove(pcb.to_process->getPid());
-
-    ;
+    // Remove process from run queue
+    while ((*(rrQueue->front()))->getProcessDesc() != pcb.to_process)
+    {
+        thread_kinfo* tmp = *(rrQueue->front());
+        rrQueue->pop_front();
+        rrQueue->push_back(tmp);
+    }
+    rrQueue->pop_front();
+    // Wake up parent
+    prevInfo->getPCB()->runState = Running;
 }
 
 }   // namespace scheduler
 
-// ESP points to [pushal, iret, ... 
+// ESP points to [pushal, iret, ...
 void __attribute__((used)) schedBackupState(target_esp0 currentESP)
 {
     AutoSpinLock l(&scheduler::sched_lock);
