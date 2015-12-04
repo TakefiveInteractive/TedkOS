@@ -68,7 +68,7 @@ namespace KeyB
         if(!t)
             printf("Unexpected KeyB::FOps::close error at %s\n", __FILE__);
         else
-            t->setOwner(-1);
+            t->setOwner(true, -1);
     }
 }
 

@@ -227,8 +227,8 @@ namespace Term
 
         // Used by keyboard close fops setOwner will not block.
         //   if upid = -1, then keyboard is owned by no body.
-        virtual void setOwner(int32_t upid) final;
-        virtual void isOwnedBy(int32_t tid, function<void (bool result)> callback) final;
+        virtual void setOwner(bool lock, int32_t upid) final;
+        virtual void canBeOwnedBy(int32_t tid, function<void (bool result)> callback) final;
     };
 
     class TextTerm : public Term
