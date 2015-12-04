@@ -71,109 +71,108 @@ void store_arg(unique_ptr<char[]>& filename, uint32_t filename_len, uint32_t arg
 // Returns the pid of new process.
 Pid do_exec(const char* arg0)
 {
-    return runWithoutNMI([arg0] () -> Pid
+    uint32_t filename_len = strlen(arg0);
+    unique_ptr<char[]> file(new char[filename_len + 1]);
+
+    // We need to copy filename into kernel because later we will switch page table
+    for (size_t i = 0; i < filename_len; i++) file[i] = arg0[i];
+    file[filename_len] = '\0';
+
+    int32_t arg_index = get_arg_position(file, filename_len);
+
+    if (!is_kiss_executable(file))
     {
-        uint32_t filename_len = strlen(arg0);
-        unique_ptr<char[]> file(new char[filename_len + 1]);
+        // "no such command"
+        return -1;
+    }
+    Pid child_upid = scheduler::newDetachedProcess(
+        getCurrentThreadInfo()->getProcessDesc()->getPid(),
+        USER_PROCESS);
 
-        // We need to copy filename into kernel because later we will switch page table
-        for (size_t i = 0; i < filename_len; i++) file[i] = arg0[i];
-        file[filename_len] = '\0';
+    if (child_upid < 0)
+    {
+        // "terminated by exception"
+        return 256;          // Out of PIDs
+    }
 
-        int32_t arg_index = get_arg_position(file, filename_len);
+    ProcessDesc& child = ProcessDesc::get(child_upid);
 
-        if (!is_kiss_executable(file))
-        {
-            // "no such command"
-            return -1;
-        }
-        Pid child_upid = scheduler::newDetachedProcess(
-            getCurrentThreadInfo()->getProcessDesc()->getPid(),
-            USER_PROCESS);
+    if (arg_index != -1)
+    {
+        store_arg(file, filename_len, arg_index, child);
+    }
 
-        if (child_upid < 0)
-        {
-            // "terminated by exception"
-            return 256;          // Out of PIDs
-        }
+    // Allocate the page at 128MB virt. addr. for child
+    auto physIdx = physPages.allocPage(false);
+    if (!physIdx)
+    {
+        // "terminated by exception"
+        return 256;          // Memory full.
+    }
 
-        ProcessDesc& child = ProcessDesc::get(child_upid);
+    // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
+    PhysAddr physAddr = PhysAddr(+physIdx, PG_WRITABLE | PG_USER);
 
-        if (arg_index != -1)
-        {
-            store_arg(file, filename_len, arg_index, child);
-        }
+    if (!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
+    {
+        // "terminated by exception"
+        return 256;          // child virt addr space became weird.
+    }
 
-        // Allocate the page at 128MB virt. addr. for child
-        auto physIdx = physPages.allocPage(false);
-        if (!physIdx)
-        {
-            // "terminated by exception"
-            return 256;          // Memory full.
-        }
+    child.heapStartingPageIdx = (code_page_vaddr_base >> 22) + 2;   // gap between heap and stack
 
-        // !!! CHANGE THIS IF THIS IS A KERNEL THREAD !!!
-        PhysAddr physAddr = PhysAddr(+physIdx, PG_WRITABLE | PG_USER);
+    // Temporarily mount the address space to CURRENT context's virtual 128MB address.
+    uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
+    global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
+    RELOAD_CR3();
 
-        if (!child.memmap.add(VirtAddr((void*)code_page_vaddr_base), physAddr))
-        {
-            // "terminated by exception"
-            return 256;          // child virt addr space became weird.
-        }
+    // Load executable into memory
+    void* entry_point = kiss_loader(file);
 
-        child.heapStartingPageIdx = (code_page_vaddr_base >> 22) + 2;   // gap between heap and stack
+    // restore 128MB address back to CURRENT context's content
+    global_cr3val[code_page_vaddr_base >> 22] = backupDir;
+    RELOAD_CR3();
 
-        // Temporarily mount the address space to CURRENT context's virtual 128MB address.
-        uint32_t backupDir = global_cr3val[code_page_vaddr_base >> 22];
-        global_cr3val[code_page_vaddr_base >> 22] = physAddr.pde;
-        RELOAD_CR3();
+    // Initialize stack and ESP
+    // compatible with x86 32-bit iretl
+    // always no error code on stack before iretl
+    Stacker<x86> kstack((uint32_t) child.mainThreadInfo->storage.kstack + THREAD_KSTACK_SIZE - 1);
 
-        // Load executable into memory
-        void* entry_point = kiss_loader(file);
+    kstack << (uint32_t) USER_DS_SEL;
+    // Set up ESP for child process
+    kstack << (uint32_t) code_page_vaddr_base + (1 << 22) - 8;
 
-        // restore 128MB address back to CURRENT context's content
-        global_cr3val[code_page_vaddr_base >> 22] = backupDir;
-        RELOAD_CR3();
+    // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
+    // Set Interrupt Enable Flag. IOPL = 3
+    kstack << (uint32_t)(((uint32_t) getFlagsRegister() & (~0x24100)) | 0x3200);
 
-        // Initialize stack and ESP
-        // compatible with x86 32-bit iretl
-        // always no error code on stack before iretl
-        Stacker<x86> kstack((uint32_t) child.mainThreadInfo->storage.kstack + THREAD_KSTACK_SIZE - 1);
+    kstack << (uint32_t) USER_CS_SEL;
+    kstack << (uint32_t) entry_point;
 
-        kstack << (uint32_t) USER_DS_SEL;
-        // Set up ESP for child process
-        kstack << (uint32_t) code_page_vaddr_base + (1 << 22) - 8;
+    pushal_t regs;
+    regs.esp = (uint32_t) kstack.getESP();
+    regs.ebp = 0;
+    regs.eax = -1;
+    regs.ebx = regs.ecx = regs.edx = 0;
+    regs.edi = regs.esi = 0;
 
-        // EFLAGS: Clear V8086 , Clear Trap, Clear Nested Tasks.
-        // Set Interrupt Enable Flag. IOPL = 3
-        kstack << (uint32_t)(((uint32_t) getFlagsRegister() & (~0x24100)) | 0x3200);
+    kstack << regs;
 
-        kstack << (uint32_t) USER_CS_SEL;
-        kstack << (uint32_t) entry_point;
+    child.mainThreadInfo->storage.pcb.esp0 = (target_esp0) kstack.getESP();
 
-        pushal_t regs;
-        regs.esp = (uint32_t) kstack.getESP();
-        regs.ebp = 0;
-        regs.eax = -1;
-        regs.ebx = regs.ecx = regs.edx = 0;
-        regs.edi = regs.esi = 0;
+    // RELEASE control of stdin.
+    auto term = getCurrentThreadInfo()->getProcessDesc()->currTerm;
 
-        kstack << regs;
+    child.mainThreadInfo->getProcessDesc()->currTerm = term;
+    if (term)
+    {
+        term->canBeOwnedBy(getCurrentThreadInfo()->getProcessDesc()->getPid(), [=](bool result) {
+            if(result)
+                getCurrentThreadInfo()->getProcessDesc()->currTerm->setOwner(false, child_upid);
+        });
+    }
 
-        child.mainThreadInfo->storage.pcb.esp0 = (target_esp0) kstack.getESP();
-
-        // RELEASE control of stdin.
-        auto term = getCurrentThreadInfo()->getProcessDesc()->currTerm;
-        if (term)
-        {
-            term->isOwnedBy(getCurrentThreadInfo()->getProcessDesc()->getPid(), [=](bool result) {
-                if(result)
-                    getCurrentThreadInfo()->getProcessDesc()->currTerm->setOwner(child_upid);
-            });
-        }
-
-        return child_upid;
-    });
+    return child_upid;
 }
 
 } }

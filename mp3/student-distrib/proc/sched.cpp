@@ -259,7 +259,7 @@ void halt(thread_pcb& pcb, int32_t retval)
     {
         if(term->isVidmapEnabled())
             term->disableVidmap();
-        term->setOwner(prevInfo->getProcessDesc()->getPid());
+        term->setOwner(true, prevInfo->getProcessDesc()->getPid());
     }
 
     // Clean up process

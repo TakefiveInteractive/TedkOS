@@ -52,7 +52,7 @@ __attribute__((used)) void init_main(void* arg)
         {
             AutoSpinLock l(&KeyB::keyboard_lock);
             thread->getProcessDesc()->currTerm = &(KeyB::clients.textTerms[freeTerm]);
-            thread->getProcessDesc()->currTerm->setOwner(-1);
+            thread->getProcessDesc()->currTerm->setOwner(true, -1);
 
             if(termNumbers->empty())
             {

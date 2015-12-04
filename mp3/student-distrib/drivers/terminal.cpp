@@ -261,19 +261,23 @@ namespace Term
         nolock_putc(c);
     }
 
-    void Term::setOwner(int32_t upid)
+    void Term::setOwner(bool lock, int32_t upid)
     {
-        AutoSpinLock l(&term_lock);
+        uint32_t flags;
+        if(lock)
+            spin_lock_irqsave(&term_lock, flags);
         OwnedByPid = upid;
         UserWaitingRead = false;
         UserWaitingBuffer = NULL;
         UserWaitingLen = -1;
+        if(lock)
+            spin_unlock_irqrestore(&term_lock, flags);
     }
 
-    void Term::isOwnedBy(int32_t tid, function<void (bool result)> callback)
+    void Term::canBeOwnedBy(int32_t tid, function<void (bool result)> callback)
     {
         AutoSpinLock l(&term_lock);
-        callback(OwnedByPid == tid);
+        callback(OwnedByPid == -1 || OwnedByPid == tid);
     }
 
     void Term::key(uint32_t kkc, bool capslock)
