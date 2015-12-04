@@ -2,6 +2,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/klibs/stack.h>
 #include <inc/klibs/palloc.h>
+#include <inc/klibs/deque.h>
 #include <inc/syscalls/syscalls.h>
 #include <inc/proc/sched.h>
 #include <inc/proc/tasks.h>
@@ -13,29 +14,55 @@
 using scheduler::makeKThread;
 
 volatile bool pcbLoadable = false;
+volatile bool isFallbackTerm = true;
 
 void launcher(void* arg);
-
-__attribute__((used)) void init_halted()
-{
-    asm volatile("1: hlt; jmp 1b;");
-}
 
 __attribute__((used)) void init_main(void* arg)
 {
     pcbLoadable = true;
 
+    // stores the terminal number to allocate. Must be allocated dynamically. Must be locked (after fork).
+    spinlock_t* multitask_lock = new spinlock_t;
+    auto termNumbers = new Deque<int>();
+
+    spin_lock_init(multitask_lock);
+    {
+        AutoSpinLock l(&KeyB::keyboard_lock);
+        for(size_t i=0; i<KeyB::KbClients::numTextTerms; i++)
+            termNumbers->push_back(i);
+    }
+
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
 
     scheduler::enablePreemptiveScheduling();
 
-    printf("Starting gaurd...\n");
+    ece391_fork();
+    ece391_fork();
 
-    auto thread = makeKThread(launcher);
+    {
+        AutoSpinLock l(multitask_lock);
+        size_t freeTerm = *termNumbers->back();
+        termNumbers->pop_back();
 
-    ece391_dotask(thread->getProcessDesc()->getPid());
+        printf("Starting gaurd %d ...\n", freeTerm);
 
-    // this part is NEVER REACHED
+        auto thread = makeKThread(launcher);
+
+        {
+            AutoSpinLock l(&KeyB::keyboard_lock);
+            thread->getProcessDesc()->currTerm = &(KeyB::clients.textTerms[freeTerm]);
+
+            if(termNumbers->empty())
+            {
+                //multiple terminal instantiation complete.
+                isFallbackTerm = false;
+            }
+        }
+
+        ece391_dotask(thread->getProcessDesc()->getPid());
+    }
+
     asm volatile("1: hlt; jmp 1b;");
 }
 

@@ -34,6 +34,7 @@ int32_t syshalt(uint32_t retval)
     {
         printf("Halt process with retval=%d!\n", retval);
         scheduler::halt(*getCurrentThreadInfo()->getPCB(), retval);
+        scheduler::makeDecision();
     }
     return retval;
 }

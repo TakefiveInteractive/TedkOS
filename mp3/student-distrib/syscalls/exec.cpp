@@ -32,7 +32,8 @@ int32_t sysexec(const char* file)
         return child_upid;
 
     // Request context switch
-    scheduler::prepareSwitchTo(child_upid);
+    scheduler::attachThread(ProcessDesc::get(child_upid).mainThreadInfo, Running);
+    scheduler::makeDecision();
     return 0;
 }
 
@@ -84,7 +85,7 @@ Pid do_exec(const char* arg0)
             // "no such command"
             return -1;
         }
-        Pid child_upid = scheduler::newPausedProcess(
+        Pid child_upid = scheduler::newDetachedProcess(
             getCurrentThreadInfo()->getProcessDesc()->getPid(),
             USER_PROCESS);
 

@@ -7,18 +7,27 @@
 #include <inc/drivers/pit.h>
 #include <inc/drivers/kbterm.h>
 #include <inc/klibs/deque.h>
+#include <inc/init.h>
 
 using arch::Stacker;
 using arch::CPUArchTypes::x86;
 
 namespace scheduler {
 
+spinlock_t sched_lock = SPINLOCK_UNLOCKED;
+
 // Smaller than zero <=> No switch.
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
 
-Deque<Pid> activeQueue;
-Deque<Pid> pausedQueue;
+Deque<thread_kinfo*> rrQueue;
+
+void attachThread(thread_kinfo* pcb, ThreadState newState)
+{
+    AutoSpinLock l(&sched_lock);
+    pcb->getPCB()->runState = newState;
+    rrQueue.push_back(pcb);
+}
 
 void setTSS(const thread_pcb& pcb)
 {
@@ -29,7 +38,7 @@ void setTSS(const thread_pcb& pcb)
 
 void enablePreemptiveScheduling()
 {
-    runQueue = new Deque<Pid>();
+    AutoSpinLock l(&sched_lock);
     pit_init(20);   // switch every 50ms
 }
 
@@ -37,14 +46,37 @@ void makeDecision()
 {
     // Put whatever scheduling policy here
     // call "prepareSwitchTo" to schedule a context switch
+    AutoSpinLock l(&sched_lock);
+
+    // !! Principle: front of queue must be the process to run.
+    //  Upon entrance of makeDecision(), the front is the NEXT process to run.
+    if(rrQueue.empty())
+        return;
+
+    // find the process to run
+    thread_kinfo* next = *rrQueue.front();
+
+    // schedule to run this process
+    wantToSwitchTo = next->getProcessDesc()->getPid();
+
+    // store the next process to run at queue front.
+    // There is at least one thread that's "Running"
+    while(next->getPCB()->runState != Running)
+    {
+        rrQueue.pop_front();
+        rrQueue.push_back(next);
+        next = *rrQueue.front();
+    }
+
 }
 
-Pid newPausedProcess(int32_t parentPID, ProcessType processType)
+Pid newDetachedProcess(int32_t parentPID, ProcessType processType)
 {
+    AutoSpinLock l(&sched_lock);
     ProcessDesc& pd = ProcessDesc::newProcess(parentPID, processType);
 
     // TODO: FIXME: Currently all processes are binded to terminal 0
-    pd.currTerm = KeyB::getFirstTextTerm();
+    pd.currTerm = isFallbackTerm ? KeyB::getFirstTextTerm() : ProcessDesc::get(parentPID).currTerm;
 
     return pd.getPid();
 }
@@ -64,7 +96,7 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
 {
     // should have loaded flags using cli_and_save or pushfl
     uint32_t flags = 0;
-    int32_t child_upid = newPausedProcess(-1, KERNEL_PROCESS);
+    int32_t child_upid = newDetachedProcess(-1, KERNEL_PROCESS);
 
     if(child_upid < 0)
     {
@@ -105,6 +137,8 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
 
 void forceStartThread(thread_kinfo* thread)
 {
+    AutoSpinLock l(&sched_lock);
+
     if(!thread)
         return;
     cli();
@@ -129,6 +163,9 @@ void forceStartThread(thread_kinfo* thread)
     // refresh TSS so that later interrupts use this new kstack
     tss.esp0 = (uint32_t)thread->storage.pcb.esp0;
 
+    // Add this thread to scheduler
+    rrQueue.push_back(thread);
+
     asm volatile (
         "movl %0, %%esp         ;\n"
         "popal                  ;\n"
@@ -140,6 +177,8 @@ void forceStartThread(thread_kinfo* thread)
 // Performs context switching
 target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 {
+    AutoSpinLock l(&sched_lock);
+
     if (num_nest_int() > 0)
         return NULL;
     if (wantToSwitchTo < 0)
@@ -183,6 +222,7 @@ void yield()
 
 void halt(thread_pcb& pcb, int32_t retval)
 {
+    AutoSpinLock l(&sched_lock);
     thread_kinfo* prevInfo = pcb.execParent;
     *(int32_t*)((uint32_t)prevInfo->storage.pcb.esp0 + 7 * 4) = retval;
     scheduler::prepareSwitchTo(prevInfo->getProcessDesc()->getPid());
@@ -198,6 +238,8 @@ void halt(thread_pcb& pcb, int32_t retval)
 
     // Clean up process
     ProcessDesc::remove(pcb.to_process->getPid());
+
+    ;
 }
 
 }   // namespace scheduler

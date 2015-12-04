@@ -251,11 +251,12 @@ namespace KeyB
     {
     public:
         static const size_t numClients = 4;
+        static const size_t numTextTerms = 4;
     private:
         // In order to support GUI later, here we do NOT directly use TermImpl as type of clients
         IEvent* clients[numClients];
     public:
-        Term::TextTerm textTerms[4] = {};
+        Term::TextTerm textTerms[numTextTerms] = {};
 
         KbClients();
         virtual ~KbClients();

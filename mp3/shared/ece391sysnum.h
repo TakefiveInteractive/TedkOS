@@ -18,4 +18,6 @@
 // Switch to an existing pcb's thread
 #define SYS_DOTASK 14
 
+#define SYS_FORK        15
+
 #endif /* ECE391SYSNUM_H */

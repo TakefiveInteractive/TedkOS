@@ -90,6 +90,11 @@ ProcessDesc& ProcessDesc::get(Pid pid)
     return *all_processes[pid];
 }
 
+bool ProcessDesc::has(Pid pid)
+{
+    return all_processes[pid] != NULL;
+}
+
 void ProcessDesc::remove(Pid pid)
 {
     if (all_processes[pid])
