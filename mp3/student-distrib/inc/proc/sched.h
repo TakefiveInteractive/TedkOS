@@ -38,7 +38,8 @@ namespace scheduler {
     void makeDecision();
 
     // Cede current time slice
-    void yield();
+    void block(thread_kinfo* thread);
+    void unblock(thread_kinfo* thread);
 
     // Common code to halt/squash a process
     void halt(thread_pcb& pcb, int32_t retval);

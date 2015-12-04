@@ -68,7 +68,7 @@ namespace Term
             auto& proc = ProcessDesc::get(OwnedByPid);
             cpu0_memmap.loadProcessMap(&proc);
             getRegs(proc.mainThreadInfo)->eax = helpFinishRead(UserWaitingBuffer, UserWaitingLen);
-            scheduler::prepareSwitchTo(OwnedByPid);
+            scheduler::unblock(proc.mainThreadInfo);
         }
         else term_buf_pos = 0;
     }
@@ -197,9 +197,9 @@ namespace Term
             UserWaitingLen = nbytes;
 
             // Switch to IDLE thread
-            scheduler::prepareSwitchTo(0);
+            scheduler::block(getCurrentThreadInfo());
 
-            // Retval does not matter here (it's given to IDLE thread)
+            // This return value will be clobbered later upon keyboard interrupt.
             return 0;
         }
         else return helpFinishRead(cbuf, nbytes);
@@ -268,6 +268,12 @@ namespace Term
         UserWaitingRead = false;
         UserWaitingBuffer = NULL;
         UserWaitingLen = -1;
+    }
+
+    void Term::isOwnedBy(int32_t tid, function<void (bool result)> callback)
+    {
+        AutoSpinLock l(&term_lock);
+        callback(OwnedByPid == tid);
     }
 
     void Term::key(uint32_t kkc, bool capslock)

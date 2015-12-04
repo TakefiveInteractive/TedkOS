@@ -64,6 +64,12 @@ void makeDecision()
 
     // find the process to run
     thread_kinfo* next = *(rrQueue->front());
+    while(next->getPCB()->runState != Running)
+    {
+        rrQueue->pop_front();
+        rrQueue->push_back(next);
+        next = *(rrQueue->front());
+    }
 
     // schedule to run this process
     wantToSwitchTo = next->getProcessDesc()->getPid();
@@ -225,8 +231,19 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     return ans;
 }
 
-void yield()
+void block(thread_kinfo* thread)
 {
+    {
+        AutoSpinLock lock(&sched_lock);
+        thread->getPCB()->runState = Waiting;
+    }
+    makeDecision();
+}
+
+void unblock(thread_kinfo* thread)
+{
+    AutoSpinLock lock(&sched_lock);
+    thread->getPCB()->runState = Running;
 }
 
 void halt(thread_pcb& pcb, int32_t retval)
