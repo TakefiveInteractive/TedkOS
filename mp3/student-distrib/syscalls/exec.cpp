@@ -33,7 +33,9 @@ int32_t sysexec(const char* file)
 
     // Request context switch
     scheduler::attachThread(ProcessDesc::get(child_upid).mainThreadInfo, Running);
-    scheduler::makeDecision();
+
+    // this will automatically make decision
+    scheduler::block(getCurrentThreadInfo());
     return 0;
 }
 
@@ -161,8 +163,14 @@ Pid do_exec(const char* arg0)
         child.mainThreadInfo->storage.pcb.esp0 = (target_esp0) kstack.getESP();
 
         // RELEASE control of stdin.
-        if (getCurrentThreadInfo()->getProcessDesc()->currTerm)
-            getCurrentThreadInfo()->getProcessDesc()->currTerm->setOwner(-1);
+        auto term = getCurrentThreadInfo()->getProcessDesc()->currTerm;
+        if (term)
+        {
+            term->isOwnedBy(getCurrentThreadInfo()->getProcessDesc()->getPid(), [=](bool result) {
+                if(result)
+                    getCurrentThreadInfo()->getProcessDesc()->currTerm->setOwner(child_upid);
+            });
+        }
 
         return child_upid;
     });
