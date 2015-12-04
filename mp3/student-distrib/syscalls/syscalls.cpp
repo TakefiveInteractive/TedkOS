@@ -49,6 +49,7 @@ int32_t dotask(int32_t pid)
     {
         scheduler::attachThread(ProcessDesc::get(pid).mainThreadInfo, Running);
         scheduler::makeDecision();
+        return 0;
     }
     return -1;
 }
@@ -66,7 +67,7 @@ int32_t fork()
     // TODO: FIXME: change to use thread inside the same process.
     //              current version can only be used with init (proc 0).
 
-    auto child = ProcessDesc::get(newDetachedProcess(-1, getCurrentThreadInfo()->getPCB()->type));
+    auto& child = ProcessDesc::get(newDetachedProcess(-1, getCurrentThreadInfo()->getPCB()->type));
 
     child.mainThreadInfo->copy(*getCurrentThreadInfo());
     child.mainThreadInfo->getPCB()->to_process = &child;
@@ -227,6 +228,12 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "pushl %%ecx;   \n"
         "pushl %%ebx;   \n"
         "pushl %%eax;   \n"
+
+        "leal  4*4(%%esp), %%eax   ;\n"
+        "pushl %%eax               ;\n"
+        "call  schedBackupState    ;\n"         // !!! Must ensure schedBackupState only uses ONE ARGUMENT
+        "addl  $4, %%esp           ;\n"         // (otherwise I cannot ensure eax-edx are passed to systemCallDispatcher)
+
         "call systemCallDispatcher ;\n"         // Responsibility to increment the nested counter goes to systemCallDispatcher
         "addl $16, %%esp           ;\n"
         "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.

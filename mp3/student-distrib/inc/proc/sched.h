@@ -43,12 +43,16 @@ namespace scheduler {
     // Common code to halt/squash a process
     void halt(thread_pcb& pcb, int32_t retval);
 
+    // initialize global variables.
+    void init();
+
 }
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+    void __attribute__((used)) schedBackupState(target_esp0 currentESP);
     target_esp0 schedDispatchExecution(target_esp0 currentESP);
 
     // Note that it's not recommended to get current thread's regs,

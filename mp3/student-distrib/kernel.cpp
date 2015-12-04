@@ -119,6 +119,9 @@ _entry (unsigned long magic, unsigned long addr)
     _init();
     canUseCpp = true;
 
+    /* initialize scheduler variables */
+    scheduler::init();
+
     /* Initialize file system */
     filesystem::Dispatcher::init();
 
