@@ -214,7 +214,7 @@ namespace Term
         {
             uint32_t addr;
             if(isLoadedInVmem)
-                addr = +virtOfPage0();
+                addr = PRE_INIT_VIDEO;
             else addr = (uint32_t) backupBuffer;
             userFirst4MBTable[PRE_INIT_VIDEO >> 12] = (uint32_t) PG_4KB_BASE | PG_WRITABLE | PG_USER | (addr & ALIGN_4KB_ADDR);
             LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
