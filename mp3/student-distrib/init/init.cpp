@@ -72,6 +72,11 @@ __attribute__((used)) void init_main(void* arg)
         /* Enable interrupts */
         sti();
     }
+    else
+    {
+        // stop wasting precious scheduling time!
+        scheduler::block(getCurrentThreadInfo());
+    }
 
     asm volatile("1: hlt; jmp 1b;");
 }
