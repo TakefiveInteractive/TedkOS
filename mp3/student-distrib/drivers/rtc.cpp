@@ -157,6 +157,7 @@ public:
  */
 void init()
 {
+    AutoSpinLock l(&rtc_lock);
     virtualRTCs = new Deque<VirtualRTC *>();
 
     outb(RTC_STATUS_B_NMI, RTC_ADDRESS);
@@ -232,6 +233,14 @@ int handler(int irq, unsigned int saved_reg)
 
     for (size_t i = 0; i < virtualRTCs->size(); i++)
     {
+        int esp = 0;
+        asm volatile
+        ("movl %%esp, %0": "=rm"(esp));
+        printf("i = %d, esp = %x ,", i, esp);
+        printf("Pid: %d, ", getCurrentThreadInfo()->getProcessDesc()->getPid());
+        uint32_t itemAddr = (uint32_t)((*virtualRTCs)[i]);
+        printf("item = %x, mappedTo\t%x\n", itemAddr, global_cr3val[itemAddr >> 22]);
+        RELOAD_CR3();
         (*virtualRTCs)[i]->triggerIfPossible();
     }
 
