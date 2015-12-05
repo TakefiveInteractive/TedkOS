@@ -280,6 +280,13 @@ bool handleShortcut(uint32_t kernelKeycode)
     case KKC_ALT | KKC_F4:
         switchToTextTerm(3);
         return true;
+    case KKC_ALT | KKC_F5:
+        switchToTextTerm(4);
+        return true;
+    case KKC_ALT | KKC_F6:
+        switchToTextTerm(5);
+        return true;
+
     default:
         // Currently we do NOT handle other cases of COMBINE+SPECIAL
         return false;

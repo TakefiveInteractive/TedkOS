@@ -258,8 +258,8 @@ namespace KeyB
     class KbClients
     {
     public:
-        static const size_t numClients = 4;
-        static const size_t numTextTerms = 4;
+        static constexpr size_t numClients = 6;
+        static constexpr size_t numTextTerms = 6;
     private:
         // In order to support GUI later, here we do NOT directly use TermImpl as type of clients
         IEvent* clients[numClients];

@@ -6,7 +6,7 @@
 #include <inc/x86/desc.h>
 #include <inc/proc/tasks.h>
 
-typedef void (*kthread_entry)(void*);
+typedef void __attribute__((fastcall)) (*kthread_entry)(void*);
 
 #ifdef __cplusplus
 namespace scheduler {

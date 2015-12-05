@@ -71,13 +71,14 @@ int32_t fork()
 
     child.mainThreadInfo->copy(*getCurrentThreadInfo());
     child.mainThreadInfo->getPCB()->to_process = &child;
-    
+
     child.memmap = getCurrentThreadInfo()->getProcessDesc()->memmap;
+    getRegs(child.mainThreadInfo)->eax = 0;
 
     attachThread(child.mainThreadInfo, Running);
 
     // TODO: change retval to TID
-    return 0;
+    return 1;
 }
 
 template<typename F>
