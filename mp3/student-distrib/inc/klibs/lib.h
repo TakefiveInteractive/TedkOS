@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// Note that this location is exactly 4KB-aligned.
 #define PRE_INIT_VIDEO 0xB8000
 
 #ifdef __cplusplus
