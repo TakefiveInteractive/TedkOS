@@ -41,7 +41,4 @@
 DEFINE_DRIVER_INIT(rtc);
 DEFINE_DRIVER_REMOVE(rtc);
 
-void rtc_init();
-int rtc_handler(int irq, unsigned int saved_reg);
-
 #endif

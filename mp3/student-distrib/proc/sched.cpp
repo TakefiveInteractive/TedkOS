@@ -48,7 +48,7 @@ void setTSS(const thread_pcb& pcb)
 void enablePreemptiveScheduling()
 {
     AutoSpinLock l(&sched_lock);
-    pit_init(20);   // switch every 50ms
+    pit_init(50);   // switch every 20ms
 }
 
 void makeDecisionNoLock()
