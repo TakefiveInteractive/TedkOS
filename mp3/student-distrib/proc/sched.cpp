@@ -51,12 +51,8 @@ void enablePreemptiveScheduling()
     pit_init(20);   // switch every 50ms
 }
 
-void makeDecision()
+void makeDecisionNoLock()
 {
-    // Put whatever scheduling policy here
-    // call "prepareSwitchTo" to schedule a context switch
-    AutoSpinLock l(&sched_lock);
-
     // !! Principle: front of queue must be the process to run.
     //  Upon entrance of makeDecision(), the front is the NEXT process to run.
     if(rrQueue->empty())
@@ -81,6 +77,12 @@ void makeDecision()
         rrQueue->push_back(next);
         next = *(rrQueue->front());
     } while(next->getPCB()->runState != Running);
+}
+
+void makeDecision()
+{
+    AutoSpinLock l(&sched_lock);
+    makeDecisionNoLock();
 }
 
 Pid newDetachedProcess(int32_t parentPID, ProcessType processType)
@@ -274,6 +276,9 @@ void halt(thread_pcb& pcb, int32_t retval)
     rrQueue->pop_front();
     // Wake up parent
     prevInfo->getPCB()->runState = Running;
+
+    // Make sure removed process is NOT scheduled after iret.
+    makeDecisionNoLock();
 }
 
 }   // namespace scheduler
