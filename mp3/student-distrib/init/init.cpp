@@ -18,7 +18,7 @@ volatile bool isFallbackTerm = true;
 
 __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg);
 
-__attribute__((used)) void init_main(void* arg)
+__attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
 {
     pcbLoadable = true;
 

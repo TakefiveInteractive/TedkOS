@@ -13,7 +13,7 @@ extern uint32_t userFirst4MBTable[1024];
 
 extern "C"
 {
-    void init_main(void* arg);
+    void __attribute__((fastcall)) init_main(void* arg);
 }
 
 #endif /* _INIT_H */
