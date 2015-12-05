@@ -50,7 +50,7 @@ namespace Term
 
     void Term::tryMapVidmap()
     {
-        return getTermPainter()->tryMapVidmap();
+        getTermPainter()->tryMapVidmap();
     }
 
     // Warning: these handlers DO NOT LOCK spinlocks !!!
