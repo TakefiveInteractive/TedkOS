@@ -8,7 +8,7 @@
 
 using memory::operator "" _MB;
 
-size_t ProcessDesc::nextNewProcess = 0;
+size_t ProcessDesc::nextNewProcess = 1;
 ProcessDesc *static_all_processes[MAX_NUM_PROCESS] = { };
 ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 

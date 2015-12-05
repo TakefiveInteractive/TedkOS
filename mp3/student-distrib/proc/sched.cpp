@@ -19,6 +19,7 @@ spinlock_t sched_lock = SPINLOCK_UNLOCKED;
 // Smaller than zero <=> No switch.
 volatile int32_t wantToSwitchTo = -1;
 volatile int32_t currentlyRunning = -1;
+volatile bool preemptiveEnabled = false;
 
 Deque<thread_kinfo*> *rrQueue = NULL;
 
@@ -26,6 +27,9 @@ void init()
 {
     sched_lock = SPINLOCK_UNLOCKED;
     rrQueue = new Deque<thread_kinfo*>();
+    wantToSwitchTo = -1;
+    currentlyRunning = -1;
+    preemptiveEnabled = false;
 }
 
 void attachThread(thread_kinfo* pcb, ThreadState newState)
@@ -48,7 +52,9 @@ void setTSS(const thread_pcb& pcb)
 void enablePreemptiveScheduling()
 {
     AutoSpinLock l(&sched_lock);
+    if (preemptiveEnabled) return;
     pit_init(50);   // switch every 20ms
+    preemptiveEnabled = true;
 }
 
 void makeDecisionNoLock()
@@ -139,8 +145,9 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
     pushal_t regs;
     regs.esp = (uint32_t) kstack.getESP();
     regs.ebp = 0;
-    regs.eax = (uint32_t) arg;
-    regs.ebx = regs.ecx = regs.edx = 0;
+    regs.eax = 0;
+    regs.ebx = regs.edx = 0;
+    regs.ecx = (uint32_t) arg;     // fastcall passes first arg in ECX
     regs.edi = regs.esi = 0;
 
     kstack << regs;

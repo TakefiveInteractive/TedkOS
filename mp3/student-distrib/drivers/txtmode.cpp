@@ -182,7 +182,7 @@ namespace Term
                 : "cc", "memory", "ecx"
             );
             currShowing->isLoadedInVmem = false;
-            
+
             AutoSpinLock l2(&cpu0_paging_lock);
             currShowing->tryMapVidmapNolock();
         }
