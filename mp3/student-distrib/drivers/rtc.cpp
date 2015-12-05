@@ -43,7 +43,6 @@ public:
             {
                 waiting = false;
                 // Trigger task
-                auto proc = thread->getProcessDesc();
                 getRegs(thread)->eax = 0;
                 scheduler::unblock(thread);
             }
@@ -177,7 +176,6 @@ void ensureHardwareFrequencyHigherThanVirtualFrequenciesNoLock(VirtualRTC *reque
     }
     if (max != hardwareRTCFrequency)
     {
-        printf("Reset hardware freq to %d\n", max);
         hardwareRTCFrequency = max;
         rtc_change_frequency_nolock(frequency_converter(max));
 
