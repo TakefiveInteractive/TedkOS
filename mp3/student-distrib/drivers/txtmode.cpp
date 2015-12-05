@@ -196,6 +196,36 @@ namespace Term
         currShowing = this;
         isLoadedInVmem = true;
         helpSetCursor(cursorX, cursorY);
+            
+        AutoSpinLock l2(&cpu0_paging_lock);
+        tryMapVidmapNolock();
+    }
+
+    bool TextModePainter::canShowVidmap()
+    {
+        return isLoadedInVmem && bIsVidmapEnabled;
+    }
+
+    void TextModePainter::tryMapVidmapNolock()
+    {
+        if(!pcbLoadable || !canUseCpp || isFallbackTerm)
+            return;
+        if(bIsVidmapEnabled)
+        {
+            uint32_t addr;
+            if(isLoadedInVmem)
+                addr = +virtOfPage0();
+            else addr = (uint32_t) backupBuffer;
+            userFirst4MBTable[PRE_INIT_VIDEO >> 12] = (uint32_t) PG_4KB_BASE | PG_WRITABLE | PG_USER | (addr & ALIGN_4KB_ADDR);
+            LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
+            RELOAD_CR3();
+        }
+    }
+
+    void TextModePainter::tryMapVidmap()
+    {
+        AutoSpinLock l(&lock);
+        tryMapVidmapNolock();
     }
 
     TextModePainter::TextModePainter() : TermPainter()

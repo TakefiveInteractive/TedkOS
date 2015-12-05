@@ -108,6 +108,8 @@ namespace Term
         virtual uint8_t* enableVidmap() = 0;
         virtual void disableVidmap() = 0;
         virtual bool isVidmapEnabled() = 0;
+        virtual bool canShowVidmap() = 0;
+        virtual void tryMapVidmap() = 0;
 
         // !! ALL Painters have their own lock, separate from Term's lock !!
         virtual void clearScreen() = 0;
@@ -125,7 +127,7 @@ namespace Term
         //static spinlock_t txtVMemLock = SPINLOCK_UNLOCKED;
 
         spinlock_t lock = SPINLOCK_UNLOCKED;
-        uint8_t backupBuffer[SCREEN_WIDTH * SCREEN_HEIGHT * 2];
+        uint8_t backupBuffer[SCREEN_WIDTH * SCREEN_HEIGHT * 2] __attribute__((aligned (4096)));
         uint32_t cursorX = 0, cursorY = 0;
         bool isLoadedInVmem;
         bool bIsVidmapEnabled = false;
@@ -136,6 +138,7 @@ namespace Term
         // this helper simply sets the cursor, without considering lock or ownership AT ALL.
         void helpSetCursor(uint32_t x, uint32_t y);
         void clearScreenNolock();
+        void tryMapVidmapNolock();
     public:
         TextModePainter();
         virtual void show();
@@ -144,6 +147,8 @@ namespace Term
         virtual uint8_t* enableVidmap();
         virtual void disableVidmap();
         virtual bool isVidmapEnabled();
+        virtual bool canShowVidmap();
+        virtual void tryMapVidmap();
 
         virtual void clearScreen();
         virtual void scrollDown();
@@ -211,6 +216,8 @@ namespace Term
         virtual uint8_t* enableVidmap() final;
         virtual void disableVidmap() final;
         virtual bool isVidmapEnabled() final;
+        virtual bool canShowVidmap() final;
+        virtual void tryMapVidmap() final;
 
         virtual void key(uint32_t kkc, bool capslock) final;
         virtual void keyDown(uint32_t kkc, bool capslock) final;

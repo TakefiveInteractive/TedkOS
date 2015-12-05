@@ -43,6 +43,16 @@ namespace Term
         return getTermPainter()->isVidmapEnabled();
     }
 
+    bool Term::canShowVidmap()
+    {
+        return getTermPainter()->canShowVidmap();
+    }
+
+    void Term::tryMapVidmap()
+    {
+        return getTermPainter()->tryMapVidmap();
+    }
+
     // Warning: these handlers DO NOT LOCK spinlocks !!!
     void Term::nolock_enter_handler(uint32_t keycode)
     {

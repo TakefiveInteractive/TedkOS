@@ -309,11 +309,8 @@ namespace palloc
         spareMemMaps[1 - loadedMap].loadToCR3();
         loadedMap = 1 - loadedMap;
 
-        if(proc->currTerm->isVidmapEnabled())
-        {
-            LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
-            RELOAD_CR3();
-        }
+        if(proc->currTerm)
+            proc->currTerm->tryMapVidmap();
         return true;
     }
 
