@@ -57,9 +57,11 @@ template<size_t index> struct VectorExtractingMetaFunc {
 "3:;\n"
             "cld;                               \n"     // Exception with error code (CASE 3)
 
+            /*
             "pushl %%esp               ;\n"             // covers CASE 2 and CASE 3
             "call  schedBackupState    ;\n"             // This does NOT clobber EBX. So we are fine.
             "addl  $4, %%esp           ;\n"
+            */
 
             "leal -32(%%esp), %%eax;            \n"     // Load addr of top of stack at beginning of interrupt
             "pushl %%eax;                       \n"

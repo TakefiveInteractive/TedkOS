@@ -59,8 +59,6 @@ void enablePreemptiveScheduling()
 
 void makeDecisionNoLock()
 {
-    // !! Principle: front of queue must be the process to run.
-    //  Upon entrance of makeDecision(), the front is the NEXT process to run.
     if(rrQueue->empty())
         return;
 
@@ -76,13 +74,8 @@ void makeDecisionNoLock()
     // schedule to run this process
     wantToSwitchTo = next->getProcessDesc()->getPid();
 
-    // store the next process to run at queue front.
-    // There is at least one thread that's "Running"
-    do {
-        rrQueue->pop_front();
-        rrQueue->push_back(next);
-        next = *(rrQueue->front());
-    } while(next->getPCB()->runState != Running);
+    rrQueue->pop_front();
+    rrQueue->push_back(next);
 }
 
 void makeDecision()
@@ -210,9 +203,13 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
         return NULL;
     if (wantToSwitchTo < 0)
     {
+        target_esp0 tmp0 = getCurrentThreadInfo()->getPCB()->esp0;
+        if(getCurrentThreadInfo()->getProcessDesc()->getPid() != 1)
+        printf("switching to pid %d, map=0x%x addr=0x%x\n", getCurrentThreadInfo()->getProcessDesc()->getPid(), global_cr3val[32], &global_cr3val[32]);
+
+        getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) &getCurrentThreadInfo()->storage + THREAD_KSTACK_SIZE - 4);
         if(!getCurrentThreadInfo()->isKernel())
         {
-            getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) &getCurrentThreadInfo()->storage + THREAD_KSTACK_SIZE - 4);
             tss.esp0 = (uint32_t) getCurrentThreadInfo()->storage.pcb.esp0;
         }
         return NULL;
@@ -229,8 +226,12 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     //   so that later interrupts use this new kstack
     setTSS(desc.mainThreadInfo->storage.pcb);
 
+    printf("before switching-back map=0x%x ", global_cr3val[32]);
+
     // Switch Page Directory
     cpu0_memmap.loadProcessMap(&desc);
+
+    printf("switching back to pid %d, map=0x%x addr=0x%x\n", desc.getPid(), global_cr3val[32], &global_cr3val[32]);
 
     currentlyRunning = wantToSwitchTo;
     // Reset dispatch decision state.
@@ -265,8 +266,7 @@ void halt(thread_pcb& pcb, int32_t retval)
     // GET control of stdin.
     if(term)
     {
-        if(term->isVidmapEnabled())
-            term->disableVidmap();
+        term->tryDisableVidmap();
         //term->setOwner(true, prevInfo->getProcessDesc()->getPid());
         term->setOwner(true, -1);
     }
@@ -298,6 +298,11 @@ void __attribute__((used)) schedBackupState(target_esp0 currentESP)
     // Should only be saved if this is the outmost interrupt.
     if (num_nest_int() > 0)
         return;
+
+    /*
+    if(getCurrentThreadInfo()->getProcessDesc()->getPid() != 1)
+    printf("save pid %d to esp 0x%x, *=0x%x, 0x%x, 0x%x \n", getCurrentThreadInfo()->getProcessDesc()->getPid(), currentESP, *((uint32_t*)((uint32_t)currentESP + 0)), *((uint32_t*)((uint32_t)currentESP + 4)), *((uint32_t*)((uint32_t)currentESP + 8)));
+    */
 
     // save current esp0 to current thread's pcb
     getCurrentThreadInfo()->storage.pcb.esp0 = currentESP;

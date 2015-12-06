@@ -220,6 +220,11 @@ namespace Term
             LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
             RELOAD_CR3();
         }
+        else
+        {
+            global_cr3val[0] = 0;
+            RELOAD_CR3();
+        }
     }
 
     void TextModePainter::tryMapVidmap()
@@ -243,10 +248,9 @@ namespace Term
         return (uint8_t*)PRE_INIT_VIDEO;
     }
 
-    void TextModePainter::disableVidmap()
+    void TextModePainter::tryDisableVidmap()
     {
         AutoSpinLock l(&lock);
-        clearScreenNolock();
         bIsVidmapEnabled = false;
         global_cr3val[0] = 0x0;
         RELOAD_CR3();

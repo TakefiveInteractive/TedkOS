@@ -33,9 +33,9 @@ namespace Term
         return getTermPainter()->enableVidmap();
     }
 
-    void Term::disableVidmap()
+    void Term::tryDisableVidmap()
     {
-        getTermPainter()->disableVidmap();
+        getTermPainter()->tryDisableVidmap();
     }
 
     bool Term::isVidmapEnabled()
@@ -78,6 +78,7 @@ namespace Term
             auto& proc = ProcessDesc::get(OwnedByPid);
             cpu0_memmap.loadProcessMap(&proc);
             getRegs(proc.mainThreadInfo)->eax = helpFinishRead(UserWaitingBuffer, UserWaitingLen);
+            cpu0_memmap.loadProcessMap(getCurrentThreadInfo()->getProcessDesc());
             scheduler::unblock(proc.mainThreadInfo);
         }
         else term_buf_pos = 0;

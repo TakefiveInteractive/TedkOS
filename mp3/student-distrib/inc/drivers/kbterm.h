@@ -106,7 +106,7 @@ namespace Term
 
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap() = 0;
-        virtual void disableVidmap() = 0;
+        virtual void tryDisableVidmap() = 0;
         virtual bool isVidmapEnabled() = 0;
         virtual bool canShowVidmap() = 0;
         virtual void tryMapVidmap() = 0;
@@ -145,7 +145,7 @@ namespace Term
 
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap();
-        virtual void disableVidmap();
+        virtual void tryDisableVidmap();
         virtual bool isVidmapEnabled();
         virtual bool canShowVidmap();
         virtual void tryMapVidmap();
@@ -214,7 +214,7 @@ namespace Term
 
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap() final;
-        virtual void disableVidmap() final;
+        virtual void tryDisableVidmap() final;
         virtual bool isVidmapEnabled() final;
         virtual bool canShowVidmap() final;
         virtual void tryMapVidmap() final;
