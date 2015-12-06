@@ -15,13 +15,13 @@ private:
     // sInitialCapacity must be a NON-ZERO value
     static const size_t sInitialCapacity = 2;
 
-    size_t mCapacity;
-    size_t mSize;
+    volatile size_t mCapacity;
+    volatile size_t mSize;
 
     // mFront: position to be pop_front (front - 1 is to be pushed)
     // mBack:  position to be pop_back (back + 1 is to be pushed)
     // For mFront&mBack: -1 means no such push has happened.
-    size_t mFront, mBack;
+    volatile size_t mFront, mBack;
 
     // array of pointers to element.
     T** mContents;
