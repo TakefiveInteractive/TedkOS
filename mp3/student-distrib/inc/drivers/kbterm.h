@@ -20,6 +20,8 @@
 #include <inc/fs/filesystem.h>
 #include <inc/fs/fops.h>
 
+struct _thread_pcb;
+
 
 namespace KeyB
 {
@@ -105,9 +107,9 @@ namespace Term
     public:
 
         // Returns a VIRT pointer to USER-RW page
-        virtual uint8_t* enableVidmap() = 0;
-        virtual void tryDisableVidmap() = 0;
-        virtual void tryMapVidmap() = 0;
+        virtual uint8_t* enableVidmap(const struct _thread_pcb* theThread) = 0;
+        virtual void tryDisableVidmap(const struct _thread_pcb* theThread) = 0;
+        virtual void tryMapVidmap(const struct _thread_pcb* pcbToLoadMemmap) = 0;
 
         // !! ALL Painters have their own lock, separate from Term's lock !!
         virtual void clearScreen() = 0;
@@ -130,21 +132,23 @@ namespace Term
         bool isLoadedInVmem;
         bool bIsVidmapEnabled = false;
 
+        const struct _thread_pcb* vidmapOwner = NULL;
+
         // this is just helper. this does NOT lock spinlock
         uint8_t* videoMem();
 
         // this helper simply sets the cursor, without considering lock or ownership AT ALL.
         void helpSetCursor(uint32_t x, uint32_t y);
         void clearScreenNolock();
-        void tryMapVidmapNolock();
+        void tryMapVidmapNolock(const struct _thread_pcb* pcbToLoadMemmap);
     public:
         TextModePainter();
         virtual void show();
 
         // Returns a VIRT pointer to USER-RW page
-        virtual uint8_t* enableVidmap();
-        virtual void tryDisableVidmap();
-        virtual void tryMapVidmap();
+        virtual uint8_t* enableVidmap(const struct _thread_pcb* theThread);
+        virtual void tryDisableVidmap(const struct _thread_pcb* theThread);
+        virtual void tryMapVidmap(const struct _thread_pcb* pcbToLoadMemmap);
 
         virtual void clearScreen();
         virtual void scrollDown();
@@ -209,9 +213,9 @@ namespace Term
         Term();
 
         // Returns a VIRT pointer to USER-RW page
-        virtual uint8_t* enableVidmap() final;
-        virtual void tryDisableVidmap() final;
-        virtual void tryMapVidmap() final;
+        virtual uint8_t* enableVidmap(const struct _thread_pcb* theThread) final;
+        virtual void tryDisableVidmap(const struct _thread_pcb* theThread) final;
+        virtual void tryMapVidmap(const struct _thread_pcb* pcbToLoadMemmap) final;
 
         virtual void key(uint32_t kkc, bool capslock) final;
         virtual void keyDown(uint32_t kkc, bool capslock) final;

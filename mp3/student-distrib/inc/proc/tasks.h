@@ -49,7 +49,7 @@ enum ThreadState
 
 // because we saves all register states in kernel stack,
 //   here we do not repeat those states.
-struct thread_pcb
+typedef struct _thread_pcb
 {
     // Kernel stack state of current thread.
     volatile target_esp0 esp0;
@@ -63,7 +63,7 @@ struct thread_pcb
     //    EXEC     scheduling: process is paused and the next process
     //    to be executed is stored as current pcb->next.
     thread_kinfo *execChild, *execParent;
-};
+} thread_pcb;
 
 //!!!! thread_kinfo must be aligned in memory !!!!
 struct __attribute__ ((__packed__)) thread_kinfo

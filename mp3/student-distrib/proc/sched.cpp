@@ -258,7 +258,7 @@ void halt(thread_pcb& pcb, int32_t retval)
     // GET control of stdin.
     if(term)
     {
-        term->tryDisableVidmap();
+        term->tryDisableVidmap(&pcb);
         //term->setOwner(true, prevInfo->getProcessDesc()->getPid());
         term->setOwner(true, -1);
     }

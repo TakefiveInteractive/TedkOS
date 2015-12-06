@@ -310,7 +310,7 @@ namespace palloc
         loadedMap = 1 - loadedMap;
 
         if(proc->currTerm)
-            proc->currTerm->tryMapVidmap();
+            proc->currTerm->tryMapVidmap(proc->mainThreadInfo->getPCB());
         return true;
     }
 

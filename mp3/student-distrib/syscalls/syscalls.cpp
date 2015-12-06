@@ -58,7 +58,11 @@ int32_t vidmap(uint8_t** ans)
 {
     if(!validUserPointer(ans))
         return -EFOPS;
-    *ans = getCurrentThreadInfo()->getProcessDesc()->currTerm->enableVidmap();
+    uint8_t* _ans = NULL;
+    _ans = getCurrentThreadInfo()->getProcessDesc()->currTerm->enableVidmap(getCurrentThreadInfo()->getPCB());
+    if(_ans == NULL)
+        return -EFOPS;
+    *ans = _ans;
     return 0;
 }
 

@@ -28,19 +28,19 @@ namespace Term
 
     }
 
-    uint8_t* Term::enableVidmap()
+    uint8_t* Term::enableVidmap(const struct _thread_pcb* theThread)
     {
-        return getTermPainter()->enableVidmap();
+        return getTermPainter()->enableVidmap(theThread);
     }
 
-    void Term::tryDisableVidmap()
+    void Term::tryDisableVidmap(const struct _thread_pcb* theThread)
     {
-        getTermPainter()->tryDisableVidmap();
+        getTermPainter()->tryDisableVidmap(theThread);
     }
 
-    void Term::tryMapVidmap()
+    void Term::tryMapVidmap(const thread_pcb* pcbToLoadMemmap)
     {
-        getTermPainter()->tryMapVidmap();
+        getTermPainter()->tryMapVidmap(pcbToLoadMemmap);
     }
 
     // Warning: these handlers DO NOT LOCK spinlocks !!!
