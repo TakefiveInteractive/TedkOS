@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <inc/syscalls/syscalls.h>
 #include <inc/syscalls/filesystem_wrapper.h>
-#include <boost/type_traits/function_traits.hpp>
 #include <inc/klibs/lib.h>
 #include <inc/x86/desc.h>
 #include <inc/proc/sched.h>
@@ -11,8 +10,7 @@
 #include <inc/syscalls/halt.h>
 #include "getargs.h"
 #include "sbrk.h"
-
-using namespace boost;
+#include "syscall_helpers.h"
 
 namespace syscall {
 
@@ -55,74 +53,6 @@ int32_t vidmap(uint8_t** ans)
         return -EFOPS;
     *ans = getCurrentThreadInfo()->getProcessDesc()->currTerm->enableVidmap();
     return 0;
-}
-
-template<typename F>
-F super_cast(uint32_t input)
-{
-    return reinterpret_cast<F>(input);
-}
-
-template<>
-int32_t super_cast<int32_t>(uint32_t input)
-{
-    return static_cast<int32_t>(input);
-}
-
-template<unsigned N>
-class SystemCallArgN { };
-
-template<>
-class SystemCallArgN<0> {
-public:
-    template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
-    {
-        return fptr();
-    }
-};
-
-template<>
-class SystemCallArgN<1> {
-public:
-    template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
-    {
-        return fptr(super_cast<typename function_traits<F>::arg1_type>(p1));
-    }
-};
-
-template<>
-class SystemCallArgN<2> {
-public:
-    template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
-    {
-        return fptr(
-                    super_cast<typename function_traits<F>::arg1_type>(p1),
-                    super_cast<typename function_traits<F>::arg2_type>(p2)
-                 );
-    }
-};
-
-template<>
-class SystemCallArgN<3> {
-public:
-    template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
-    {
-        return fptr(
-                    super_cast<typename function_traits<F>::arg1_type>(p1),
-                    super_cast<typename function_traits<F>::arg2_type>(p2),
-                    super_cast<typename function_traits<F>::arg3_type>(p3)
-                 );
-    }
-};
-
-template<typename F>
-static int32_t systemCallRunner(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
-{
-    return SystemCallArgN<function_traits<F>::arity>::run(fptr, p1, p2, p3);
 }
 
 extern "C"
