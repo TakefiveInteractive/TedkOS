@@ -1,6 +1,8 @@
 #include <inc/drivers/kbterm.h>
 #include <inc/klibs/palloc.h>
 #include <inc/init.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
 
 using palloc::virtOfPage0;
 
@@ -184,7 +186,7 @@ namespace Term
             currShowing->isLoadedInVmem = false;
 
             AutoSpinLock l2(&cpu0_paging_lock);
-            currShowing->tryMapVidmapNolock();
+            currShowing->tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
         }
         asm volatile (
             "cld                                                    ;"
@@ -199,11 +201,14 @@ namespace Term
         currShowing = this;
         isLoadedInVmem = true;
         helpSetCursor(cursorX, cursorY);
+        tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
     }
 
-    void TextModePainter::tryMapVidmapNolock()
+    void TextModePainter::tryMapVidmapNolock(const thread_pcb* pcbToLoadMemmap)
     {
         if(!pcbLoadable || !canUseCpp || isFallbackTerm)
+            return;
+        if(pcbToLoadMemmap != vidmapOwner)
             return;
         if(bIsVidmapEnabled)
         {
@@ -222,10 +227,10 @@ namespace Term
         }
     }
 
-    void TextModePainter::tryMapVidmap()
+    void TextModePainter::tryMapVidmap(const thread_pcb* pcbToLoadMemmap)
     {
         AutoSpinLock l(&lock);
-        tryMapVidmapNolock();
+        tryMapVidmapNolock(pcbToLoadMemmap);
     }
 
     TextModePainter::TextModePainter() : TermPainter()
@@ -233,9 +238,11 @@ namespace Term
         clearScreen();
     }
 
-    uint8_t* TextModePainter::enableVidmap()
+    uint8_t* TextModePainter::enableVidmap(const struct _thread_pcb* theThread)
     {
         AutoSpinLock l(&lock);
+        if(vidmapOwner)
+            return NULL;
         clearScreenNolock();
         bIsVidmapEnabled = true;
         LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
@@ -243,9 +250,11 @@ namespace Term
         return (uint8_t*)PRE_INIT_VIDEO;
     }
 
-    void TextModePainter::tryDisableVidmap()
+    void TextModePainter::tryDisableVidmap(const struct _thread_pcb* theThread)
     {
         AutoSpinLock l(&lock);
+        if(vidmapOwner != theThread)
+            return;
         bIsVidmapEnabled = false;
         global_cr3val[0] = 0x0;
         RELOAD_CR3();
