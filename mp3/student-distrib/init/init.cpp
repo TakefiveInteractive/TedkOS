@@ -28,7 +28,7 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
 
     spin_lock_init(multitask_lock);
     {
-        AutoSpinLockKeepIF l(&KeyB::keyboard_lock);
+        AutoSpinLock l(&KeyB::keyboard_lock);
         for(size_t i = 0; i < KeyB::KbClients::numTextTerms; i++)
             termNumbers->push_back(i);
     }

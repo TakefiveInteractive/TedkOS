@@ -38,16 +38,6 @@ namespace Term
         getTermPainter()->tryDisableVidmap();
     }
 
-    bool Term::isVidmapEnabled()
-    {
-        return getTermPainter()->isVidmapEnabled();
-    }
-
-    bool Term::canShowVidmap()
-    {
-        return getTermPainter()->canShowVidmap();
-    }
-
     void Term::tryMapVidmap()
     {
         getTermPainter()->tryMapVidmap();

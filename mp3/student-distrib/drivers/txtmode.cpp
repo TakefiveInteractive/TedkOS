@@ -201,11 +201,6 @@ namespace Term
         helpSetCursor(cursorX, cursorY);
     }
 
-    bool TextModePainter::canShowVidmap()
-    {
-        return isLoadedInVmem && bIsVidmapEnabled;
-    }
-
     void TextModePainter::tryMapVidmapNolock()
     {
         if(!pcbLoadable || !canUseCpp || isFallbackTerm)
@@ -255,11 +250,6 @@ namespace Term
         global_cr3val[0] = 0x0;
         RELOAD_CR3();
         return;
-    }
-
-    bool TextModePainter::isVidmapEnabled()
-    {
-        return bIsVidmapEnabled;
     }
 }
 

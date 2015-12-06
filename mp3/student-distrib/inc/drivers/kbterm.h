@@ -107,8 +107,6 @@ namespace Term
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap() = 0;
         virtual void tryDisableVidmap() = 0;
-        virtual bool isVidmapEnabled() = 0;
-        virtual bool canShowVidmap() = 0;
         virtual void tryMapVidmap() = 0;
 
         // !! ALL Painters have their own lock, separate from Term's lock !!
@@ -146,8 +144,6 @@ namespace Term
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap();
         virtual void tryDisableVidmap();
-        virtual bool isVidmapEnabled();
-        virtual bool canShowVidmap();
         virtual void tryMapVidmap();
 
         virtual void clearScreen();
@@ -215,8 +211,6 @@ namespace Term
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap() final;
         virtual void tryDisableVidmap() final;
-        virtual bool isVidmapEnabled() final;
-        virtual bool canShowVidmap() final;
         virtual void tryMapVidmap() final;
 
         virtual void key(uint32_t kkc, bool capslock) final;
