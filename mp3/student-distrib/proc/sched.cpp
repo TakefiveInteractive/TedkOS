@@ -194,6 +194,14 @@ void forceStartThread(thread_kinfo* thread)
     // This asm block changes everything but gcc should not worry about them.
 }
 
+void printDebug(thread_pcb* pcb, const char* str)
+{
+    uint32_t esp;
+    asm volatile ("movl %%esp, %0" : "=rm" (esp));
+    printf(str);
+    printf("pid %d, currEsp=0x%x *iret=0x%x, 0x%x\n", pcb->to_process->getPid(), esp, *((uint32_t*)((uint32_t)pcb->esp0 + 32)), *((uint32_t*)((uint32_t)pcb->esp0 + 36)));
+}
+
 // Performs context switching
 target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 {
@@ -221,20 +229,26 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     // Switch stack
     target_esp0 ans = desc.mainThreadInfo->storage.pcb.esp0;
 
-    // Save new kernel stack into TSS.
-    //   so that later interrupts use this new kstack
-    setTSS(desc.mainThreadInfo->storage.pcb);
-
     //printf("before switching-back map=0x%x ", global_cr3val[32]);
 
     // Switch Page Directory
     cpu0_memmap.loadProcessMap(&desc);
 
-    //printf("switching back to pid %d, map=0x%x addr=0x%x\n", desc.getPid(), global_cr3val[32], &global_cr3val[32]);
+    printDebug(desc.mainThreadInfo->getPCB(),"switching back to");
 
     currentlyRunning = wantToSwitchTo;
     // Reset dispatch decision state.
     wantToSwitchTo = -1;
+
+    if(!desc.mainThreadInfo->isKernel())
+    {
+        // Reset TARGET thread's esp0 !!
+        desc.mainThreadInfo->getPCB()->esp0 = (target_esp0)((uint32_t) &(desc.mainThreadInfo->storage) + THREAD_KSTACK_SIZE - 4);
+    }
+
+    // Save new kernel stack into TSS.
+    //   so that later interrupts use this new kstack (AND we are at outmost interrupt, THUS we use ORIGINAL esp0)
+    setTSS(desc.mainThreadInfo->storage.pcb);
 
     return ans;
 }
