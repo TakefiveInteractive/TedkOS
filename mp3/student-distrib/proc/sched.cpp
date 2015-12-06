@@ -211,8 +211,10 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
         return NULL;
     if (wantToSwitchTo < 0)
     {
+        /*
         if(getCurrentThreadInfo()->getProcessDesc()->getPid() != 1)
         printf("***switching to pid %d, map=0x%x submap=0x%x***n", getCurrentThreadInfo()->getProcessDesc()->getPid(), global_cr3val[0], userFirst4MBTable[184]);
+        */
 
         getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) &getCurrentThreadInfo()->storage + THREAD_KSTACK_SIZE - 4);
         if(!getCurrentThreadInfo()->isKernel())
@@ -234,7 +236,7 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     // Switch Page Directory
     cpu0_memmap.loadProcessMap(&desc);
 
-    printDebug(desc.mainThreadInfo->getPCB(),"switching back to");
+    // printDebug(desc.mainThreadInfo->getPCB(),"switching back to");
 
     currentlyRunning = wantToSwitchTo;
     // Reset dispatch decision state.
