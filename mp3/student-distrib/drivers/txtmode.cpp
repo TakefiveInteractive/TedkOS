@@ -209,7 +209,9 @@ namespace Term
         if(!pcbLoadable || !canUseCpp || isFallbackTerm)
             return;
         if(pcbToLoadMemmap != vidmapOwner)
+        {
             return;
+        }
         if(bIsVidmapEnabled)
         {
             uint32_t addr;
@@ -243,6 +245,9 @@ namespace Term
         AutoSpinLock l(&lock);
         if(vidmapOwner)
             return NULL;
+
+        vidmapOwner = theThread;
+
         clearScreenNolock();
         bIsVidmapEnabled = true;
         LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
@@ -255,6 +260,9 @@ namespace Term
         AutoSpinLock l(&lock);
         if(vidmapOwner != theThread)
             return;
+
+        vidmapOwner = NULL;
+
         bIsVidmapEnabled = false;
         global_cr3val[0] = 0x0;
         RELOAD_CR3();

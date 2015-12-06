@@ -204,7 +204,7 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     if (wantToSwitchTo < 0)
     {
         if(getCurrentThreadInfo()->getProcessDesc()->getPid() != 1)
-        printf("switching to pid %d, map=0x%x addr=0x%x\n", getCurrentThreadInfo()->getProcessDesc()->getPid(), global_cr3val[32], &global_cr3val[32]);
+        printf("***switching to pid %d, map=0x%x submap=0x%x***n", getCurrentThreadInfo()->getProcessDesc()->getPid(), global_cr3val[0], userFirst4MBTable[184]);
 
         getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) &getCurrentThreadInfo()->storage + THREAD_KSTACK_SIZE - 4);
         if(!getCurrentThreadInfo()->isKernel())
@@ -225,12 +225,12 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     //   so that later interrupts use this new kstack
     setTSS(desc.mainThreadInfo->storage.pcb);
 
-    printf("before switching-back map=0x%x ", global_cr3val[32]);
+    //printf("before switching-back map=0x%x ", global_cr3val[32]);
 
     // Switch Page Directory
     cpu0_memmap.loadProcessMap(&desc);
 
-    printf("switching back to pid %d, map=0x%x addr=0x%x\n", desc.getPid(), global_cr3val[32], &global_cr3val[32]);
+    //printf("switching back to pid %d, map=0x%x addr=0x%x\n", desc.getPid(), global_cr3val[32], &global_cr3val[32]);
 
     currentlyRunning = wantToSwitchTo;
     // Reset dispatch decision state.
