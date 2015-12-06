@@ -3,12 +3,19 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/drivers/common.h>
+#include <inc/klibs/lib.h>
+#include <inc/i8259.h>
+
+#define SB16_IRQ 5
+#define SB16_ID 5
+#define SB16_POLICY 0
 
 void sb16_outb(uint8_t data, uint16_t offset);
 uint8_t sb16_inb(uint16_t offset);
 void dma_outb(uint8_t data, uint16_t port);
 uint8_t dma_inb(uint16_t port);
-void init_sb16();
+void sb16_init();
 void sb16_reset();
 void dma_start(uint8_t channel, uint32_t addr, uint32_t size, int8_t mode);
 void sb16_dsp_write(uint8_t byte);

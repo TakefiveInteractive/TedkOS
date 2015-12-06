@@ -2,13 +2,10 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/klibs/AutoSpinLock.h>
 #include <inc/proc/tasks.h>
-#include <inc/i8259.h>
-#include <inc/klibs/lib.h>
+#include <inc/fs/fops.h>
+#include <inc/fs/dev_wrapper.h>
 
-
-//#include "syscall.h"
-//#include "fs.h"
-//#include "mem.h"
+using namespace filesystem;
 
 /*
  * This driver is shamelessly adapted from
@@ -118,7 +115,7 @@ static int8_t *current_block = dma_buffer;
 
 typedef struct playback_status {
     process_t *process;
-    int32_t fd;
+    File fd;
     int8_t channel;
     int8_t mode;
     int8_t playing;
@@ -175,31 +172,35 @@ void dma_outb(uint8_t data, uint16_t port) {
     outb(data, port);
 }
 
-void init_sb16() {
+void sb16_init() {
     sb16_reset();
     status.process = NULL;
-    status.fd = 0;
     status.channel = 1;
     status.mode = 0;
     status.playing = 0;
 }
 
+unsigned int64_t inline getRDTSC() {
+   __asm__ volatile {
+      ; Flush the pipeline
+      XOR eax, eax
+      CPUID
+      ; Get RDTSC counter in edx:eax
+      RDTSC
+   }
+}
+
 void sb16_reset() {
     sb16_outb(1, DSPReset);
     // need to wait 3 microseconds
-    int i;
-    int a, b;
-    for (i = 0; i < 1000; i++) {
-        a = i;
-        b = i * 2;
-        a = b*i;
-    }
+    // assuming clock speed is at most 6Ghz
+    int64_t start = getRDTSC();
+    while (getRDTSC() - start < 0x480000000LL);
+
     sb16_outb(0, DSPReset);
 
     while ( !(sb16_inb(DSPReadStatus) & READ_STATUS) );
     while ( !(sb16_inb(DSPRead) == 0xAA) );
-
-    return;
 }
 
 void enable_dma(uint32_t dmanr) {
@@ -358,13 +359,13 @@ chunk_info_t wav_read_chunk_header() {
     info.data_size = 0;
     uint8_t buf[13] = {0};
     // read in the chunk header
-    if (syscall_read(status.fd, buf, 8) < 8) {
+    if (theDispatcher->read(status.fd, buf, 8) < 8) {
         return info;
     }
     info.chunk_id = *(uint32_t *) (buf + 0);
     info.data_size = *(uint32_t *) (buf + 4);
     if (info.chunk_id == RIFF) {
-        syscall_read(status.fd, buf + 8, 4);
+        theDispatcher->read(status.fd, buf + 8, 4);
         if (*(uint32_t *) (buf + 8) != WAVE) {
             // RIFF chunk is invalid
             info.chunk_id = 0;
@@ -387,20 +388,17 @@ uint32_t get_int32(void *buf, int offset) {
 // http://www.sonicspot.com/guide/wavefiles.html
 
 int32_t play_wav(int8_t *filename) {
+    File& wavFile = status.fd;
     if (status.playing || filename == NULL) {
         return -1;
     }
-    process_t *old_process = current_process;
     status.process = kernel_proc;
-    current_process = status.process;
-    int32_t fd = syscall_open((uint8_t*)filename);
+    theDispatcher->open(wavFile, filename);
     int32_t bytes_read;
-    status.fd = fd;
     chunk_info_t info;
     info = wav_read_chunk_header();
     if (info.chunk_id != RIFF) {
-        syscall_close(fd);
-        current_process = old_process;
+        theDispatcher->close(wavFile);
         return -1;
     }
     info = wav_read_chunk_header();
@@ -408,30 +406,26 @@ int32_t play_wav(int8_t *filename) {
     int8_t is_signed;
     uint16_t sample_rate;
     if (info.chunk_id != FMT) {
-        syscall_close(fd);
-        current_process = old_process;
+        theDispatcher->close(wavFile);
         return -1;
     }
-    uint8_t *format = kmalloc(info.data_size);
-    bytes_read = syscall_read(status.fd, format, info.data_size);
+    uint8_t *format = new uint8_t[info.data_size];
+    bytes_read = theDispatcher->read(status.fd, format, info.data_size);
     if (bytes_read < info.data_size) {
-        kfree(format);
-        syscall_close(fd);
-        current_process = old_process;
+        delete [] format;
+        theDispatcher->close(wavFile);
         return -1;
     }
     if (get_int16(format, 0) != 1) {
         // not uncompressed PCM format
-        kfree(format);
-        syscall_close(fd);
-        current_process = old_process;
+        delete [] format;
+        theDispatcher->close(wavFile);
         return -1;
     }
     if (get_int16(format, 0x2) != 1) {
         // not mono sound
-        kfree(format);
-        syscall_close(fd);
-        current_process = old_process;
+        delete [] format;
+        theDispatcher->close(wavFile);
         return -1;
     }
     bits = get_int16(format, 0xE);
@@ -441,26 +435,26 @@ int32_t play_wav(int8_t *filename) {
         is_signed = 0;
     }
     sample_rate = get_int16(format, 0x4);
-    kfree(format);
+    delete [] format;
 
     info = wav_read_chunk_header();
     if (info.chunk_id == FACT) {
-        uint8_t *buf = kmalloc(info.data_size);
-        bytes_read = syscall_read(status.fd, buf, info.data_size);
-        kfree(buf);
+        uint8_t *buf = new uint8_t[info.data_size];
+        bytes_read = theDispatcher->read(status.fd, buf, info.data_size);
+        delete [] buf;
         info = wav_read_chunk_header();
     }
     if (info.chunk_id != DATA) {
         // no data? oh no
-        syscall_close(fd);
+        theDispatcher->close(wavFile);
         current_process = old_process;
         return -1;
     }
     current_process = old_process;
-    return play_file(fd, bits, is_signed, sample_rate);
+    return play_file(wavFile, bits, is_signed, sample_rate);
 }
 
-int32_t play_file(int32_t fd, int8_t bits, int8_t is_signed, uint16_t sample_rate) {
+int32_t play_file(File& fd, int8_t bits, int8_t is_signed, uint16_t sample_rate) {
     if (status.playing) {
         return -1;
     }
@@ -475,7 +469,6 @@ int32_t play_file(int32_t fd, int8_t bits, int8_t is_signed, uint16_t sample_rat
     }
 
     status.process = kernel_proc;
-    status.fd = fd;
     status.playing = 1;
     if (is_signed) {
         status.mode |= STATUS_SIGNED;
@@ -484,10 +477,11 @@ int32_t play_file(int32_t fd, int8_t bits, int8_t is_signed, uint16_t sample_rat
     // set sampling rate
     sb16_set_sample_rate(sample_rate);
 
-    process_t *old_process = current_process;
-    current_process = status.process;
+    // process_t *old_process = current_process;
+    // current_process = status.process;
+    uint32_t bytes_read = theDispatcher->read(fd, (uint8_t*)dma_buffer, CHUNK_SIZE*2);
     uint32_t bytes_read = syscall_read(fd, (uint8_t*)dma_buffer, CHUNK_SIZE*2);
-    current_process = old_process;
+    // current_process = old_process;
     dma_start(status.channel, (uint32_t) dma_buffer, sizeof(dma_buffer), DMA_MODE_AI);
     sb16_start_playback((uint16_t) CHUNK_SIZE);
     if (bytes_read < CHUNK_SIZE) {
@@ -516,7 +510,7 @@ void reset_playback() {
     for (i = 0; i < sizeof(dma_buffer); i++) {
         dma_buffer[i] = 0;
     }
-    syscall_close(status.fd);
+    theDispatcher->close(status.fd);
 }
 
 void sb16_handler() {
@@ -556,12 +550,18 @@ void sb16_handler() {
 
     sb16_inb(DSPReadStatus);
     sb16_inb(DSPIntAck);
+}
 
-    send_eoi(5);
+DEFINE_DRIVER_INIT(sb16)
+{
+    bind_irq(SB16_IRQ, SB16_ID, sb16_handler, SB16_POLICY);
+    sb16_init();
+    filesystem::register_devfs("sb16", []() { return FOpsRTC::getNewInstance(); });
+    return;
+}
 
-    //restore all
-    restore_regs(regs);
-    asm ("   \
-            leave; \
-            iret; ");
+DEFINE_DRIVER_REMOVE(sb16)
+{
+    unbind_irq(SB16_IRQ, SB16_ID);
+    return;
 }
