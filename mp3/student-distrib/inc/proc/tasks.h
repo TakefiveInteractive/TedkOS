@@ -96,14 +96,14 @@ struct __attribute__ ((__packed__)) thread_kinfo
     void copy(const struct thread_kinfo& other)
     {
         memcpy(this, &other, sizeof(thread_kinfo));
-        storage.pcb.esp0 = ((target_esp0)((int32_t)other.storage.pcb.esp0 - (int32_t)other.getStackBoundary() + (int32_t)getStackBoundary()));
+        storage.pcb.esp0 = ((target_esp0)((uint32_t)other.storage.pcb.esp0 - (uint32_t)other.getStackBoundary() + (uint32_t)getStackBoundary()));
     }
 
     // Completely copy (not changing anything except actual stack address)
     thread_kinfo(const struct thread_kinfo& other)
     {
         memcpy(this, &other, sizeof(thread_kinfo));
-        storage.pcb.esp0 = ((target_esp0)((int32_t)other.storage.pcb.esp0 - (int32_t)other.getStackBoundary() + (int32_t)getStackBoundary()));
+        storage.pcb.esp0 = ((target_esp0)((uint32_t)other.storage.pcb.esp0 - (uint32_t)other.getStackBoundary() + (uint32_t)getStackBoundary()));
     }
 };
 
