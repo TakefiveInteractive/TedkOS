@@ -6,13 +6,10 @@
 #include <inc/drivers/common.h>
 #include <inc/klibs/lib.h>
 #include <inc/i8259.h>
-#include <inc/fs/fops.h>
-#include <inc/fs/dev_wrapper.h>
 #include <inc/fs/filesystem.h>
 #include <inc/syscalls/filesystem_wrapper.h>
 
 using namespace filesystem;
-
 
 #define SB16_IRQ 5
 #define SB16_ID 5
