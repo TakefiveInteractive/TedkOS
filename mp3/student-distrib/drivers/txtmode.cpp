@@ -220,11 +220,13 @@ namespace Term
             LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
             RELOAD_CR3();
         }
+        /*
         else
         {
             global_cr3val[0] = 0;
             RELOAD_CR3();
         }
+        */
     }
 
     void TextModePainter::tryMapVidmap()
