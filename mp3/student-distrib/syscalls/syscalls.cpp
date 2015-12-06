@@ -16,29 +16,31 @@ using namespace boost;
 
 namespace syscall {
 
-#define HAS_FLAG(X, FLAG) (((X) & (FLAG)) == (FLAG))
+template<uint32_t FLAG>
+const bool HAS_FLAG(uint32_t x)
+{
+    return (((x) & (FLAG)) == (FLAG));
+}
 
 bool validUserPointer(const void* ptr)
 {
-    if(ptr == NULL)
+    if (ptr == NULL)
         return false;
 
     // TODO: also add some conditions for kernel threads.
-    if(getCurrentThreadInfo()->isKernel())
+    if (getCurrentThreadInfo()->isKernel())
         return true;
 
     uint32_t pde = global_cr3val[((uint32_t)ptr) >> 22];
-    if(HAS_FLAG(pde, PG_4MB_BASE|PG_USER))
+    if (HAS_FLAG<PG_4MB_BASE | PG_USER>(pde))
         return true;
-    else if(HAS_FLAG(pde, PT_BASE|PT_USER))
+    else if (HAS_FLAG<PT_BASE | PT_USER>(pde))
     {
         uint32_t pte = ((uint32_t*) (pde & ALIGN_4KB_ADDR))[((uint32_t)ptr & EXTRACT_PTE) >> 12];
-        return HAS_FLAG(pte, PG_4KB_BASE|PG_USER);
+        return HAS_FLAG<PG_4KB_BASE | PG_USER>(pte);
     }
     else return false;
 }
-
-#undef HAS_FLAG
 
 int32_t dotask(int32_t pid)
 {
