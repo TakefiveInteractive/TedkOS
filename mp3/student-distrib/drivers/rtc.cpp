@@ -60,13 +60,20 @@ public:
         if (freq > ourFreq)
         {
             // Scale counters
+            if (ourFreq == 0) return;
             int factor = (freq / ourFreq);
             uint32_t oldNumCount = numCountToTriggerRTC;
             numCountToTriggerRTC = factor;
             if (numCountToTriggerRTC >= oldNumCount)
-                counter *= (numCountToTriggerRTC / oldNumCount);
+            {
+                if (numCountToTriggerRTC != 0 && oldNumCount != 0)
+                    counter *= (numCountToTriggerRTC / oldNumCount);
+            }
             else
-                counter /= (oldNumCount / numCountToTriggerRTC);
+            {
+                if (numCountToTriggerRTC != 0 && oldNumCount != 0)
+                    counter /= (oldNumCount / numCountToTriggerRTC);
+            }
         }
         else
         {
@@ -192,6 +199,10 @@ void ensureHardwareFrequencyHigherThanVirtualFrequenciesNoLock(VirtualRTC *reque
             else
                 d->newHardwareRTCFrequency(hardwareRTCFrequency);
         }
+    }
+    else
+    {
+        requester->newHardwareRTCFrequencyNoLock(hardwareRTCFrequency);
     }
 }
 
