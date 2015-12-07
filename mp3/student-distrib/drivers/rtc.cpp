@@ -202,7 +202,8 @@ void ensureHardwareFrequencyHigherThanVirtualFrequenciesNoLock(VirtualRTC *reque
     }
     else
     {
-        requester->newHardwareRTCFrequencyNoLock(hardwareRTCFrequency);
+        if (requester != nullptr)
+            requester->newHardwareRTCFrequencyNoLock(hardwareRTCFrequency);
     }
 }
 
