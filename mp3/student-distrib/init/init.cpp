@@ -9,6 +9,7 @@
 #include <inc/ece391syscall.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <inc/drivers/pci.h>
 #include "draw_nikita.h"
 
 using scheduler::makeKThread;
@@ -34,6 +35,12 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
     }
 
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
+
+    printf("Listing PCI devices...\n");
+    pci::printAllFunctions();
+
+    char buf;
+    ece391_read(0, &buf, 1);
 
     bool isChild = false;
     for (register size_t i = 1; i < KeyB::KbClients::numTextTerms; i++)
