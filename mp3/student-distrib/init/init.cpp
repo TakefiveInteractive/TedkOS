@@ -45,11 +45,10 @@ __attribute__((used)) void launcher(void* arg)
 {
     printf("=> I am the guard process to ensure terminals have shells running in them!\n");
 
-    draw_nikita();
+    //draw_nikita();
 
     /* Enable interrupts */
     sti();
-
     // TODO: Duang
     play_wav((char*)"duang.wav");
 

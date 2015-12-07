@@ -102,9 +102,9 @@ uint8_t dma_inb(uint16_t port) {
 }
 
 #define CHUNK_SIZE (32*1024)
-static int8_t dma_buffer[CHUNK_SIZE*2] __attribute__((aligned(64*1024)));
-static int8_t *first_block = dma_buffer;
-static int8_t *second_block = dma_buffer + CHUNK_SIZE;
+static int8_t dma_buffer[CHUNK_SIZE*2] __attribute__((aligned(2*32*1024))) = {};
+static constexpr int8_t *first_block = dma_buffer;
+static constexpr int8_t *second_block = dma_buffer + CHUNK_SIZE;
 static int8_t *current_block = dma_buffer;
 
 #define STATUS_PLAYING (1 << 0)
@@ -113,11 +113,10 @@ static int8_t *current_block = dma_buffer;
 #define STATUS_MONO (1 << 3)
 
 typedef struct playback_status {
-    // process_t *process;
     File fd;
-    int8_t channel;
-    int8_t mode;
-    int8_t playing;
+    volatile int8_t channel;
+    volatile int8_t mode;
+    volatile int8_t playing;
 } playback_status_t;
 
 static playback_status_t status;
@@ -440,7 +439,6 @@ int32_t play_wav(char *filename) {
         // current_process = old_process;
         return -1;
     }
-    // current_process = old_process;
     return play_file(wavFile, bits, is_signed, sample_rate);
 }
 
@@ -471,7 +469,6 @@ int32_t play_file(File& fd, int8_t bits, int8_t is_signed, uint16_t sample_rate)
     // current_process = status.process;
     uint32_t bytes_read = theDispatcher->read(fd, (uint8_t*)dma_buffer, CHUNK_SIZE*2);
     // uint32_t bytes_read = syscall_read(fd, (uint8_t*)dma_buffer, CHUNK_SIZE*2);
-    // current_process = old_process;
     dma_start(status.channel, (uint32_t) dma_buffer, sizeof(dma_buffer), DMA_MODE_AI);
     sb16_start_playback((uint16_t) CHUNK_SIZE);
     if (bytes_read < CHUNK_SIZE) {
@@ -504,14 +501,10 @@ void reset_playback() {
 
 int sb16_handler(int irq, unsigned int saved_reg) {
     if (status.playing) {
-        // process_t *old_process = current_process;
-        // current_process = status.process;
         uint32_t flags;
         cli_and_save(flags);
         uint32_t bytes_read = theDispatcher->read(status.fd, (uint8_t*)current_block, CHUNK_SIZE);
-        // uint32_t bytes_read = syscall_read(status.fd, (uint8_t*)current_block, CHUNK_SIZE);
         restore_flags(flags);
-        // current_process = old_process;
         if (bytes_read > 0) {
             uint16_t block_size = (uint16_t) bytes_read;
             // there are no more chunks after this one; stop playback after the
