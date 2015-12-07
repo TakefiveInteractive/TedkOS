@@ -186,7 +186,7 @@ void sb16_reset() {
     // need to wait 3 microseconds
     // assuming clock speed is at most 6Ghz
     int64_t start = getRDTSC();
-    while (getRDTSC() - start < 0x480000000LL);
+    while (getRDTSC() - start < 0x480000000LL / 16LL);
 
     sb16_outb(0, DSPReset);
 

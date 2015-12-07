@@ -29,10 +29,7 @@ __attribute__((used)) void init_main(void* arg)
 
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
 
-    // TODO: Duang
-    play_wav((char*)"boot.wav");
-
-    scheduler::enablePreemptiveScheduling();
+    //scheduler::enablePreemptiveScheduling();
 
     printf("Starting gaurd...\n");
 
@@ -52,6 +49,9 @@ __attribute__((used)) void launcher(void* arg)
 
     /* Enable interrupts */
     sti();
+
+    // TODO: Duang
+    play_wav((char*)"duang.wav");
 
     for (;;)
     {
