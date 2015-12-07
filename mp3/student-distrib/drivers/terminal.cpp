@@ -233,8 +233,6 @@ namespace Term
         const char* cbuf = (const char*) buf;
         for(i = 0; i < nbytes; i++)
         {
-            if(cbuf[i] == 0)    // end of string
-                return i;
             nolock_putc(cbuf[i]);
         }
         return nbytes;
