@@ -1,5 +1,9 @@
 #include "ata_priv.h"
 
+/*
+ * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ */
+
 namespace ata {
 
 constexpr size_t cache_size = 4096;

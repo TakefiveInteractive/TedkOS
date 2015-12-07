@@ -1,6 +1,10 @@
 #include "ata_priv.h"
 #include <inc/klibs/lib.h>
 
+/*
+ * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ */
+
 namespace ata {
 
 char dbgbuf[256];
