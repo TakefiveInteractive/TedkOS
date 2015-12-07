@@ -391,7 +391,7 @@ memset(void* s, int32_t c, uint32_t n)
 */
 
 /* Optimized memset_word */
-void*
+void* __attribute__((used))
 memset_word(void* s, int32_t c, uint32_t n)
 {
 	asm volatile("                  \n\
@@ -417,7 +417,7 @@ memset_word(void* s, int32_t c, uint32_t n)
 *	Function: set n consecutive memory locations of pointer s to value c
 */
 
-void*
+void* __attribute__((used))
 memset_dword(void* s, int32_t c, uint32_t n)
 {
 	asm volatile("                  \n\
@@ -443,7 +443,7 @@ memset_dword(void* s, int32_t c, uint32_t n)
 *	Function: copy n bytes of src to dest
 */
 
-void*
+void* __attribute__((used))
 memcpy(void* dest, const void* src, uint32_t n)
 {
 	asm volatile("                  \n\
@@ -495,7 +495,7 @@ memcpy(void* dest, const void* src, uint32_t n)
 */
 
 /* Optimized memmove (used for overlapping memory areas) */
-void*
+void* __attribute__((used))
 memmove(void* dest, const void* src, uint32_t n)
 {
 	asm volatile("                  \n\
