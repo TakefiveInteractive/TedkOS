@@ -10,6 +10,12 @@ namespace pci
 // Unit device in PCI. <=> "function" <=> the smallest unit that can count as an individual device in PCI.
 struct UnitDev
 {
+    UnitDev(uint8_t b, uint8_t d, uint8_t f)
+    {
+        busId = b;
+        devId = d;
+        funcId = f;
+    }
     uint8_t busId;
     uint8_t devId;
     uint8_t funcId;

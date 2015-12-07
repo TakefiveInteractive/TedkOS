@@ -37,28 +37,6 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
 
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
 
-    printf("Listing PCI devices...\n");
-
-    findAllFunctions([](uint8_t bus, uint8_t device, uint8_t func)
-    {
-        uint32_t basicIDs = Register(bus, device, func, 0).get();
-        uint32_t vendorID = basicIDs & 0xffff;
-        uint32_t deviceID = basicIDs >> 16;
-
-        printf("Vendor 0x%x Device 0x%x Func 0x%x ", vendorID, deviceID, func);
-
-        uint32_t classInfo = Register(bus, device, func, 0x8).get();
-        if((classInfo >> 24) == 1)
-            printf("\t DISK!");
-        else printf("\tclass = 0x%x", classInfo >> 24);
-
-        printf(" subclass = 0x%x\n", (classInfo >> 16) & 0xff);
-
-    });
-
-    char buf;
-    ece391_read(0, &buf, 1);
-
     bool isChild = false;
     for (register size_t i = 1; i < KeyB::KbClients::numTextTerms; i++)
     {

@@ -2,8 +2,13 @@
 #define _DRIVER_SCANPCI_H
 
 #include <inc/drivers/common.h>
+#include <inc/klibs/deque.h>
+#include <inc/drivers/pci.h>
 
-DEFINE_DRIVER_INIT(scanpci);
-DEFINE_DRIVER_REMOVE(scanpci);
+// IDE <=> PATA
+extern Deque<pci::UnitDev> *PATAControllers;
+
+extern DEFINE_DRIVER_INIT(scanpci);
+extern DEFINE_DRIVER_REMOVE(scanpci);
 
 #endif//_DRIVER_SCANPCI_H
