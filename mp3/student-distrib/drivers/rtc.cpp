@@ -59,10 +59,14 @@ public:
     {
         if (freq > ourFreq)
         {
-            // Scale up counters
+            // Scale counters
             int factor = (freq / ourFreq);
-            counter *= factor;
+            uint32_t oldNumCount = numCountToTriggerRTC;
             numCountToTriggerRTC = factor;
+            if (numCountToTriggerRTC >= oldNumCount)
+                counter *= (numCountToTriggerRTC / oldNumCount);
+            else
+                counter /= (oldNumCount / numCountToTriggerRTC);
         }
         else
         {
@@ -83,10 +87,10 @@ public:
 
     /**
      * read() would block user program until rtc interrupt finished
-     * @param  fd     [description]
-     * @param  buf    [description]
-     * @param  nbytes [description]
-     * @return        [description]
+     * @param  fd     [File descriptor]
+     * @param  buf    [Buffer]
+     * @param  nbytes [max number of bytes to read]
+     * @return        [number of bytes read]
      */
     virtual int32_t read(FsSpecificData *fdData, uint8_t *buf, int32_t bytes)
     {
