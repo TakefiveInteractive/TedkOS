@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include "ata_priv.h"
 
+/*
+ * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ */
+
 namespace ata {
 
 struct part_entry{

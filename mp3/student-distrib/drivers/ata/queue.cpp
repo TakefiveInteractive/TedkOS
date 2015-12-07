@@ -1,6 +1,10 @@
 #include <operation_queue.hpp>
 #include "ata_priv.h"
 
+/*
+ * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ */
+
 namespace ata {
 
 namespace ata_operation_types{

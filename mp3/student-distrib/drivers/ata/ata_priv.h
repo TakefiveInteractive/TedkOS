@@ -2,6 +2,10 @@
  * Partially adapted from https://github.com/mallardtheduck/osdev/
  */
 
+/*
+ * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ */
+
 #ifndef _INC_ATA_HPP_
 #define _INC_ATA_HPP_
 

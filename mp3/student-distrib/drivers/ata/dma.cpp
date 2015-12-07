@@ -1,6 +1,10 @@
 #include "ata_priv.h"
 #include "pci.h"
 
+/*
+ * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ */
+
 namespace ata {
 
 static bool dma_init=false;
