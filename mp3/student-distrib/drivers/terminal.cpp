@@ -28,19 +28,19 @@ namespace Term
 
     }
 
-    uint8_t* Term::enableVidmap()
+    uint8_t* Term::enableVidmap(const struct _thread_pcb* theThread)
     {
-        return getTermPainter()->enableVidmap();
+        return getTermPainter()->enableVidmap(theThread);
     }
 
-    void Term::disableVidmap()
+    void Term::tryDisableVidmap(const struct _thread_pcb* theThread)
     {
-        getTermPainter()->disableVidmap();
+        getTermPainter()->tryDisableVidmap(theThread);
     }
 
-    bool Term::isVidmapEnabled()
+    void Term::tryMapVidmap(const thread_pcb* pcbToLoadMemmap)
     {
-        return getTermPainter()->isVidmapEnabled();
+        getTermPainter()->tryMapVidmap(pcbToLoadMemmap);
     }
 
     // Warning: these handlers DO NOT LOCK spinlocks !!!
@@ -68,7 +68,8 @@ namespace Term
             auto& proc = ProcessDesc::get(OwnedByPid);
             cpu0_memmap.loadProcessMap(&proc);
             getRegs(proc.mainThreadInfo)->eax = helpFinishRead(UserWaitingBuffer, UserWaitingLen);
-            scheduler::prepareSwitchTo(OwnedByPid);
+            cpu0_memmap.loadProcessMap(getCurrentThreadInfo()->getProcessDesc());
+            scheduler::unblock(proc.mainThreadInfo);
         }
         else term_buf_pos = 0;
     }
@@ -197,9 +198,9 @@ namespace Term
             UserWaitingLen = nbytes;
 
             // Switch to IDLE thread
-            scheduler::prepareSwitchTo(0);
+            scheduler::block(getCurrentThreadInfo());
 
-            // Retval does not matter here (it's given to IDLE thread)
+            // This return value will be clobbered later upon keyboard interrupt.
             return 0;
         }
         else return helpFinishRead(cbuf, nbytes);
@@ -261,13 +262,23 @@ namespace Term
         nolock_putc(c);
     }
 
-    void Term::setOwner(int32_t upid)
+    void Term::setOwner(bool lock, int32_t upid)
     {
-        AutoSpinLock l(&term_lock);
+        uint32_t flags;
+        if(lock)
+            spin_lock_irqsave(&term_lock, flags);
         OwnedByPid = upid;
         UserWaitingRead = false;
         UserWaitingBuffer = NULL;
         UserWaitingLen = -1;
+        if(lock)
+            spin_unlock_irqrestore(&term_lock, flags);
+    }
+
+    void Term::canBeOwnedBy(int32_t tid, function<void (bool result)> callback)
+    {
+        AutoSpinLock l(&term_lock);
+        callback(OwnedByPid == -1 || OwnedByPid == tid);
     }
 
     void Term::key(uint32_t kkc, bool capslock)

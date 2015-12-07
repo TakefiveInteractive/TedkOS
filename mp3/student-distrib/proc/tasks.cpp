@@ -8,7 +8,7 @@
 
 using memory::operator "" _MB;
 
-size_t ProcessDesc::nextNewProcess = 0;
+size_t ProcessDesc::nextNewProcess = 1;
 ProcessDesc *static_all_processes[MAX_NUM_PROCESS] = { };
 ProcessDesc **ProcessDesc::all_processes = static_all_processes;
 
@@ -90,6 +90,11 @@ ProcessDesc& ProcessDesc::get(Pid pid)
     return *all_processes[pid];
 }
 
+bool ProcessDesc::has(Pid pid)
+{
+    return all_processes[pid] != NULL;
+}
+
 void ProcessDesc::remove(Pid pid)
 {
     if (all_processes[pid])
@@ -112,9 +117,9 @@ ProcessDesc& ProcessDesc::newProcess(int32_t parentPID, ProcessType processType)
     thread_kinfo* parentInfo = NULL;
     if (parentPID >= 0)
         parentInfo = ProcessDesc::get(parentPID).mainThreadInfo;
-    p->mainThreadInfo->storage.pcb.prev = parentInfo;
+    p->mainThreadInfo->storage.pcb.execParent = parentInfo;
     if (parentInfo)
-        parentInfo->storage.pcb.next = p->mainThreadInfo;
+        parentInfo->storage.pcb.execChild = p->mainThreadInfo;
 
     if(!all_processes[pid])
         all_processes[pid] = p;

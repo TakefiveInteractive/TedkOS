@@ -1,9 +1,11 @@
 #ifndef _X86_IDT_INIT_H
 #define _X86_IDT_INIT_H
 
-#include <inc/x86/desc.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>
+
+#ifdef __cplusplus
+#include <inc/x86/desc.h>
 #include <inc/klibs/function.h>
 #include <inc/klibs/AutoSpinLock.h>
 #include <boost/type_traits/function_traits.hpp>
@@ -51,7 +53,6 @@ runWithoutNMI(FuncType fn)
     outb(inb(0x70) | 0x80, 0x70);
 }
 
-#ifdef __cplusplus
 extern "C" {
 #endif
 

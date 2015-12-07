@@ -6,7 +6,7 @@
 #include <inc/x86/desc.h>
 #include <inc/proc/tasks.h>
 
-typedef void (*kthread_entry)(void*);
+typedef void __attribute__((fastcall)) (*kthread_entry)(void*);
 
 #ifdef __cplusplus
 namespace scheduler {
@@ -17,7 +17,9 @@ namespace scheduler {
     //          valid PD  (thus FD)
     //          No executable in memory
     //          No PAGE TABLEs
-    Pid newPausedProcess(Pid parentPID, ProcessType processType);
+    Pid newDetachedProcess(Pid parentPID, ProcessType processType);
+
+    void attachThread(thread_kinfo* pcb, ThreadState newState);
 
     // Currently all switches are blocking:
     //      Parent process will wait for child to finish
@@ -36,10 +38,14 @@ namespace scheduler {
     void makeDecision();
 
     // Cede current time slice
-    void yield();
+    void block(thread_kinfo* thread);
+    void unblock(thread_kinfo* thread);
 
     // Common code to halt/squash a process
     void halt(thread_pcb& pcb, int32_t retval);
+
+    // initialize global variables.
+    void init();
 
 }
 #endif
@@ -47,6 +53,7 @@ namespace scheduler {
 #ifdef __cplusplus
 extern "C" {
 #endif
+    void __attribute__((used)) schedBackupState(target_esp0 currentESP);
     target_esp0 schedDispatchExecution(target_esp0 currentESP);
 
     // Note that it's not recommended to get current thread's regs,

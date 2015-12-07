@@ -42,15 +42,14 @@ enum ProcessType
 enum ThreadState
 {
     New = 1,
-    Ready,
     Running,
-    Waiting,
+    Waiting,            // Waiting -- not able to be scheduled
     Terminated
 };
 
 // because we saves all register states in kernel stack,
 //   here we do not repeat those states.
-struct thread_pcb
+typedef struct _thread_pcb
 {
     // Kernel stack state of current thread.
     volatile target_esp0 esp0;
@@ -61,10 +60,10 @@ struct thread_pcb
     ThreadState runState;
 
     // Following is a simple list used by "scheduling"
-    //    Simplest scheduling: process is paused and the next process
+    //    EXEC     scheduling: process is paused and the next process
     //    to be executed is stored as current pcb->next.
-    thread_kinfo *next, *prev;
-};
+    thread_kinfo *execChild, *execParent;
+} thread_pcb;
 
 //!!!! thread_kinfo must be aligned in memory !!!!
 struct __attribute__ ((__packed__)) thread_kinfo
@@ -73,6 +72,10 @@ struct __attribute__ ((__packed__)) thread_kinfo
         uint8_t kstack[THREAD_KSTACK_SIZE];
         thread_pcb pcb;
     } storage;
+
+    const uint8_t* getStackBoundary () const { return storage.kstack; }
+
+    uint8_t* getStackBoundary () { return storage.kstack; }
 
     thread_pcb* getPCB() { return &storage.pcb; }
 
@@ -84,10 +87,23 @@ struct __attribute__ ((__packed__)) thread_kinfo
     {
         storage.pcb.esp0 = NULL;
         storage.pcb.to_process = parent;
-        storage.pcb.next = NULL;
-        storage.pcb.prev = NULL;
+        storage.pcb.execChild = NULL;
+        storage.pcb.execParent = NULL;
         storage.pcb.type = processType;
         storage.pcb.runState = New;
+    }
+
+    void copy(const struct thread_kinfo& other)
+    {
+        memcpy(this, &other, sizeof(thread_kinfo));
+        storage.pcb.esp0 = ((target_esp0)((uint32_t)other.storage.pcb.esp0 - (uint32_t)other.getStackBoundary() + (uint32_t)getStackBoundary()));
+    }
+
+    // Completely copy (not changing anything except actual stack address)
+    thread_kinfo(const struct thread_kinfo& other)
+    {
+        memcpy(this, &other, sizeof(thread_kinfo));
+        storage.pcb.esp0 = ((target_esp0)((uint32_t)other.storage.pcb.esp0 - (uint32_t)other.getStackBoundary() + (uint32_t)getStackBoundary()));
     }
 };
 
@@ -124,6 +140,7 @@ private:
 
 public:
     static ProcessDesc** all();
+    static bool has(Pid pid);
     static ProcessDesc& get(Pid pid);
     static void remove(Pid pid);
     static ProcessDesc& newProcess(int32_t _upid, ProcessType processType);

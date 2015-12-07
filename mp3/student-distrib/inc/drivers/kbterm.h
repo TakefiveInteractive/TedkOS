@@ -20,6 +20,8 @@
 #include <inc/fs/filesystem.h>
 #include <inc/fs/fops.h>
 
+struct _thread_pcb;
+
 
 namespace KeyB
 {
@@ -105,9 +107,9 @@ namespace Term
     public:
 
         // Returns a VIRT pointer to USER-RW page
-        virtual uint8_t* enableVidmap() = 0;
-        virtual void disableVidmap() = 0;
-        virtual bool isVidmapEnabled() = 0;
+        virtual uint8_t* enableVidmap(const struct _thread_pcb* theThread) = 0;
+        virtual void tryDisableVidmap(const struct _thread_pcb* theThread) = 0;
+        virtual void tryMapVidmap(const struct _thread_pcb* pcbToLoadMemmap) = 0;
 
         // !! ALL Painters have their own lock, separate from Term's lock !!
         virtual void clearScreen() = 0;
@@ -125,10 +127,12 @@ namespace Term
         //static spinlock_t txtVMemLock = SPINLOCK_UNLOCKED;
 
         spinlock_t lock = SPINLOCK_UNLOCKED;
-        uint8_t backupBuffer[SCREEN_WIDTH * SCREEN_HEIGHT * 2];
+        uint8_t backupBuffer[SCREEN_WIDTH * SCREEN_HEIGHT * 2] __attribute__((aligned (4096)));
         uint32_t cursorX = 0, cursorY = 0;
         bool isLoadedInVmem;
         bool bIsVidmapEnabled = false;
+
+        const struct _thread_pcb* vidmapOwner = NULL;
 
         // this is just helper. this does NOT lock spinlock
         uint8_t* videoMem();
@@ -136,14 +140,15 @@ namespace Term
         // this helper simply sets the cursor, without considering lock or ownership AT ALL.
         void helpSetCursor(uint32_t x, uint32_t y);
         void clearScreenNolock();
+        void tryMapVidmapNolock(const struct _thread_pcb* pcbToLoadMemmap);
     public:
         TextModePainter();
         virtual void show();
 
         // Returns a VIRT pointer to USER-RW page
-        virtual uint8_t* enableVidmap();
-        virtual void disableVidmap();
-        virtual bool isVidmapEnabled();
+        virtual uint8_t* enableVidmap(const struct _thread_pcb* theThread);
+        virtual void tryDisableVidmap(const struct _thread_pcb* theThread);
+        virtual void tryMapVidmap(const struct _thread_pcb* pcbToLoadMemmap);
 
         virtual void clearScreen();
         virtual void scrollDown();
@@ -208,9 +213,9 @@ namespace Term
         Term();
 
         // Returns a VIRT pointer to USER-RW page
-        virtual uint8_t* enableVidmap() final;
-        virtual void disableVidmap() final;
-        virtual bool isVidmapEnabled() final;
+        virtual uint8_t* enableVidmap(const struct _thread_pcb* theThread) final;
+        virtual void tryDisableVidmap(const struct _thread_pcb* theThread) final;
+        virtual void tryMapVidmap(const struct _thread_pcb* pcbToLoadMemmap) final;
 
         virtual void key(uint32_t kkc, bool capslock) final;
         virtual void keyDown(uint32_t kkc, bool capslock) final;
@@ -227,7 +232,8 @@ namespace Term
 
         // Used by keyboard close fops setOwner will not block.
         //   if upid = -1, then keyboard is owned by no body.
-        virtual void setOwner(int32_t upid) final;
+        virtual void setOwner(bool lock, int32_t upid) final;
+        virtual void canBeOwnedBy(int32_t tid, function<void (bool result)> callback) final;
     };
 
     class TextTerm : public Term
@@ -250,12 +256,13 @@ namespace KeyB
     class KbClients
     {
     public:
-        static const size_t numClients = 4;
+        static constexpr size_t numClients = 6;
+        static constexpr size_t numTextTerms = 6;
     private:
         // In order to support GUI later, here we do NOT directly use TermImpl as type of clients
         IEvent* clients[numClients];
     public:
-        Term::TextTerm textTerms[4] = {};
+        Term::TextTerm textTerms[numTextTerms] = {};
 
         KbClients();
         virtual ~KbClients();

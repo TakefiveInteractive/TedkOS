@@ -24,7 +24,7 @@ namespace syscall { namespace halt {
 
 int32_t syshalt(uint32_t retval)
 {
-    thread_kinfo* prevInfo  = getCurrentThreadInfo()->storage.pcb.prev;
+    thread_kinfo* prevInfo  = getCurrentThreadInfo()->storage.pcb.execParent;
     if (prevInfo == NULL)
     {
         printf("Init Process, cannot halt!\n");

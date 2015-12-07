@@ -12,7 +12,6 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
     if(!validUserPointer(buf))
         return -1;
-    sti();
     auto processDesc = getCurrentThreadInfo()->getProcessDesc();
     if (!ensureFdInitialized(processDesc)) return -1;
     if (!processDesc->fileDescs.isValid(fd)) return -1;

@@ -1,6 +1,8 @@
 #include <inc/drivers/kbterm.h>
 #include <inc/klibs/palloc.h>
 #include <inc/init.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
 
 using palloc::virtOfPage0;
 
@@ -182,11 +184,8 @@ namespace Term
                 : "cc", "memory", "ecx"
             );
             currShowing->isLoadedInVmem = false;
-            if(pcbLoadable && currShowing->isVidmapEnabled())
-            {
-                // TODO: cooperate with sched after sched supports categorizing process according to terminal
-                ;
-            }
+            AutoSpinLock l2(&cpu0_paging_lock);
+            currShowing->tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
         }
         asm volatile (
             "cld                                                    ;"
@@ -201,13 +200,38 @@ namespace Term
         currShowing = this;
         isLoadedInVmem = true;
         helpSetCursor(cursorX, cursorY);
+        tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
+    }
 
-        if(pcbLoadable && !currShowing->isVidmapEnabled())
+    void TextModePainter::tryMapVidmapNolock(const thread_pcb* pcbToLoadMemmap)
+    {
+        if(!pcbLoadable || !canUseCpp || isFallbackTerm)
+            return;
+        if(pcbToLoadMemmap != vidmapOwner)
         {
-            // TODO: cooperate with sched after sched supports categorizing process according to terminal
-            global_cr3val[0] = 0x0;             // disable vidmapping
+            return;
+        }
+        if(bIsVidmapEnabled)
+        {
+            uint32_t addr;
+            if(isLoadedInVmem)
+                addr = PRE_INIT_VIDEO;
+            else addr = (uint32_t) backupBuffer;
+            userFirst4MBTable[PRE_INIT_VIDEO >> 12] = (uint32_t) PG_4KB_BASE | PG_WRITABLE | PG_USER | (addr & ALIGN_4KB_ADDR);
+            LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
             RELOAD_CR3();
         }
+        else
+        {
+            global_cr3val[0] = 0;
+            RELOAD_CR3();
+        }
+    }
+
+    void TextModePainter::tryMapVidmap(const thread_pcb* pcbToLoadMemmap)
+    {
+        AutoSpinLock l(&lock);
+        tryMapVidmapNolock(pcbToLoadMemmap);
     }
 
     TextModePainter::TextModePainter() : TermPainter()
@@ -215,9 +239,14 @@ namespace Term
         clearScreen();
     }
 
-    uint8_t* TextModePainter::enableVidmap()
+    uint8_t* TextModePainter::enableVidmap(const struct _thread_pcb* theThread)
     {
         AutoSpinLock l(&lock);
+        if(vidmapOwner)
+            return NULL;
+
+        vidmapOwner = theThread;
+
         clearScreenNolock();
         bIsVidmapEnabled = true;
         LOAD_PAGE_TABLE(0, userFirst4MBTable, PT_WRITABLE | PT_USER);
@@ -225,19 +254,18 @@ namespace Term
         return (uint8_t*)PRE_INIT_VIDEO;
     }
 
-    void TextModePainter::disableVidmap()
+    void TextModePainter::tryDisableVidmap(const struct _thread_pcb* theThread)
     {
         AutoSpinLock l(&lock);
-        clearScreenNolock();
+        if(vidmapOwner != theThread)
+            return;
+
+        vidmapOwner = NULL;
+
         bIsVidmapEnabled = false;
         global_cr3val[0] = 0x0;
         RELOAD_CR3();
         return;
-    }
-
-    bool TextModePainter::isVidmapEnabled()
-    {
-        return bIsVidmapEnabled;
     }
 }
 

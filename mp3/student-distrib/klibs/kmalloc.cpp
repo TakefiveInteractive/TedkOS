@@ -75,8 +75,8 @@ ObjectPool<ElementSize, PoolSize>::ObjectPool()
 
 namespace KMemory {
 
-static constexpr size_t MaxPoolNumInSingleSlot = 20;
-static constexpr size_t MaxPoolNumInAllSlots = 20;
+static constexpr size_t MaxPoolNumInSingleSlot = 30;
+static constexpr size_t MaxPoolNumInAllSlots = 30;
 size_t totalNumPools = 0;
 
 template<size_t Size> using PoolType = ObjectPool<Size, PageSizeOf<Size>>;
@@ -85,6 +85,7 @@ util::Stack<ObjectPool<16, PageSizeOf<16>> *, MaxPoolNumInSingleSlot> pools16;
 util::Stack<ObjectPool<256, PageSizeOf<256>> *, MaxPoolNumInSingleSlot> pools256;
 util::Stack<ObjectPool<8_KB, PageSizeOf<8_KB>> *, MaxPoolNumInSingleSlot> pools8K;
 util::Stack<ObjectPool<256_KB, PageSizeOf<256_KB>> *, MaxPoolNumInSingleSlot> pools256K;
+util::Stack<ObjectPool<1_MB, PageSizeOf<1_MB>> *, MaxPoolNumInSingleSlot> pools1M;
 
 template<size_t ElementSize>
 class PoolGetter { };
@@ -93,6 +94,7 @@ template<> class PoolGetter<16> { public: static const auto val() { return &pool
 template<> class PoolGetter<256> { public: static const auto val() { return &pools256; } };
 template<> class PoolGetter<8_KB> { public: static const auto val() { return &pools8K; } };
 template<> class PoolGetter<256_KB> { public: static const auto val() { return &pools256K; } };
+template<> class PoolGetter<1_MB> { public: static const auto val() { return &pools1M; } };
 
 template<size_t ElementSize>
 Maybe<void *> paraFindAndReleaseFreePool()
@@ -224,6 +226,10 @@ Maybe<void *> allocImpl(size_t size)
     {
         return paraAllocate<256_KB>();
     }
+    else if (size <= 1_MB)
+    {
+        return paraAllocate<1_MB>();
+    }
     else
     {
         return Nothing;
@@ -232,7 +238,11 @@ Maybe<void *> allocImpl(size_t size)
 
 void freeImpl(void *addr)
 {
-    if (!paraFree<16>(addr) && !paraFree<256>(addr) && !paraFree<8_KB>(addr) && !paraFree<256_KB>(addr))
+    if (!paraFree<16>(addr)
+    && !paraFree<256>(addr)
+    && !paraFree<8_KB>(addr)
+    && !paraFree<256_KB>(addr)
+    && !paraFree<1_MB>(addr))
     {
         // Trigger an exception
         trigger_exception<25>();
@@ -256,6 +266,10 @@ bool freeImpl(void *addr, size_t size)
     else if (size <= 256_KB)
     {
         return paraFree<256_KB>(addr);
+    }
+    else if (size <= 1_MB)
+    {
+        return paraFree<1_MB>(addr);
     }
     else
     {

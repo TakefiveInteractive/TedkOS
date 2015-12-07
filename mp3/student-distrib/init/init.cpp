@@ -2,6 +2,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/klibs/stack.h>
 #include <inc/klibs/palloc.h>
+#include <inc/klibs/deque.h>
 #include <inc/syscalls/syscalls.h>
 #include <inc/proc/sched.h>
 #include <inc/proc/tasks.h>
@@ -13,49 +14,86 @@
 using scheduler::makeKThread;
 
 volatile bool pcbLoadable = false;
+volatile bool isFallbackTerm = true;
 
-void launcher(void* arg);
+__attribute__((used)) __attribute__((fastcall)) void launcher(void* arg);
 
-__attribute__((used)) void init_halted()
-{
-    asm volatile("1: hlt; jmp 1b;");
-}
-
-__attribute__((used)) void init_main(void* arg)
+__attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
 {
     pcbLoadable = true;
 
+    // stores the terminal number to allocate. Must be allocated dynamically. Must be locked (after fork).
+    spinlock_t* multitask_lock = new spinlock_t;
+    auto termNumbers = new Deque<int>();
+
+    spin_lock_init(multitask_lock);
+    {
+        AutoSpinLock l(&KeyB::keyboard_lock);
+        for(size_t i = 0; i < KeyB::KbClients::numTextTerms; i++)
+            termNumbers->push_back(i);
+    }
+
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
 
-    scheduler::enablePreemptiveScheduling();
+    bool isChild = false;
+    for (register size_t i = 1; i < KeyB::KbClients::numTextTerms; i++)
+    {
+        int val = ece391_fork();
+        if (val == 0) { isChild = true; break; }    // retval 0 => I'm child
+    }
 
-    printf("Starting gaurd...\n");
+    {
+        AutoSpinLockKeepIF l(multitask_lock);
+        size_t freeTerm = *termNumbers->back();
+        termNumbers->pop_back();
 
-    auto thread = makeKThread(launcher);
+        auto thread = makeKThread(launcher, (void*) freeTerm);
 
-    ece391_dotask(thread->getProcessDesc()->getPid());
+        {
+            AutoSpinLock l(&KeyB::keyboard_lock);
+            thread->getProcessDesc()->currTerm = &(KeyB::clients.textTerms[freeTerm]);
+            thread->getProcessDesc()->currTerm->setOwner(true, -1);
+            thread->getProcessDesc()->currTerm->cls();
 
-    // this part is NEVER REACHED
+            if(termNumbers->empty())
+            {
+                //multiple terminal instantiation complete.
+                isFallbackTerm = false;
+            }
+        }
+
+        ece391_dotask(thread->getProcessDesc()->getPid());
+    }
+
+    if (isChild == false)
+    {
+        scheduler::enablePreemptiveScheduling();
+        /* Enable interrupts */
+        sti();
+    }
+    else
+    {
+        // stop wasting precious scheduling time!
+        scheduler::block(getCurrentThreadInfo());
+    }
+
     asm volatile("1: hlt; jmp 1b;");
 }
 
-__attribute__((used)) void launcher(void* arg)
+constexpr char TTY[] = "On TTY";
+
+__attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 {
-    printf("=> I am the guard process to ensure terminals have shells running in them!\n");
-
-    draw_nikita();
-
-    /* Enable interrupts */
-    sti();
+    // I am the guard process to ensure terminals have shells running in them!
+    size_t termNo = (size_t) arg;
+    ece391_write(1, TTY, sizeof(TTY));
+    char number = '0' + termNo;
+    ece391_write(1, &number, 1);
+    ece391_write(1, "\n", 1);
 
     for (;;)
     {
-        printf("Starting shell ...\n");
-
-        int32_t ret = ece391_execute((const uint8_t *)"shell");
-
-        printf("Return Val: %d\n",ret);
-        printf("Falling back to init.\nRe-");
+        ece391_execute((const uint8_t *)"shell");
     }
 }
 
