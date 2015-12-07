@@ -9,9 +9,11 @@
 #include <inc/ece391syscall.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <inc/drivers/pci.h>
 #include "draw_nikita.h"
 
 using scheduler::makeKThread;
+using namespace pci;
 
 volatile bool pcbLoadable = false;
 volatile bool isFallbackTerm = true;
