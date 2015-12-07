@@ -1,5 +1,7 @@
 #include "ata_priv.h"
 #include <inc/klibs/lib.h>
+#include <inc/klibs/spinlock.h>
+#include <inc/klibs/AutoSpinLock.h>
 
 /*
  * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
@@ -9,9 +11,9 @@ namespace ata {
 
 char dbgbuf[256];
 
-drv_driver ata_driver;
+// drv_driver ata_driver;
 
-lock ata_lock, ata_drv_lock;
+spinlock_t ata_lock, ata_drv_lock;
 
 #define dbgpf printf
 #define dbgout printf
@@ -79,7 +81,7 @@ static void ata_device_init(struct ata_device * dev) {
     uint16_t * buf = (uint16_t *)&dev->identity;
 
     for (int i = 0; i < 256; ++i) {
-        buf[i] = ins(dev->io_base);
+        buf[i] = inw(dev->io_base);
     }
 
     uint8_t * ptr = (uint8_t *)&dev->identity.model;
@@ -113,7 +115,7 @@ static int ata_device_detect(struct ata_device * dev) {
         /* Parallel ATA device */
         ata_device_init(dev);
         char devicename[9]="ATA";
-        add_device(devicename, &ata_driver, (void*)dev);
+        // add_device(devicename, &ata_driver, (void*)dev);
         mbr_parse(devicename);
         return 1;
     }
@@ -311,8 +313,8 @@ char *ata_desc(){
 }
 
 extern "C" int module_main(syscall_table *systbl, char *params){
-    drv_driver driver={ata_open, ata_close, ata_read, ata_write, ata_seek, ata_ioctl, ata_type, ata_desc};
-    ata_driver=driver;
+    // drv_driver driver={ata_open, ata_close, ata_read, ata_write, ata_seek, ata_ioctl, ata_type, ata_desc};
+    // ata_driver=driver;
     dbgout("ATA: Init...\n");
     init_lock(&ata_lock);
     init_lock(&ata_drv_lock);
