@@ -280,6 +280,13 @@ bool handleShortcut(uint32_t kernelKeycode)
     case KKC_ALT | KKC_F4:
         switchToTextTerm(3);
         return true;
+    case KKC_ALT | KKC_F5:
+        switchToTextTerm(4);
+        return true;
+    case KKC_ALT | KKC_F6:
+        switchToTextTerm(5);
+        return true;
+
     default:
         // Currently we do NOT handle other cases of COMBINE+SPECIAL
         return false;
@@ -301,7 +308,7 @@ void term_cls(void)
     {
         orig_clear();
     }
-    else if(pcbLoadable)
+    else if(!isFallbackTerm)
     {
         getCurrentThreadInfo()->getProcessDesc()->currTerm->cls();
     }
@@ -318,7 +325,7 @@ void term_putc(uint8_t c)
     {
         orig_putc(c);
     }
-    else if(pcbLoadable)
+    else if(!isFallbackTerm)
     {
         getCurrentThreadInfo()->getProcessDesc()->currTerm->putc(c);
     }

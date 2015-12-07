@@ -33,24 +33,36 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "leave;                 \n"
             "jz 2f;                 \n"
             "movl %%ebx, -32(%%esp);    \n" // Exception with code
-            "popl %%ebx;                \n" // Pop code into EBX
+            "popl %%ebx;                \n" // Pop code into EBX. EBX is call-EE saved.
             "pushal;                    \n"
             "movl -4(%%esp), %%eax;     \n"
             "movl %%eax, 16(%%esp);     \n"
             "jmp 3f;                    \n"
 "1:;\n"
-            "leave;                     \n"
+            "leave;                     \n"             // Normal Interrupt  (CASE 1)
             "pushal;                    \n"
+
+            "pushl %%esp               ;\n"             // covers CASE 1
+            "call  schedBackupState    ;\n"
+            "addl  $4, %%esp           ;\n"
+
             "pushl %0;                  \n"
             "cld;                               \n"
             "call interrupt_handler_with_number;\n"
             "addl $4, %%esp;                    \n"
             "jmp 4f;                            \n"
 "2:;\n"
-            "pushal;                    \n"             // Exception with no code
+            "pushal;                    \n"             // Exception with no code (CASE 2)
             "movl $0, %%ebx;            \n"
 "3:;\n"
-            "cld;                               \n"
+            "cld;                               \n"     // Exception with error code (CASE 3)
+
+            /*
+            "pushl %%esp               ;\n"             // covers CASE 2 and CASE 3
+            "call  schedBackupState    ;\n"             // This does NOT clobber EBX. So we are fine.
+            "addl  $4, %%esp           ;\n"
+            */
+
             "leal -32(%%esp), %%eax;            \n"     // Load addr of top of stack at beginning of interrupt
             "pushl %%eax;                       \n"
             "pushl %%ebx;                       \n"

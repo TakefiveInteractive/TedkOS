@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// Note that this location is exactly 4KB-aligned.
 #define PRE_INIT_VIDEO 0xB8000
 
 #ifdef __cplusplus
@@ -144,6 +145,8 @@ do {                                    \
 uint32_t getFlagsRegister();
 
 /* Set interrupt flag - enable interrupts on this processor */
+extern void sti(void);
+/*
 #define sti()                           \
 do {                                    \
 	asm volatile("sti"                  \
@@ -152,6 +155,7 @@ do {                                    \
 			: "memory", "cc"        \
 			);                      \
 } while(0)
+*/
 
 /* Restore flags
  * Puts the value in "flags" into the EFLAGS register.  Most often used

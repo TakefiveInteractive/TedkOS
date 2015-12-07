@@ -6,6 +6,7 @@
 #include <inc/klibs/lib.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/error.h>
+#include <inc/x86/idt_init.h>
 
 #define SLAVE_PIN 0x02
 
@@ -146,6 +147,7 @@ static void send_eoi_nolock(uint32_t irq_num)
 // REMEMBER to sti() on ALL exiting conditions (whether successful or not)
 int irq_int_entry (int irq)
 {
+    uint32_t flag;
     if (irq >= NR_IRQS)
     {
         sti();
@@ -157,8 +159,16 @@ int irq_int_entry (int irq)
         return -EINVAL;
     }
 
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val++;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
+
     irq_desc_t* desc = irq_descs + irq;
     handle_level_irq(irq, desc);
+
+    spin_lock_irqsave(&num_nest_int_lock, flag);
+    num_nest_int_val--;
+    spin_unlock_irqrestore(&num_nest_int_lock, flag);
 
     return 1;
 }
@@ -242,11 +252,7 @@ static int setup_irq(unsigned int irq, unsigned int device_id,
     spin_lock_irqsave(&this_desc->actionsLock, flag);
     if(!first_action(list))
     {
-        spin_unlock(&this_desc->actionsLock); sti();
-        cli(); spin_lock(&this_desc->lock);
         enable_irq_nolock(irq);
-        spin_unlock(&this_desc->lock); sti();
-        cli(); spin_lock(&this_desc->actionsLock);
     }
     if(add_action(list, handler, policy_flags, 0, device_id) != 0)
         ret = -ENOMEM;
