@@ -109,7 +109,7 @@ struct __attribute__ ((__packed__)) thread_kinfo
 
 static_assert(sizeof(thread_kinfo) == THREAD_KSTACK_SIZE, "thread_kinfo size mismatch");
 
-#define FD_ARRAY_LENGTH             128
+#define FD_ARRAY_LENGTH             8
 #define FD_FIXED_PART               2
 #define FD_CYCLABLE_PART            (FD_ARRAY_LENGTH - FD_FIXED_PART)
 // There are 2 FDs that are fixed in one process.
