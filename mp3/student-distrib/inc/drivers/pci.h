@@ -7,12 +7,21 @@
 namespace pci
 {
 
+// Unit device in PCI. <=> "function" <=> the smallest unit that can count as an individual device in PCI.
+struct UnitDev
+{
+    uint8_t busId;
+    uint8_t devId;
+    uint8_t funcId;
+};
+
 class Register
 {
 private:
     static spinlock_t ioLock;
     uint32_t configAddr;
 public:
+    Register(const UnitDev& unitDev, uint8_t registerId);
     Register(uint8_t bus, uint8_t device, uint8_t func, uint8_t registerId);
     uint32_t get();
     void set(uint32_t val);

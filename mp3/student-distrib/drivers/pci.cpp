@@ -15,6 +15,8 @@ namespace pci
 
 spinlock_t Register::ioLock = SPINLOCK_UNLOCKED;
 
+Register::Register(const UnitDev& unitDev, uint8_t registerId) : Register(unitDev.busId, unitDev.devId, unitDev.funcId, registerId) {};
+
 Register::Register(uint8_t bus, uint8_t device, uint8_t func, uint8_t registerId)
 {
     uint32_t lbus  = (uint32_t)bus;
