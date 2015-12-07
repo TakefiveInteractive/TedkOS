@@ -4,6 +4,7 @@
 #include <inc/drivers/rtc.h>
 #include <inc/drivers/kbterm.h>
 #include <inc/drivers/pit.h>
+#include <inc/drivers/sb16.h>
 
 /* Include the header of your driver here. */
 
@@ -18,7 +19,8 @@ driver_t known_drivers[] = {
     ADD_DRIVER(kb, "Keyboard"),
     ADD_DRIVER(rtc, "Real Time Clock driver"),
     ADD_DRIVER(mouse, "Mouse"),
-    ADD_DRIVER(pit, "Programmable Interrupt Timer")
+    ADD_DRIVER(pit, "Programmable Interrupt Timer"),
+    ADD_DRIVER(sb16, "Sound Blaster 16 Driver")
 };
 
 const int num_known_drivers = sizeof(known_drivers) / sizeof(driver_t);

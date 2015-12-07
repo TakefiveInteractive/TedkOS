@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include "draw_nikita.h"
 
+#include <inc/drivers/sb16.h>
+
 using scheduler::makeKThread;
 
 volatile bool pcbLoadable = false;
@@ -26,6 +28,9 @@ __attribute__((used)) void init_main(void* arg)
     pcbLoadable = true;
 
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
+
+    // TODO: Duang
+    play_wav((char*)"boot.wav");
 
     scheduler::enablePreemptiveScheduling();
 
@@ -58,4 +63,3 @@ __attribute__((used)) void launcher(void* arg)
         printf("Falling back to init.\nRe-");
     }
 }
-

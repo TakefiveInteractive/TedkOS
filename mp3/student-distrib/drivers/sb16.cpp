@@ -1,4 +1,4 @@
-#include <drivers/sb16.h>
+#include <inc/drivers/sb16.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/klibs/AutoSpinLock.h>
 #include <inc/proc/tasks.h>
