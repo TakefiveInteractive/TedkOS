@@ -24,7 +24,7 @@ DEFINE_DRIVER_INIT(scanpci)
         printf("Vendor 0x%x Device 0x%x Func 0x%x ", vendorID, deviceID, func);
 
         uint32_t classInfo = Register(bus, device, func, 0x8).get();
-        if((classInfo >> 24) == 1)
+        if((classInfo >> 16) == 0x0101)
         {
             printf("\t DISK!");
             PATAControllers->push_back(UnitDev(bus, device, func));
