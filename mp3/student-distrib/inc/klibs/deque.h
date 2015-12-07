@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/klibs/lib.h>
 
 // No lock.
 // This D.S. stores value as instance, not as reference
