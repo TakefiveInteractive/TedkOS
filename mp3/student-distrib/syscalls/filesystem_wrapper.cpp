@@ -4,10 +4,13 @@
 #include <inc/proc/tasks.h>
 
 using namespace filesystem;
-using namespace palloc;
 
 namespace syscall { namespace fops {
 
+/**
+ * Implementation of read syscall.
+ * Delegates to filesystem dispatcher.
+ */
 int32_t read(int32_t fd, void *buf, int32_t nbytes)
 {
     if(!validUserPointer(buf))
@@ -18,6 +21,10 @@ int32_t read(int32_t fd, void *buf, int32_t nbytes)
     return theDispatcher->read(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
+/**
+ * Implementation of write syscall.
+ * Delegates to filesystem dispatcher.
+ */
 int32_t write(int32_t fd, const void *buf, int32_t nbytes)
 {
     if(!validUserPointer(buf))
@@ -28,6 +35,10 @@ int32_t write(int32_t fd, const void *buf, int32_t nbytes)
     return theDispatcher->write(*processDesc->fileDescs[fd], buf, nbytes);
 }
 
+/**
+ * Implementation of open syscall.
+ * Creates a new File instance.
+ */
 int32_t open(const char *filename)
 {
     if(!validUserPointer(filename))
@@ -47,6 +58,10 @@ int32_t open(const char *filename)
     return +fdSlotMaybe;
 }
 
+/**
+ * Implementation of close syscall.
+ * Clears the file instance from memory.
+ */
 int32_t close(int32_t fd)
 {
     // Disallow closing STDIN or STDOUT
@@ -64,6 +79,10 @@ int32_t close(int32_t fd)
     return 0;
 }
 
+/**
+ * Implementation of fstat syscall.
+ * Obtains size and type information of the file.
+ */
 int32_t fstat(int32_t fd, stat *st)
 {
     auto processDesc = getCurrentThreadInfo()->getProcessDesc();
@@ -72,6 +91,10 @@ int32_t fstat(int32_t fd, stat *st)
     return theDispatcher->fstat(*processDesc->fileDescs[fd], st);
 }
 
+/**
+ * Implementation of lseek syscall.
+ * Changes the read/write head.
+ */
 int32_t lseek(int32_t fd, int32_t offset, int32_t whence)
 {
     auto processDesc = getCurrentThreadInfo()->getProcessDesc();
@@ -80,7 +103,7 @@ int32_t lseek(int32_t fd, int32_t offset, int32_t whence)
     return theDispatcher->lseek(*processDesc->fileDescs[fd], offset, whence);
 }
 
-// Helps initializes the file descriptors of uniq_pid:
+// Helps initializes the file descriptors of proc
 bool ensureFdInitialized(ProcessDesc* proc)
 {
     if (proc->fdInitialized) return true;

@@ -26,9 +26,6 @@
 #include <inc/klibs/stack.h>
 
 using namespace palloc;
-using arch::Stacker;
-using arch::CPUArchTypes::x86;
-using namespace vbe;
 
 using scheduler::makeKThread;
 using scheduler::forceStartThread;
@@ -48,8 +45,7 @@ uint32_t userFirst4MBTable[1024] __attribute__((aligned (4096)));
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
-    void
-_entry (unsigned long magic, unsigned long addr)
+void _entry (unsigned long magic, unsigned long addr)
 {
     /* First thing we do is to assign the global MBI */
     MultiBootInfoAddress = (multiboot_info_t *) addr;
@@ -127,7 +123,6 @@ _entry (unsigned long magic, unsigned long addr)
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
-
     for(size_t i = 0; i < num_known_drivers; i++)
     {
         printf("Loading driver '%s'...", known_drivers[i].name);
@@ -144,7 +139,6 @@ _entry (unsigned long magic, unsigned long addr)
     // This part should never be reached.
     printf("Halted.\n");
     asm volatile("1: hlt; jmp 1b;");
-
 }
 
 void kernel_enable_basic_paging()

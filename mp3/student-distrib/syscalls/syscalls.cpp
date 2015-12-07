@@ -25,6 +25,9 @@ const bool HAS_FLAG(uint32_t x)
     return (((x) & (FLAG)) == (FLAG));
 }
 
+/**
+ * Ensures pointer coming from user exists in user address space.
+ */
 bool validUserPointer(const void* ptr)
 {
     if (ptr == NULL)
@@ -45,8 +48,13 @@ bool validUserPointer(const void* ptr)
     else return false;
 }
 
+/**
+ * Launches a new kernel process.
+ */
 int32_t dotask(int32_t pid)
 {
+    // Only kernel threads can call us.
+    if (getCurrentThreadInfo()->isKernel() == false) return -1;
     if(ProcessDesc::has(pid))
     {
         scheduler::attachThread(ProcessDesc::get(pid).mainThreadInfo, Running);
@@ -56,6 +64,9 @@ int32_t dotask(int32_t pid)
     return -1;
 }
 
+/**
+ * Maps a region of memory to video memory.
+ */
 int32_t vidmap(uint8_t** ans)
 {
     if(!validUserPointer(ans))
@@ -68,6 +79,10 @@ int32_t vidmap(uint8_t** ans)
     return 0;
 }
 
+/**
+ * Forks a kernel process.
+ * @returns TID of parent
+ */
 int32_t fork()
 {
     // TODO: FIXME: change to use thread inside the same process.

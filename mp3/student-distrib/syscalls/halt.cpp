@@ -22,9 +22,14 @@ using arch::CPUArchTypes::x86;
 
 namespace syscall { namespace halt {
 
+/**
+ * Implementation of halt syscall.
+ * This call returns the retval of halting process, but the call never
+ * returns to child.
+ */
 int32_t syshalt(uint32_t retval)
 {
-    thread_kinfo* prevInfo  = getCurrentThreadInfo()->storage.pcb.execParent;
+    thread_kinfo* prevInfo = getCurrentThreadInfo()->storage.pcb.execParent;
     if (prevInfo == NULL)
     {
         printf("Init Process, cannot halt!\n");

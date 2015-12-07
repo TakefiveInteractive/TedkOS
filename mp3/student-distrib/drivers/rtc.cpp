@@ -34,6 +34,9 @@ private:
     int backlog = 0;
 
 public:
+    /**
+     * Wakes up the process if the specified time has elapsed.
+     */
     void triggerIfPossible()
     {
         AutoSpinLock lock(&_lock);
@@ -81,6 +84,9 @@ public:
         }
     }
 
+    /**
+     * Updates the time-tracking mechanism within the virtual RTC.
+     */
     void newHardwareRTCFrequency(int freq)
     {
         AutoSpinLock lock(&_lock);
@@ -145,7 +151,7 @@ public:
 
 private:
     /**
-     * Would initialize the rtc rate to 2Hz
+     * Would initialize the RTC rate to 2Hz
      */
     VirtualRTC() : counter(0), numCountToTriggerRTC(2), waiting(false)
     {
@@ -157,6 +163,9 @@ private:
     }
 
 public:
+    /**
+     * Opens up a new virtual RTC device.
+     */
     static Maybe<IFOps *> getNewInstance()
     {
         return Maybe<IFOps *>(reinterpret_cast<IFOps *>(new VirtualRTC()));
@@ -164,7 +173,7 @@ public:
 };
 
 /**
- * init() is used to initialize rtc
+ * init() is used to initialize hardware RTC.
  */
 void init()
 {

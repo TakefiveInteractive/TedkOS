@@ -18,6 +18,9 @@ volatile bool isFallbackTerm = true;
 
 __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg);
 
+/**
+ * The INIT process.
+ */
 __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
 {
     pcbLoadable = true;
@@ -80,11 +83,11 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
     asm volatile("1: hlt; jmp 1b;");
 }
 
-constexpr char TTY[] = "On TTY";
 
+/* I am the guard process to ensure terminals have shells running in them! */
 __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 {
-    // I am the guard process to ensure terminals have shells running in them!
+    constexpr static char TTY[] = "On TTY";
     size_t termNo = (size_t) arg;
     ece391_write(1, TTY, sizeof(TTY));
     char number = '0' + termNo;

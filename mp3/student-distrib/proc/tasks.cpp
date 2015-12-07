@@ -149,7 +149,7 @@ filesystem::File*& FileDescArr::operator[] (const size_t i)
 Maybe<size_t> FileDescArr::alloc()
 {
     if(freeFDs.empty())
-        return Maybe<size_t>();
+        return Nothing;
     else
     {
         size_t ans = freeFDs.pop();

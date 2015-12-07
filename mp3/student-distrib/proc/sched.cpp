@@ -16,9 +16,11 @@ namespace scheduler {
 
 spinlock_t sched_lock = SPINLOCK_UNLOCKED;
 
+constexpr Tid DoNotSwitch = -1;
+
 // Smaller than zero <=> No switch.
-volatile int32_t wantToSwitchTo = -1;
-volatile int32_t currentlyRunning = -1;
+volatile int32_t wantToSwitchTo = DoNotSwitch;
+volatile int32_t currentlyRunning = DoNotSwitch;
 volatile bool preemptiveEnabled = false;
 
 Deque<thread_kinfo*> *rrQueue = NULL;
@@ -32,21 +34,14 @@ void init()
     preemptiveEnabled = false;
 }
 
+/**
+ * Puts a thread into run queue.
+ */
 void attachThread(thread_kinfo* pcb, ThreadState newState)
 {
     AutoSpinLock l(&sched_lock);
     pcb->getPCB()->runState = newState;
     rrQueue->push_back(pcb);
-}
-
-void setTSS(const thread_pcb& pcb)
-{
-    /*
-    if(pcb.type == KERNEL_PROCESS)
-        tss.esp0 = (uint32_t)pcb.esp0 + (8 + 3) * 4;
-    else tss.esp0 = (uint32_t)pcb.esp0 + (8 + 5) * 4;
-    */
-    tss.esp0 = (uint32_t)pcb.esp0;
 }
 
 void enablePreemptiveScheduling()
@@ -150,14 +145,20 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
     return proc.mainThreadInfo;
 }
 
+/**
+ * Starts and goes into a kernel thread.
+ */
 void forceStartThread(thread_kinfo* thread)
 {
     uint32_t flags;
     spin_lock_irqsave(&sched_lock, flags);
 
     if(!thread)
+    {
+        spin_unlock(&sched_lock);
         return;
-    cli();
+    }
+
     if(!cpu0_memmap.isStarted())
     {
         // Update fallback_txt_vmem for fallback putc() and clear()
@@ -177,7 +178,7 @@ void forceStartThread(thread_kinfo* thread)
     cpu0_memmap.loadProcessMap(thread->getProcessDesc());
 
     // refresh TSS so that later interrupts use this new kstack
-    tss.esp0 = (uint32_t)thread->storage.pcb.esp0;
+    tss.esp0 = (uint32_t) thread->storage.pcb.esp0;
 
     thread->getPCB()->runState = Running;
 
@@ -209,13 +210,12 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 
     if (num_nest_int() > 0)
         return NULL;
-    if (wantToSwitchTo < 0)
+    if (wantToSwitchTo == DoNotSwitch)
     {
         /*
         if(getCurrentThreadInfo()->getProcessDesc()->getPid() != 1)
         printf("***switching to pid %d, map=0x%x submap=0x%x***n", getCurrentThreadInfo()->getProcessDesc()->getPid(), global_cr3val[0], userFirst4MBTable[184]);
         */
-
         getCurrentThreadInfo()->storage.pcb.esp0 = (target_esp0)((uint32_t) &getCurrentThreadInfo()->storage + THREAD_KSTACK_SIZE - 4);
         if(!getCurrentThreadInfo()->isKernel())
         {
@@ -240,7 +240,7 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 
     currentlyRunning = wantToSwitchTo;
     // Reset dispatch decision state.
-    wantToSwitchTo = -1;
+    wantToSwitchTo = DoNotSwitch;
 
     if(!desc.mainThreadInfo->isKernel())
     {
@@ -250,26 +250,35 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 
     // Save new kernel stack into TSS.
     //   so that later interrupts use this new kstack (AND we are at outmost interrupt, THUS we use ORIGINAL esp0)
-    setTSS(desc.mainThreadInfo->storage.pcb);
+    tss.esp0 = reinterpret_cast<uint32_t>(desc.mainThreadInfo->getPCB()->esp0);
 
     return ans;
 }
 
+/**
+ * Puts a thread into un-interruptible sleep.
+ */
 void block(thread_kinfo* thread)
 {
-    {
-        AutoSpinLock lock(&sched_lock);
-        thread->getPCB()->runState = Waiting;
-    }
-    makeDecision();
+    AutoSpinLock lock(&sched_lock);
+    thread->getPCB()->runState = Waiting;
+    // Schedules another thread in place of this thread.
+    makeDecisionNoLock();
 }
 
+/**
+ * Wakes up a thread previously in sleep.
+ */
 void unblock(thread_kinfo* thread)
 {
     AutoSpinLock lock(&sched_lock);
-    thread->getPCB()->runState = Running;
+    if (thread->getPCB()->runState == Waiting)
+        thread->getPCB()->runState = Running;
 }
 
+/**
+ * Kills a thread and its associated process.
+ */
 void halt(thread_pcb& pcb, int32_t retval)
 {
     AutoSpinLock l(&sched_lock);
@@ -283,6 +292,7 @@ void halt(thread_pcb& pcb, int32_t retval)
     {
         term->tryDisableVidmap(&pcb);
         //term->setOwner(true, prevInfo->getProcessDesc()->getPid());
+        // TODO: let parent own terminal?
         term->setOwner(true, -1);
     }
 
@@ -323,6 +333,9 @@ void __attribute__((used)) schedBackupState(target_esp0 currentESP)
     getCurrentThreadInfo()->storage.pcb.esp0 = currentESP;
 }
 
+/**
+ * Performs context switching if necessary.
+ */
 target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
 {
     return scheduler::schedDispatchExecution(currentESP);

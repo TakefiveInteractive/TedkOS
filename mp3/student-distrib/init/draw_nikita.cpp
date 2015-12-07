@@ -8,7 +8,6 @@
 
 using ui::Compositor;
 
-
 void draw_nikita()
 {
     // Must use actual syscall if it's SUPPOSED to block!

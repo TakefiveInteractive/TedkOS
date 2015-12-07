@@ -59,6 +59,7 @@ int32_t get_arg_position(unique_ptr<char[]>& filename, uint32_t filename_len)
     return arg_index;
 }
 
+// Stores argument in process descriptor.
 void store_arg(unique_ptr<char[]>& filename, uint32_t filename_len, uint32_t arg_index, ProcessDesc& pd)
 {
     uint32_t arg_len = filename_len - arg_index;
