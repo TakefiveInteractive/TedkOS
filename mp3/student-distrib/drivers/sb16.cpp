@@ -189,6 +189,7 @@ void sb16_reset() {
 
     sb16_outb(0, DSPReset);
 
+    printf("ack...");
     while ( !(sb16_inb(DSPReadStatus) & READ_STATUS) );
     while ( !(sb16_inb(DSPRead) == 0xAA) );
 }
