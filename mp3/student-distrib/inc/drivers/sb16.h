@@ -12,7 +12,7 @@
 using namespace filesystem;
 
 #define SB16_IRQ 5
-#define SB16_ID 5
+#define SB16_ID 123 
 #define SB16_POLICY 0
 
 void sb16_outb(uint8_t data, uint16_t offset);
