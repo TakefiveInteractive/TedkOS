@@ -163,8 +163,12 @@ int irq_int_entry (int irq)
     num_nest_int_val++;
     spin_unlock_irqrestore(&num_nest_int_lock, flag);
 
+    printf("IRQ ENTER %d\n", irq);
+
     irq_desc_t* desc = irq_descs + irq;
     handle_level_irq(irq, desc);
+
+    printf("IRQ EXIT %d\n", irq);
 
     spin_lock_irqsave(&num_nest_int_lock, flag);
     num_nest_int_val--;

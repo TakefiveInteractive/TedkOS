@@ -117,9 +117,10 @@ static int ata_device_detect(struct ata_device * dev) {
     if (cl == 0x00 && ch == 0x00) {
         /* Parallel ATA device */
         ata_device_init(dev);
-        char devicename[9]="ATA";
+        //char devicename[9]="ATA";
+        dbgpf("And it's a usable PATA device!");
         // add_device(devicename, &ata_driver, (void*)dev);
-        mbr_parse(devicename);
+        // mbr_parse(devicename);
         return 1;
     }
 
@@ -280,6 +281,7 @@ DEFINE_DRIVER_INIT(pata) {
     ata_device_detect(&ata_secondary_slave);
 
     preinit_dma();
+    init_dma();
 
     register_devfs("ata00", []() { return FOps<&ata_primary_master>::getNewInstance(); });
     register_devfs("ata01", []() { return FOps<&ata_primary_slave>::getNewInstance(); });
