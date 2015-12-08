@@ -11,6 +11,14 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <inc/klibs/lib.h>
+
+#define dbgpf printf
+#define dbgout printf
+inline void panic(const char* str) {
+    printf(str);
+    asm volatile("1: hlt; jmp 1b;");
+}
 
 namespace ata {
 
