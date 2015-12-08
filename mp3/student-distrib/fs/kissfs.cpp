@@ -144,7 +144,6 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
                     palloc::VirtAddr((uint8_t *)(+virtAddr) + i * 4_MB),
                     palloc::PhysAddr((uint32_t)(startingAddr + i * 4_MB) >> 22, PG_WRITABLE));
         }
-        RELOAD_CR3();
     }
     else
     {
