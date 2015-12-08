@@ -93,6 +93,9 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
     ece391_write(1, &number, 1);
     ece391_write(1, "\n", 1);
 
+    // TODO: Duang
+    if (termNo == 0)
+        play_wav((char*) "duang.wav");
 
     for (;;)
     {
