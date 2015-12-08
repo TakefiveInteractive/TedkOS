@@ -3,8 +3,11 @@
 
 getRDTSC:
     XOR %eax, %eax
-    pushal
+    XOR %edx, %edx
+    pushl %ebx
+    pushl %ecx
     CPUID
     RDTSC
-    popal
+    popl %ecx
+    popl %ebx
     ret

@@ -101,11 +101,12 @@ uint8_t dma_inb(uint16_t port) {
     return inb(port);
 }
 
-#define CHUNK_SIZE (32*1024)
-static int8_t dma_buffer[CHUNK_SIZE*2] __attribute__((aligned(2*32*1024))) = {};
-static constexpr int8_t *first_block = dma_buffer;
-static constexpr int8_t *second_block = dma_buffer + CHUNK_SIZE;
-static int8_t *current_block = dma_buffer;
+constexpr uint16_t CHUNK_SIZE = 16 * 1024;
+constexpr uint16_t DMA_BUFFER_SIZE = 2 * CHUNK_SIZE;
+static uint8_t dma_buffer[DMA_BUFFER_SIZE] __attribute__((aligned(DMA_BUFFER_SIZE))) = {};
+static constexpr uint8_t *first_block = dma_buffer;
+static constexpr uint8_t *second_block = dma_buffer + CHUNK_SIZE;
+static uint8_t *current_block = dma_buffer;
 
 #define STATUS_PLAYING (1 << 0)
 #define STATUS_8BIT (1 << 1)
@@ -185,7 +186,7 @@ void sb16_reset() {
     // need to wait 3 microseconds
     // assuming clock speed is at most 6Ghz
     int64_t start = getRDTSC();
-    while (getRDTSC() - start < 0x480000000LL / 16LL);
+    while (getRDTSC() - start < 0x480000000LL / 64LL);
 
     sb16_outb(0, DSPReset);
 
@@ -273,14 +274,14 @@ void dma_start(uint8_t channel, uint32_t addr, uint32_t size, int8_t mode) {
     enable_dma(channel);
 }
 
-void sb16_start_playback(uint32_t size) {
-    uint16_t block_size = (uint16_t) size;
+void sb16_start_playback(uint16_t size) {
     // write the I/O command, transfer mode and block size to DSP
     uint8_t command = 0;
     if (status.mode & STATUS_8BIT) {
         command |= DSP_PLAY_8BIT;
     } else {
         command |= DSP_PLAY_16BIT;
+        size /= 2;
     }
     command |= DSP_PLAY_AI;
     sb16_dsp_write(command);
@@ -292,9 +293,9 @@ void sb16_start_playback(uint32_t size) {
         mode |= DSP_PLAY_SIGNED;
     }
     sb16_dsp_write(mode);
-    block_size--;
-    sb16_dsp_write(LO_BYTE(block_size));
-    sb16_dsp_write(HI_BYTE(block_size));
+    size--;
+    sb16_dsp_write(LO_BYTE(size));
+    sb16_dsp_write(HI_BYTE(size));
 }
 
 int32_t sb16_pause_playback() {
@@ -437,7 +438,6 @@ int32_t play_wav(char *filename) {
     if (info.chunk_id != DATA) {
         // no data? oh no
         theDispatcher->close(wavFile);
-        // current_process = old_process;
         return -1;
     }
     return play_file(wavFile, bits, is_signed, sample_rate);
@@ -466,12 +466,15 @@ int32_t play_file(File& fd, int8_t bits, int8_t is_signed, uint16_t sample_rate)
     // set sampling rate
     sb16_set_sample_rate(sample_rate);
 
-    // process_t *old_process = current_process;
-    // current_process = status.process;
-    uint32_t bytes_read = theDispatcher->read(fd, (uint8_t*)dma_buffer, CHUNK_SIZE*2);
-    // uint32_t bytes_read = syscall_read(fd, (uint8_t*)dma_buffer, CHUNK_SIZE*2);
-    dma_start(status.channel, (uint32_t) dma_buffer, sizeof(dma_buffer), DMA_MODE_AI);
-    sb16_start_playback((uint16_t) CHUNK_SIZE);
+    // clear DMA
+    for (size_t i = 0; i < DMA_BUFFER_SIZE; i++) {
+        dma_buffer[i] = 0;
+    }
+
+    current_block = dma_buffer;
+    uint32_t bytes_read = theDispatcher->read(fd, (uint8_t*)dma_buffer, DMA_BUFFER_SIZE);
+    dma_start(status.channel, (uint32_t) dma_buffer, DMA_BUFFER_SIZE, DMA_MODE_AI);
+    sb16_start_playback(CHUNK_SIZE);
     if (bytes_read < CHUNK_SIZE) {
         sb16_stop_playback_after();
     }
@@ -494,24 +497,20 @@ uint8_t sb16_dsp_read() {
 void reset_playback() {
     status.playing = 0;
     current_block = first_block;
-    for (size_t i = 0; i < sizeof(dma_buffer); i++) {
-        dma_buffer[i] = 0;
-    }
     theDispatcher->close(status.fd);
 }
 
 int sb16_handler(int irq, unsigned int saved_reg) {
     if (status.playing) {
-        uint32_t flags;
-        cli_and_save(flags);
-        uint32_t bytes_read = theDispatcher->read(status.fd, (uint8_t*)current_block, CHUNK_SIZE);
-        restore_flags(flags);
+        uint32_t bytes_read = theDispatcher->read(status.fd, (uint8_t*) current_block, CHUNK_SIZE);
         if (bytes_read > 0) {
-            uint16_t block_size = (uint16_t) bytes_read;
             // there are no more chunks after this one; stop playback after the
             // current block
-            if (bytes_read < CHUNK_SIZE) {
+            if (bytes_read < CHUNK_SIZE)
+            {
                 sb16_stop_playback_after();
+                // silence the sound after sample ends
+                memset(current_block + bytes_read, 0, CHUNK_SIZE - bytes_read);
                 reset_playback();
             }
             if (current_block == first_block) {
@@ -519,8 +518,6 @@ int sb16_handler(int irq, unsigned int saved_reg) {
             } else {
                 current_block = first_block;
             }
-
-            sb16_start_playback(block_size);
         } else {
             // file has no more bytes left; we're done playing
             reset_playback();
