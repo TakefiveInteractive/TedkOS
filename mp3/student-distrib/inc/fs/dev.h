@@ -25,6 +25,7 @@ public:
     virtual int32_t fstat(FsSpecificData *data, stat *st);
     virtual bool canSeek(FsSpecificData *fdData);
     virtual Maybe<uint32_t> getFileSize(FsSpecificData *fdData);
+    void seekCallback(FsSpecificData *fdData, uint32_t newOffset) override;
 
     void registerDevice(const char* path, FOpsGetter getterFn);
 };

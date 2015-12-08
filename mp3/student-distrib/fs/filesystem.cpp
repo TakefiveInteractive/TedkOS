@@ -76,6 +76,7 @@ int32_t Dispatcher::lseek(File &fd, int32_t offset, int32_t whence)
     default:
         return -1;
     }
+    fd.fs->seekCallback(fd.fsSpecificData, fd.offset);
     return fd.offset;
 }
 
