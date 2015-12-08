@@ -62,7 +62,7 @@ int dma_int_handler(int irq, unsigned int saved_reg){
 }
 
 inline uint32_t physaddr(void* ptr) {
-    return (cpu0_memmap.translate(ptr).pde & ALIGN_4MB_ADDR) | (((uint32_t)ptr) & (~ALIGN_4MB_ADDR));
+    return (cpu0_memmap.translate(palloc::VirtAddr(ptr)).pde & ALIGN_4MB_ADDR) | (((uint32_t)ptr) & (~ALIGN_4MB_ADDR));
 }
 
 void set_bus0_prdt(uint32_t bmr, prd *prd){
@@ -84,23 +84,23 @@ bool init_dma(){
     AutoSpinLock hl(&dma_init_lock);
     if(dma_init) return true;
     //if(init_pci()){
-        if(PATAControllers->empty())
-            return false;
         if(!PATAControllers)
+            return false;
+        if(PATAControllers->empty())
             return false;
         UnitDev dev=(*PATAControllers)[0];
         bmr=Register(dev, 0x20).get();
         bmr&=~1;
 
         // RegisterId should be 0x04 according to OSDev
-        uint32_t cmdAndStatus = Register(dev, 0x08).get();
+        uint32_t cmdAndStatus = Register(dev, 0x04).get();
         uint16_t cmd=cmdAndStatus & 0xffff;
         uint16_t status=cmdAndStatus >> 16;
         uint16_t newcmd = cmd | 0x07;
         newcmd &= ~(1 << 10);
-        Register(dev, 0x08).set((status << 16) | newcmd);
+        Register(dev, 0x04).set((status << 16) | newcmd);
 
-        cmdAndStatus = Register(dev, 0x08).get();
+        cmdAndStatus = Register(dev, 0x04).get();
         cmd=cmdAndStatus & 0xffff;
         dbgpf("ATA DMA: STATUS: %x CMD: %x NEWCMD:%x\n", status, cmd, newcmd);
 
@@ -150,6 +150,7 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
         dbgout("ATA DMA: Secondary.\n");
     }else{
         panic("(ATA DMA) Unrecognised device!");
+        return -EFOPS;
     }
     outb(bus + ATA_REG_CONTROL, 2);
     outb(bmr + base, DMA_READ);
