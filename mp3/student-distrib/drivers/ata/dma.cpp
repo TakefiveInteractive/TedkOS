@@ -116,12 +116,17 @@ bool init_dma(){
     //return false;
 }
 
-char dma_buffer[ATA_SECTOR_SIZE] __attribute__((aligned(0x1000)));
+int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint32_t nbytes){
 
-int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf){
-    dbgpf("ATA DMA: DMA read: dev: %x, lba: %x, buf: %x\n", dev, lba, physaddr((void*)buf));
-    memset(buf, 0, ATA_SECTOR_SIZE);
     if(!dma_init) return -EFOPS;
+    if(nbytes % ATA_SECTOR_SIZE)
+        return -EFOPS;
+
+    size_t bufferSize = (nbytes % 0x1000) ? ((nbytes / 0x1000) + 1) * 0x1000 : nbytes;
+    auto dma_buffer = new char [bufferSize];
+
+    dbgpf("ATA DMA: DMA read: dev: %x, lba: %x, buf: %x\n", dev, lba, physaddr((void*)buf));
+    memset(buf, 0, nbytes);
     int bus=dev->io_base;
     int slave=dev->slave;
 
@@ -131,14 +136,14 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf){
     AutoSpinLock hl(&dma_lock);
     if(dev->io_base==bus0_io_base){
         bus0prd.data=physaddr((void*)dma_buffer);
-        bus0prd.bytes=ATA_SECTOR_SIZE;
+        bus0prd.bytes=nbytes;
         busId = 0;
         base=0;
         set_bus0_prdt(bmr, &bus0prd);
         dbgout("ATA DMA: Primary.\n");
     }else if(dev->io_base==bus1_io_base){
         bus1prd.data=physaddr((void*)dma_buffer);
-        bus1prd.bytes=ATA_SECTOR_SIZE;
+        bus1prd.bytes=nbytes;
         busId = 1;
         base=0x08;
         set_bus1_prdt(bmr, &bus1prd);
@@ -189,15 +194,16 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf){
             retval = -EFOPS;
         }else{
             cpu0_memmap.loadProcessMap(thisThread->getProcessDesc());
-            memcpy(buf, dma_buffer, ATA_SECTOR_SIZE);
+            memcpy(buf, dma_buffer, nbytes);
             cpu0_memmap.loadProcessMap(getCurrentThreadInfo()->getProcessDesc());
             dbgpf("ATA DMA: DMA complete.\n");
-            retval = 0;
+            retval = nbytes;
         }
 
         getRegs(thisThread)->eax = retval;
         scheduler::unblock(thisThread);
         dma_waiting_read[busId] = false;
+        delete[] dma_buffer;
     };
 
     scheduler::block(thisThread);
