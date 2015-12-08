@@ -20,6 +20,11 @@ constexpr size_t align = ~(N - 1) & (x - 1 + N);
 
 uint32_t ceil(uint32_t len, uint32_t blkSize);
 
+/**
+ * Converts a virtual address to physical one.
+ */
+uint32_t virtualAddressToPhysicalAddress(void* ptr);
+
 }
 
 #endif

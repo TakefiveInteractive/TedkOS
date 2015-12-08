@@ -11,6 +11,8 @@
 #include <stddef.h>
 #include "draw_nikita.h"
 
+#include <inc/drivers/sb16.h>
+
 using scheduler::makeKThread;
 
 volatile bool pcbLoadable = false;
@@ -91,9 +93,9 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
     ece391_write(1, &number, 1);
     ece391_write(1, "\n", 1);
 
+
     for (;;)
     {
         ece391_execute((const uint8_t *)"shell");
     }
 }
-

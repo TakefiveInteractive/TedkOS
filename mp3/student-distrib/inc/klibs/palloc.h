@@ -286,7 +286,7 @@ PhysPageManager<MaxMemory>::PhysPageManager(multiboot_info_t* mbi)
                 end_high++;
             end_low = start_low + mmap->length_low;
 
-            printf("start = %x %x\n", start_high, start_low);
+            printf("mem region start = 0x%x 0x%x\n", start_high, start_low);
 
             start_idx = (start_low >> 22) | (start_high << 10);
 
