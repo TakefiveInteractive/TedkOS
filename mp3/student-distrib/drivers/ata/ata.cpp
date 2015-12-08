@@ -1,7 +1,15 @@
 #include "ata_priv.h"
-#include <inc/klibs/lib.h>
-#include <inc/klibs/spinlock.h>
+#include <inc/drivers/ata.h>
+#include <inc/drivers/pci.h>
+#include <inc/drivers/scan_pci.h>
 #include <inc/klibs/AutoSpinLock.h>
+#include <inc/klibs/maybe.h>
+#include <inc/klibs/function.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
+#include <inc/fs/dev_wrapper.h>
+
+#include <inc/klibs/lib.h>
 
 /*
  * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
@@ -11,12 +19,7 @@ namespace ata {
 
 char dbgbuf[256];
 
-// drv_driver ata_driver;
-
 spinlock_t ata_lock, ata_drv_lock;
-
-#define dbgpf printf
-#define dbgout printf
 
 static void ata_io_wait(struct ata_device * dev) {
     inb(dev->io_base + ATA_REG_ALTSTATUS);
@@ -124,53 +127,20 @@ static int ata_device_detect(struct ata_device * dev) {
     return 0;
 }
 
-void ata_device_read_sector(struct ata_device * dev, uint32_t lba, uint8_t * buf){
-    take_lock(&ata_lock);
+/*
+int32_t ata_device_read_sector(struct ata_device * dev, uint32_t lba, uint8_t * buf){
+    AutoSpinLock l(&ata_lock);
     if(init_dma()){
-        dma_read_sector(dev, lba, buf);
+        return dma_begin_read_sector(dev, lba, buf);
     }else{
-        ata_device_read_sector_pio(dev, lba, buf);
+        return -EFOPS;
     }
-    release_lock(&ata_lock);
-}
-
-void ata_device_read_sector_pio(struct ata_device * dev, uint32_t lba, uint8_t * buf) {
-    uint16_t bus = dev->io_base;
-    uint8_t slave = dev->slave;
-
-    int errors = 0;
-try_again:
-    outb(bus + ATA_REG_CONTROL, 0);
-
-    ata_wait(dev, 0);
-
-    outb(bus + ATA_REG_HDDEVSEL, 0xe0 | slave << 4 | (lba & 0x0f000000) >> 24);
-    //outb(bus + ATA_REG_FEATURES, 0x00);
-    outb(bus + ATA_REG_SECCOUNT0, 1);
-    outb(bus + ATA_REG_LBA0, (lba & 0x000000ff) >>  0);
-    outb(bus + ATA_REG_LBA1, (lba & 0x0000ff00) >>  8);
-    outb(bus + ATA_REG_LBA2, (lba & 0x00ff0000) >> 16);
-    outb(bus + ATA_REG_COMMAND, ATA_CMD_READ_PIO);
-
-    if (ata_wait(dev, 1)) {
-        dbgpf("ATA: Error during ATA read of lba block %d\n", lba);
-        errors++;
-        if (errors > 4) {
-            dbgpf("ATA: -- Too many errors trying to read this block. Bailing.\n", 0);
-            return;
-        }
-        goto try_again;
-    }
-
-    int size = 256;
-    insm(bus,buf,size);
-    ata_wait(dev, 0);
 }
 
 void ata_device_write_sector(struct ata_device * dev, uint32_t lba, uint8_t * buf) {
-    take_lock(&ata_lock);
+    spin_lock(&ata_lock);
 
-    if(init_dma()){} //TODO: Use DMA
+    if(init_dma()){} // TODO: FIXME: Use DMA
     uint16_t bus = dev->io_base;
     uint8_t slave = dev->slave;
 
@@ -190,11 +160,11 @@ void ata_device_write_sector(struct ata_device * dev, uint32_t lba, uint8_t * bu
     outsm(bus,buf,size);
     outb(bus + 0x07, ATA_CMD_CACHE_FLUSH);
     ata_wait(dev, 0);
-    release_lock(&ata_lock);
+    spin_unlock(&ata_lock);
 }
 
 static int buffer_compare(uint32_t * ptr1, uint32_t * ptr2, size_t size) {
-    if(size % 4) panic("ATA");
+    if(size % 4) panic("ATA buffer compare size is not multiple of 4.");
     size_t i = 0;
     while (i < size) {
         if (*ptr1 != *ptr2) return 1;
@@ -215,80 +185,72 @@ void ata_device_write_sector_retry(struct ata_device * dev, uint32_t lba, uint8_
     enable_interrupts();
     free(read_buf);
 }
+*/
 
 static struct ata_device ata_primary_master   = {.io_base = 0x1F0, .control = 0x3F6, .slave = 0};
 static struct ata_device ata_primary_slave    = {.io_base = 0x1F0, .control = 0x3F6, .slave = 1};
 static struct ata_device ata_secondary_master = {.io_base = 0x170, .control = 0x376, .slave = 0};
 static struct ata_device ata_secondary_slave  = {.io_base = 0x170, .control = 0x376, .slave = 1};
 
+template<ata_device* WhichDev>
+class FOps : public IFOps
+{
+private:
+    FOps() {}
+public:
+    ~FOps() {}
 
-static int ata_initialize(void) {
-    /* Detect drives and mount them */
+    virtual int32_t read(FsSpecificData *fdData, uint8_t *buf, int32_t bytes)
+    {
+        // Cannot read more than 1MB at one time, that's too much memory.
+        if(bytes > 1024 * 1024) return -EFOPS;
+        
+        // TEST mode: the unit of fseek is LBA
+        // TODO: FIXME: no seek. currently we always start from sector 0
+        return dma_begin_read_sector(WhichDev, 0, buf, bytes);
+        /*
+        hold_lock hl(&ata_drv_lock);
+        ata_instance *inst=(ata_instance*)instance;
+        for(size_t i=0; i<bytes; i+=512){
+            if(!cache_get((size_t)inst->dev, inst->pos/512, &buf[i])) {
+                spin_unlock(&ata_drv_lock);
+                ata_queued_read(inst->dev, inst->pos / 512, (uint8_t *) &buf[i]);
+                spin_lock(&ata_drv_lock);
+                cache_add((size_t)inst->dev, inst->pos/512, &buf[i]);
+            }
+            inst->pos+=512;
+        }
+        */
+        return bytes;
+    }
 
-    ata_device_detect(&ata_primary_master);
-    ata_device_detect(&ata_primary_slave);
-    ata_device_detect(&ata_secondary_master);
-    ata_device_detect(&ata_secondary_slave);
+    virtual int32_t write(FsSpecificData *fdData, const uint8_t *buf, int32_t bytes)
+    {
+        // Currently read-only
+        return -EFOPS;
+        /*
+        hold_lock hl(&ata_drv_lock);
+        if(bytes % 512) return 0;
+        ata_instance *inst=(ata_instance*)instance;
+        for(size_t i=0; i<bytes; i+=512){
+            cache_drop((size_t)inst->dev, inst->pos/512);
+            spin_unlock(&ata_drv_lock);
+            ata_queued_write(inst->dev, inst->pos/512, (uint8_t*)&buf[i]);
+            spin_lock(&ata_drv_lock);
+            inst->pos+=512;
+        }
+        return bytes;
+        */
+    }
 
-    return 0;
-}
-
-static int ata_finalize(void) {
-
-    return 0;
-}
-
-struct ata_instance{
-    ata_device *dev;
-    size_t pos;
+    static Maybe<IFOps*> getNewInstance()
+    {
+        AutoSpinLock l(&ata_drv_lock);
+        return reinterpret_cast<IFOps*>(new FOps);
+    }
 };
 
-void *ata_open(void *id){
-    hold_lock hl(&ata_drv_lock);
-    ata_instance *instance=new ata_instance();
-    instance->dev=(ata_device*)id;
-    instance->pos=0;
-    return instance;
-}
-
-bool ata_close(void *instance){
-    hold_lock hl(&ata_drv_lock);
-    if(instance){
-        delete (ata_device*) instance;
-        return true;
-    }else return false;
-}
-
-size_t ata_read(void *instance, size_t bytes, char *buf){
-    hold_lock hl(&ata_drv_lock);
-    if(bytes % 512) return 0;
-    ata_instance *inst=(ata_instance*)instance;
-    for(size_t i=0; i<bytes; i+=512){
-        if(!cache_get((size_t)inst->dev, inst->pos/512, &buf[i])) {
-            release_lock(&ata_drv_lock);
-            ata_queued_read(inst->dev, inst->pos / 512, (uint8_t *) &buf[i]);
-            take_lock(&ata_drv_lock);
-            cache_add((size_t)inst->dev, inst->pos/512, &buf[i]);
-        }
-        inst->pos+=512;
-    }
-    return bytes;
-}
-
-size_t ata_write(void *instance, size_t bytes, char *buf){
-    hold_lock hl(&ata_drv_lock);
-    if(bytes % 512) return 0;
-    ata_instance *inst=(ata_instance*)instance;
-    for(size_t i=0; i<bytes; i+=512){
-        cache_drop((size_t)inst->dev, inst->pos/512);
-        release_lock(&ata_drv_lock);
-        ata_queued_write(inst->dev, inst->pos/512, (uint8_t*)&buf[i]);
-        take_lock(&ata_drv_lock);
-        inst->pos+=512;
-    }
-    return bytes;
-}
-
+/*
 size_t ata_seek(void *instance, size_t pos, uint32_t flags){
     ata_instance *inst=(ata_instance*)instance;
     if(pos % 512) return inst->pos;
@@ -299,30 +261,33 @@ size_t ata_seek(void *instance, size_t pos, uint32_t flags){
     else inst->pos=pos;
     return inst->pos;
 }
-
-int ata_ioctl(void *instance, int fn, size_t bytes, char *buf){
-    return 0;
-}
-
-int ata_type(){
-    return driver_types::STR_HDD;
-}
-
-char *ata_desc(){
-    return (char*)"ATA HDD";
-}
-
-extern "C" int module_main(syscall_table *systbl, char *params){
-    // drv_driver driver={ata_open, ata_close, ata_read, ata_write, ata_seek, ata_ioctl, ata_type, ata_desc};
-    // ata_driver=driver;
-    dbgout("ATA: Init...\n");
-    init_lock(&ata_lock);
-    init_lock(&ata_drv_lock);
-    init_queue();
-    ata_initialize();
-    preinit_dma();
-    return 0;
-}
+*/
 
 }   // namespace ata
+
+using namespace ata;
+using namespace filesystem;
+
+DEFINE_DRIVER_INIT(pata) {
+    spin_lock_init(&ata_lock);
+    spin_lock_init(&ata_drv_lock);
+    // init_queue();
+
+    /* Detect drives and mount them */
+    ata_device_detect(&ata_primary_master);
+    ata_device_detect(&ata_primary_slave);
+    ata_device_detect(&ata_secondary_master);
+    ata_device_detect(&ata_secondary_slave);
+
+    preinit_dma();
+
+    register_devfs("ata00", []() { return FOps<&ata_primary_master>::getNewInstance(); });
+    register_devfs("ata01", []() { return FOps<&ata_primary_slave>::getNewInstance(); });
+    register_devfs("ata10", []() { return FOps<&ata_secondary_master>::getNewInstance(); });
+    register_devfs("ata11", []() { return FOps<&ata_secondary_slave>::getNewInstance(); });
+}
+
+DEFINE_DRIVER_REMOVE(pata) {
+    ;
+}
 
