@@ -1,0 +1,6 @@
+#ifndef _DRIVER_ATA_PUBLIC_H
+#define _DRIVER_ATA_PUBLIC_H
+
+#define ATA_DMA_ID      0xA2AD3A
+
+#endif//_DRIVER_ATA_PUBLIC_H

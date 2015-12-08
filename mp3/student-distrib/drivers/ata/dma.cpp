@@ -1,20 +1,31 @@
 #include "ata_priv.h"
-#include "pci.h"
+#include <inc/drivers/ata.h>
+#include <inc/drivers/pci.h>
+#include <inc/drivers/scan_pci.h>
+#include <inc/klibs/AutoSpinLock.h>
+#include <inc/klibs/maybe.h>
+#include <inc/klibs/function.h>
+#include <inc/proc/tasks.h>
+#include <inc/proc/sched.h>
+
+using namespace pci;
 
 /*
- * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ * This code is copied from https://github.com/mallardtheduck/osdev and dramatically revised.
  */
 
 namespace ata {
 
 static bool dma_init=false;
-pci_call_table *PCI_CALL_TABLE;
 
 const int DMA_ON = 1;
 const int DMA_READ = 8;
 
 const int bus0_io_base=0x1F0;
 const int bus1_io_base=0x170;
+
+function<void ()> dma_finish_read[2];
+bool dma_waiting_read[2] = {false, false};
 
 struct prd{
     uint32_t data;
@@ -25,111 +36,115 @@ struct prd{
 } __attribute__((packed));
 
 prd bus0prd __attribute__((aligned(8))), bus1prd __attribute__((aligned(8)));
-lock dma_lock, dma_init_lock;
+spinlock_t dma_lock, dma_init_lock;
 uint32_t bmr;
 
-volatile bool bus0done, bus1done;
-
-void dma_int_handler(int irq, isr_regs *){
+int dma_int_handler(int irq, unsigned int saved_reg){
     uint8_t bus0status=inb(bmr+0x02);
     uint8_t bus1status=inb(bmr+0x0A);
     if(bus0status & 0x04){
-        dbgpf("ATA: Bus 0 interrupt!\n");
-        dbgpf("ATA: Bus 0 status: %x\n", bus0status);
-        bus0done=true;
+        dbgpf("ATA DMA: Bus 0 interrupt!\n");
+        dbgpf("ATA DMA: Bus 0 status: %x\n", bus0status);
         outb(bmr+0x02, 0x04);
+
+        if(dma_waiting_read[0])
+            dma_finish_read[0]();
     }
     if(bus1status & 0x04){
-        dbgpf("ATA: Bus 1 interrupt!\n");
-        dbgpf("ATA: Bus 1 status: %x\n", bus1status);
-        bus1done=true;
+        dbgpf("ATA DMA: Bus 1 interrupt!\n");
+        dbgpf("ATA DMA: Bus 1 status: %x\n", bus1status);
         outb(bmr+0x0A, 0x04);
+
+        if(dma_waiting_read[1])
+            dma_finish_read[1]();
     }
-    irq_ack(irq);
-    enable_interrupts();
-    yield();
+    return 0;
 }
 
-bool dma_blockcheck(void *q){
-    return *(bool*)q;
+inline uint32_t physaddr(void* ptr) {
+    return (cpu0_memmap.translate(ptr).pde & ALIGN_4MB_ADDR) | (((uint32_t)ptr) & (~ALIGN_4MB_ADDR));
 }
 
 void set_bus0_prdt(uint32_t bmr, prd *prd){
-    uint32_t phys=physaddr((void*)prd);
-    dbgpf("ATA: Setting bus 0 PRDT pointer to %x.\n", phys);
-    out32(bmr+0x04, phys);
+    uint32_t phys=physaddr(prd);
+    dbgpf("ATA DMA: Setting bus 0 PRDT pointer to %x.\n", phys);
+    outl(bmr+0x04, phys);
     bus0prd=*prd;
 }
 
 void set_bus1_prdt(uint32_t bmr, prd *prd){
-    uint32_t phys=physaddr((void*)prd);
-    dbgpf("ATA: Setting bus 1 PRDT pointer to %x.\n", phys);
-    out32(bmr+0x0C, phys);
+    uint32_t phys=physaddr(prd);
+    dbgpf("ATA DMA: Setting bus 1 PRDT pointer to %x.\n", phys);
+    outl(bmr+0x0C, phys);
     bus1prd=*prd;
 }
 
 bool init_dma(){
-    return false;
-    hold_lock hl(&dma_init_lock);
+    // return false;
+    AutoSpinLock hl(&dma_init_lock);
     if(dma_init) return true;
-    if(init_pci()){
-        pci_device *dev=pci_findbyclass(0x01, 0x01);
-        if(!dev) return false;
-        uint16_t bar4low=pci_readword(*dev, 0x20);
-        uint16_t bar4high=pci_readword(*dev, 0x22);
-        bmr=(bar4high << 16) | bar4low;
+    //if(init_pci()){
+        if(PATAControllers->empty())
+            return false;
+        if(!PATAControllers)
+            return false;
+        UnitDev dev=(*PATAControllers)[0];
+        bmr=Register(dev, 0x20).get();
         bmr&=~1;
-        uint16_t cmd=pci_readword(*dev, 0x08);
-        uint16_t status=pci_readword(*dev, 0x0A);
+
+        // RegisterId should be 0x04 according to OSDev
+        uint32_t cmdAndStatus = Register(dev, 0x08).get();
+        uint16_t cmd=cmdAndStatus & 0xffff;
+        uint16_t status=cmdAndStatus >> 16;
         uint16_t newcmd = cmd | 0x07;
         newcmd &= ~(1 << 10);
-        pci_write(*dev, 0x08, (status << 16) | newcmd);
-        cmd=pci_readword(*dev, 0x08);
-        dbgpf("ATA: STATUS: %x CMD: %x NEWCMD:%x\n", status, cmd, newcmd);
-        init_lock(&dma_lock);
+        Register(dev, 0x08).set((status << 16) | newcmd);
+
+        cmdAndStatus = Register(dev, 0x08).get();
+        cmd=cmdAndStatus & 0xffff;
+        dbgpf("ATA DMA: STATUS: %x CMD: %x NEWCMD:%x\n", status, cmd, newcmd);
+
+        spin_lock_init(&dma_lock);
         set_bus0_prdt(bmr, new prd());
         set_bus1_prdt(bmr, new prd());
-        handle_irq(14, &dma_int_handler);
-        handle_irq(15, &dma_int_handler);
-        unmask_irq(14);
-        unmask_irq(15);
+
+        bind_irq(14, ATA_DMA_ID, dma_int_handler, 0);
+        bind_irq(15, ATA_DMA_ID, dma_int_handler, 0);
         dma_init=true;
         return true;
-    }
-    return false;
+    //}
+    //return false;
 }
 
 char dma_buffer[ATA_SECTOR_SIZE] __attribute__((aligned(0x1000)));
 
-void dma_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf){
-    dbgpf("ATA: DMA read: dev: %x, lba: %x, buf: %x\n", dev, lba, physaddr((void*)buf));
+int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf){
+    dbgpf("ATA DMA: DMA read: dev: %x, lba: %x, buf: %x\n", dev, lba, physaddr((void*)buf));
     memset(buf, 0, ATA_SECTOR_SIZE);
-    if(!dma_init) return;
+    if(!dma_init) return -EFOPS;
     int bus=dev->io_base;
     int slave=dev->slave;
 
-    void *blockptr=NULL;
     uint16_t base;
+    size_t busId;
 
-    hold_lock hl(&dma_lock);
+    AutoSpinLock hl(&dma_lock);
     if(dev->io_base==bus0_io_base){
         bus0prd.data=physaddr((void*)dma_buffer);
         bus0prd.bytes=ATA_SECTOR_SIZE;
+        busId = 0;
         base=0;
-        bus0done=false;
-        blockptr=(void*)&bus0done;
         set_bus0_prdt(bmr, &bus0prd);
-        dbgout("ATA: Primary.\n");
+        dbgout("ATA DMA: Primary.\n");
     }else if(dev->io_base==bus1_io_base){
         bus1prd.data=physaddr((void*)dma_buffer);
         bus1prd.bytes=ATA_SECTOR_SIZE;
+        busId = 1;
         base=0x08;
-        bus1done=false;
-        blockptr=(void*)&bus1done;
         set_bus1_prdt(bmr, &bus1prd);
-        dbgout("ATA: Secondary.\n");
+        dbgout("ATA DMA: Secondary.\n");
     }else{
-        panic("(ATA) Unrecognised device!");
+        panic("(ATA DMA) Unrecognised device!");
     }
     outb(bus + ATA_REG_CONTROL, 2);
     outb(bmr + base, DMA_READ);
@@ -145,8 +160,7 @@ void dma_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf){
     outb(bus + 2, 0x21);
     outb(bus + ATA_REG_COMMAND, 0xEF);
     uint8_t q=inb(ATA_REG_STATUS);
-    dbgpf("ATA: q=%x\n", q);
-    *(bool*)blockptr=false;
+    dbgpf("ATA DMA: q=%x\n", q);
     //outb(bus + ATA_REG_FEATURES, 0x01);
     outb(bus + ATA_REG_SECCOUNT0, 1);
     outb(bus + ATA_REG_LBA0, (lba & 0x000000ff) >>  0);
@@ -157,23 +171,43 @@ void dma_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf){
     uint8_t cmd=inb(bmr + base);
     outb(bmr + base, cmd | DMA_ON);
 
-    dbgpf("ATA: Waiting for DMA to complete...\n");
-    thread_setblock(&dma_blockcheck, blockptr);
-    outb(bmr + base, 0);
-    uint8_t atastatus=ata_wait(dev, 1);
-    if(inb(bmr + base+2) & 0x02) atastatus=1;
-    if(atastatus){
-        panic("(ATA) DMA FAILED");
-        dbgpf("ATA: DMA error! Falling back to PIO.\n");
-        ata_device_read_sector_pio(dev, lba, buf);
-    }else{
-        memcpy(buf, dma_buffer, ATA_SECTOR_SIZE);
-    }
-    dbgpf("ATA: DMA complete.\n");
+    dbgpf("ATA DMA: Waiting for DMA to complete...\n");
+
+    thread_kinfo* thisThread = getCurrentThreadInfo();
+
+    dma_waiting_read[busId] = true;
+    dma_finish_read[busId] = [=]()
+    {
+        outb(bmr + base, 0);
+        uint32_t retval;
+        uint8_t atastatus=ata_wait(dev, 1);
+        if(inb(bmr + base+2) & 0x02) atastatus=1;
+        if(atastatus){
+            panic("(ATA DMA) DMA FAILED");
+            dbgpf("ATA DMA: DMA error!\n");
+            // TODO: FIXME: should do a SOFTWARE RESET before return.
+            retval = -EFOPS;
+        }else{
+            cpu0_memmap.loadProcessMap(thisThread->getProcessDesc());
+            memcpy(buf, dma_buffer, ATA_SECTOR_SIZE);
+            cpu0_memmap.loadProcessMap(getCurrentThreadInfo()->getProcessDesc());
+            dbgpf("ATA DMA: DMA complete.\n");
+            retval = 0;
+        }
+
+        getRegs(thisThread)->eax = retval;
+        scheduler::unblock(thisThread);
+        dma_waiting_read[busId] = false;
+    };
+
+    scheduler::block(thisThread);
+    return -EFOPS;  // This return value is not received by any thread.
 }
 
 void preinit_dma(){
-    init_lock(&dma_init_lock);
+    spin_lock_init(&dma_init_lock);
+    dma_waiting_read[0] = false;
+    dma_waiting_read[1] = false;
 }
 
 }   // namespace ata
