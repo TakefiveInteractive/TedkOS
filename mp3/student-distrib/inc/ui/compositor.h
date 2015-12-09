@@ -12,6 +12,7 @@ using vbe::VBEMemHelp;
 namespace ui {
 
 class Drawable;
+class Container;
 
 constexpr int32_t ScreenWidth = 1024;
 constexpr int32_t ScreenHeight = 768;
@@ -57,8 +58,7 @@ class Compositor {
 
         Maybe<vbe::VideoModeInfo> infoMaybe;
 
-        Drawable **drawables;
-        int32_t numDrawables;
+        Container *rootContainer;
         VBEMemHelp drawHelper;
 
         // Compositor singleton object
@@ -73,10 +73,13 @@ class Compositor {
 
         void drawNikita();
 
+        // redraw entire rectangular area (costly!)
         void redraw(const Rectangle &rect);
-        void addDrawable(Drawable *d);
-        //draw Single drawable
-        void drawSingle(Drawable *d, const Rectangle &rect);
+
+        // draw single container
+        void drawSingle(const Container *d, const Rectangle &rect);
+
+        void drawSingleDrawable(const Drawable *d, const Rectangle &_rect);
 };
 
 }
