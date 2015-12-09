@@ -16,7 +16,6 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "push %%ebp;    \n"
             "movl %%esp, %%ebp;     \n"
 #endif
-
             "pushl %%ecx               ;\n"
             "movl %2, %%ecx            ;\n"
             "movw %%cx, %%ds           ;\n"
@@ -30,8 +29,10 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "jae 1f;                \n"     // Average interrupt
             "movl %1, %%esp;        \n"
             "btl %0, %%esp;         \n"
+
             "leave;                 \n"
-            "jz 2f;                 \n"
+            "jz 2f;                 \n"     // exception with no code?
+
             "movl %%ebx, -32(%%esp);    \n" // Exception with code
             "popl %%ebx;                \n" // Pop code into EBX. EBX is call-EE saved.
             "pushal;                    \n"
@@ -56,14 +57,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "movl $0, %%ebx;            \n"
 "3:;\n"
             "cld;                               \n"     // Exception with error code (CASE 3)
-
-            /*
-            "pushl %%esp               ;\n"             // covers CASE 2 and CASE 3
-            "call  schedBackupState    ;\n"             // This does NOT clobber EBX. So we are fine.
-            "addl  $4, %%esp           ;\n"
-            */
-
-            "leal -32(%%esp), %%eax;            \n"     // Load addr of top of stack at beginning of interrupt
+            "leal 32(%%esp), %%eax;             \n"     // Load addr of top of stack at beginning of interrupt
             "pushl %%eax;                       \n"
             "pushl %%ebx;                       \n"
             "pushl %0;                          \n"
