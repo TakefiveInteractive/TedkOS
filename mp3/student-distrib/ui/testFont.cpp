@@ -13,8 +13,8 @@ using namespace filesystem;
 namespace ui {
 
 constexpr int numFont = 94;
-constexpr int FontWidth = 20;
-constexpr int FontHeight = 17;
+constexpr int FontWidth = 17;
+constexpr int FontHeight = 20;
 constexpr int FontCharSpacing = 0;
 constexpr int FontLineSpacing = 8;
 
