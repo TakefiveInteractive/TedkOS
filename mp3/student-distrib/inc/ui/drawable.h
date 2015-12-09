@@ -2,39 +2,21 @@
 #define _INC_UI_DRAWABLE_H_
 
 #include <inc/ui/compositor.h>
+#include <inc/ui/container.h>
 
 namespace ui {
 
 // Whenever a drawable is moved around, it should trigger redraw on every pixel
 // in its old location, and draw itself onto its new location.
-class Drawable {
-    public:
-
-        int32_t getX() const { return x; }
-        int32_t getY() const { return y; }
-
-        const Rectangle getBoundingRectangle() const
-        {
-            return Rectangle { .x1 = x, .y1 = y, .x2 = x + width, .y2 = y + height };
-        }
-
-    protected:
-
-        int32_t width;
-        int32_t height;
-
-        // coordinates of the top left corner
-        int32_t x;
-        int32_t y;
-
-        bool visible;
+class Drawable : public Container {
 
     public:
-
         Drawable(int32_t _width, int32_t _height, int32_t _x, int32_t _y)
-            : width(_width), height(_height), x(_x), y(_y), visible(true)
+            : Container(_width, _height, _x, _y)
         {
         }
+
+        virtual bool isDrawable() override { return true; }
 
         // RGBA layout
         uint8_t *pixelBuffer;
