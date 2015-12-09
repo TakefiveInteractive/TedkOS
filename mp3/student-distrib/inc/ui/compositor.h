@@ -65,6 +65,9 @@ class Compositor {
         static Compositor *comp;
         Compositor();
 
+        void drawSingleDrawable(const Drawable *d, const Rectangle &_rect);
+        void drawSingleContainer(const Container *d, const Rectangle &_rect);
+
     public:
         static Compositor* getInstance();
 
@@ -76,10 +79,8 @@ class Compositor {
         // redraw entire rectangular area (costly!)
         void redraw(const Rectangle &rect);
 
-        // draw single container
+        // draw single element
         void drawSingle(const Container *d, const Rectangle &rect);
-
-        void drawSingleDrawable(const Drawable *d, const Rectangle &_rect);
 };
 
 }

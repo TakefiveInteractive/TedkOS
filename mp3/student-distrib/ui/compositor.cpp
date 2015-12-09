@@ -90,16 +90,16 @@ float alphaBlending(float p1, float p2, float alpha)
 class TreeIterator
 {
 private:
-    util::Stack<Container *, 20> stack;
+    util::Stack<const Container *, 20> stack;
 
 public:
-    TreeIterator(Container *root)
+    TreeIterator(const Container *root)
     {
         if (root)
             stack.push(root);
     }
 
-    void reinit(Container *root)
+    void reinit(const Container *root)
     {
         stack.resetStackPointer();
         if (root)
@@ -125,8 +125,25 @@ public:
 
 void Compositor::redraw(const Rectangle &_rect)
 {
+    drawSingleContainer(rootContainer, _rect);
+}
+
+void Compositor::drawSingle(const Container *d, const Rectangle &_rect)
+{
+    if (d->isDrawable())
+    {
+        drawSingleDrawable(reinterpret_cast<const Drawable *>(d), _rect);
+    }
+    else
+    {
+        drawSingleContainer(d, _rect);
+    }
+}
+
+void Compositor::drawSingleContainer(const Container *d, const Rectangle &_rect)
+{
     const Rectangle &rect = _rect.bound();
-    TreeIterator itr(rootContainer);
+    TreeIterator itr(d);
     for (int32_t y = rect.y1; y < rect.y2; y++)
     {
         for (int32_t x = rect.x1; x < rect.x2; x++)
@@ -136,7 +153,7 @@ void Compositor::redraw(const Rectangle &_rect)
             float g = 0.0F;
             float b = 0.0F;
 
-            itr.reinit(rootContainer);
+            itr.reinit(d);
             // Draw all drawables
             while (auto resMaybe = itr.iterate())
             {
@@ -163,17 +180,6 @@ void Compositor::redraw(const Rectangle &_rect)
     }
     if (displayMode == Video)
         drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
-}
-
-void Compositor::drawSingle(const Container *d, const Rectangle &_rect)
-{
-    if (d->isDrawable())
-    {
-        drawSingleDrawable(reinterpret_cast<const Drawable *>(d), _rect);
-    }
-    else
-    {
-    }
 }
 
 void Compositor::drawSingleDrawable(const Drawable *d, const Rectangle &_rect)
