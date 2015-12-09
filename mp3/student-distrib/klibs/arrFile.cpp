@@ -10,10 +10,10 @@ ArrFile::ArrFile() {
 }
 
 ArrFile* ArrFile::getInstance(char *ptr) {
-    if (strncmp(magic, (const char *)ptr, sizeof(magic)) != 0) return nullptr;
+    if (strncmp(magic, (const char *)ptr, sizeof(magic) - 1) != 0) return nullptr;
     ArrFile *obj = new ArrFile();
 
-    ptr = ptr + sizeof(magic);
+    ptr = ptr + (sizeof(magic) - 1);
     obj->_length = *((uint32_t *)ptr);
 
     printf("%d\n", obj->_length);
@@ -28,11 +28,11 @@ ArrFile* ArrFile::getInstance(char *ptr) {
         if (obj->_subArrLength[i] == 0)
             obj->_subArr[i] = nullptr;
         ptr += obj->_subArrLength[i];
-        if (strncmp(ending, (const char *)ptr, sizeof(ending)) != 0) {
+        if (strncmp(ending, (const char *)ptr, sizeof(ending) - 1) != 0) {
             obj->freeAll();
             return nullptr;
         }
-        ptr += sizeof(ending);
+        ptr += (sizeof(ending) - 1);
     }
     return obj;
 }
