@@ -24,8 +24,8 @@ TestFont::TestFont() : Drawable(FontWidth, FontHeight, 0, 0) {
     auto buffer = new uint8_t[size];
     theDispatcher->open(fontFile, "inconsolata_15.carr");
     theDispatcher->read(fontFile, buffer, size);
-    ArrFile* fileParser = ArrFile()->getInstance(buffer);
-    pixelBuffer = fileParser[20];
+    // ArrFile* fileParser = ArrFile()->getInstance(buffer);
+    // pixelBuffer = fileParser[20];
     theDispatcher->close(fontFile);
 }
 
