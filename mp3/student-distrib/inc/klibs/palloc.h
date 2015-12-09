@@ -12,7 +12,6 @@
 #include <inc/x86/paging.h>
 #include <inc/klibs/memory.h>
 #include <inc/klibs/AutoSpinLock.h>
-#include <inc/klibs/maybe.h>
 #include <inc/x86/err_handler.h>
 
 using memory::operator "" _KB;
