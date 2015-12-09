@@ -308,7 +308,7 @@ void term_cls(void)
     {
         orig_clear();
     }
-    else if(!isFallbackTerm)
+    else if(!isFallbackTerm && getCurrentThreadInfo()->getProcessDesc()->currTerm != NULL)
     {
         getCurrentThreadInfo()->getProcessDesc()->currTerm->cls();
     }
@@ -325,7 +325,7 @@ void term_putc(uint8_t c)
     {
         orig_putc(c);
     }
-    else if(!isFallbackTerm)
+    else if(!isFallbackTerm && getCurrentThreadInfo()->getProcessDesc()->currTerm != NULL)
     {
         getCurrentThreadInfo()->getProcessDesc()->currTerm->putc(c);
     }
