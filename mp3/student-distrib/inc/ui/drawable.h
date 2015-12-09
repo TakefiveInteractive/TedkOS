@@ -16,7 +16,7 @@ class Drawable : public Container {
         {
         }
 
-        virtual bool isDrawable() override { return true; }
+        virtual bool isDrawable() const override { return true; }
 
         // RGBA layout
         uint8_t *pixelBuffer;
@@ -33,32 +33,6 @@ class Drawable : public Container {
             Compositor::getInstance()->redraw(Rectangle { .x1 = oldX, .y1 = oldY, .x2 = oldX + width, .y2 = oldY + height });
 
             Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
-        }
-
-        void show()
-        {
-            visible = true;
-            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
-        }
-
-        void hide()
-        {
-            visible = false;
-            Compositor::getInstance()->redraw(getBoundingRectangle());
-        }
-
-        bool isVisible() const
-        {
-            return visible;
-        }
-
-        bool isPixelInRange(int32_t tx, int32_t ty)
-        {
-            if (tx < x) return false;
-            if (tx >= x + width) return false;
-            if (ty < y) return false;
-            if (ty >= y + height) return false;
-            return true;
         }
 
         uint8_t getRed(int32_t tx, int32_t ty) const

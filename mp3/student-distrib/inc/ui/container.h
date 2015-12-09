@@ -1,6 +1,11 @@
 #ifndef _INC_UI_CONTAINER_H_
 #define _INC_UI_CONTAINER_H_
 
+#include <stddef.h>
+#include <stdint.h>
+#include <inc/ui/compositor.h>
+#include <inc/klibs/deque.h>
+
 namespace ui {
 
 class Container {
@@ -15,6 +20,7 @@ class Container {
         int32_t y;
 
         bool visible;
+        Deque<Container *> children;
 
     public:
 
@@ -31,7 +37,45 @@ class Container {
         {
         }
 
-        virtual bool isDrawable() override { return false; }
+        virtual bool isDrawable() const { return false; }
+
+        bool isPixelInRange(int32_t tx, int32_t ty) const
+        {
+            if (tx < x) return false;
+            if (tx >= x + width) return false;
+            if (ty < y) return false;
+            if (ty >= y + height) return false;
+            return true;
+        }
+
+        void show()
+        {
+            visible = true;
+            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
+        }
+
+        void hide()
+        {
+            visible = false;
+            Compositor::getInstance()->redraw(getBoundingRectangle());
+        }
+
+        bool isVisible() const
+        {
+            return visible;
+        }
+
+        virtual void addChild(Container *d)
+        {
+            children.push_back(d);
+            // draw this thing
+            Compositor::getInstance()->drawSingle(d, d->getBoundingRectangle());
+        }
+
+        virtual const Deque<Container *>& getChildren() const
+        {
+            return children;
+        }
 };
 
 }   // namespace ui

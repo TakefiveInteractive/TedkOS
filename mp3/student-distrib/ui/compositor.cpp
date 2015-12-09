@@ -8,6 +8,8 @@
 #include <inc/x86/idt_init.h>
 #include <inc/klibs/palloc.h>
 #include <inc/klibs/lib.h>
+#include <inc/klibs/stack.h>
+#include <inc/klibs/maybe.h>
 
 using namespace vbe;
 using namespace palloc;
@@ -23,7 +25,7 @@ Compositor* Compositor::getInstance()
     return comp;
 }
 
-Compositor::Compositor() : numDrawables(0)
+Compositor::Compositor()
 {
     runWithoutNMI([this] () {
         auto videoModeMaybe = findVideoModeInfo([](VideoModeInfo& modeInfo) {
@@ -74,19 +76,10 @@ Compositor::Compositor() : numDrawables(0)
         cpu0_memmap.addCommonPage(VirtAddr(buildBuffer), PhysAddr((+physPages.allocPage(true)), PG_WRITABLE));
 
         drawHelper = +getMemHelp(mode);
-        drawables = new Drawable*[20];
 
         memset(buildBuffer, 0, RGBASize<ScreenWidth, ScreenHeight>);
         drawHelper.cls(videoMemory, 0);
     });
-}
-
-void Compositor::addDrawable(Drawable *d)
-{
-    drawables[numDrawables] = d;
-    numDrawables++;
-    // draw this thing
-    redraw(d->getBoundingRectangle());
 }
 
 float alphaBlending(float p1, float p2, float alpha)
@@ -94,9 +87,46 @@ float alphaBlending(float p1, float p2, float alpha)
     return p1 * (1.0F - alpha) + p2 * alpha;
 }
 
+class TreeIterator
+{
+private:
+    util::Stack<Container *, 20> stack;
+
+public:
+    TreeIterator(Container *root)
+    {
+        if (root)
+            stack.push(root);
+    }
+
+    void reinit(Container *root)
+    {
+        stack.resetStackPointer();
+        if (root)
+            stack.push(root);
+    }
+
+    const Maybe<const Container *> iterate()
+    {
+        if (stack.empty()) return Nothing;
+        auto c = stack.pop();
+        return c;
+    }
+
+    void descend(const Container *c)
+    {
+        auto children = c->getChildren();
+        for (size_t i = 0; i < children.size(); i++)
+        {
+            stack.push(children[i]);
+        }
+    }
+};
+
 void Compositor::redraw(const Rectangle &_rect)
 {
     const Rectangle &rect = _rect.bound();
+    TreeIterator itr(rootContainer);
     for (int32_t y = rect.y1; y < rect.y2; y++)
     {
         for (int32_t x = rect.x1; x < rect.x2; x++)
@@ -105,16 +135,25 @@ void Compositor::redraw(const Rectangle &_rect)
             float r = 0.0F;
             float g = 0.0F;
             float b = 0.0F;
+
+            itr.reinit(rootContainer);
             // Draw all drawables
-            for (int32_t i = 0; i < numDrawables; i++)
+            while (auto resMaybe = itr.iterate())
             {
-                if (drawables[i]->isVisible() && drawables[i]->isPixelInRange(x, y))
+                auto c = +resMaybe;
+                if (c->isVisible() && c->isPixelInRange(x, y))
                 {
-                    int32_t relX = x - drawables[i]->getX(), relY = y - drawables[i]->getY();
-                    const float alpha = drawables[i]->getAlpha(relX, relY) / 256.0F;
-                    r = alphaBlending(r, drawables[i]->getRed(relX, relY), alpha);
-                    g = alphaBlending(g, drawables[i]->getGreen(relX, relY), alpha);
-                    b = alphaBlending(b, drawables[i]->getBlue(relX, relY), alpha);
+                    itr.descend(c);
+                    if (c->isDrawable())
+                    {
+                        auto d = reinterpret_cast<const Drawable *>(c);
+                        int32_t relX = x - d->getX();
+                        int32_t relY = y - d->getY();
+                        const float alpha = d->getAlpha(relX, relY) / 256.0F;
+                        r = alphaBlending(r, d->getRed(relX, relY), alpha);
+                        g = alphaBlending(g, d->getGreen(relX, relY), alpha);
+                        b = alphaBlending(b, d->getBlue(relX, relY), alpha);
+                    }
                 }
             }
             buildBuffer[y][x][0] = r;
@@ -126,7 +165,18 @@ void Compositor::redraw(const Rectangle &_rect)
         drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
-void Compositor::drawSingle(Drawable *d, const Rectangle &_rect)
+void Compositor::drawSingle(const Container *d, const Rectangle &_rect)
+{
+    if (d->isDrawable())
+    {
+        drawSingleDrawable(reinterpret_cast<const Drawable *>(d), _rect);
+    }
+    else
+    {
+    }
+}
+
+void Compositor::drawSingleDrawable(const Drawable *d, const Rectangle &_rect)
 {
     if (d->isVisible() == false) return;
 
@@ -140,7 +190,8 @@ void Compositor::drawSingle(Drawable *d, const Rectangle &_rect)
             g = buildBuffer[y][x][1];
             b = buildBuffer[y][x][2];
 
-            int32_t relX = x - d->getX(), relY = y - d->getY();
+            int32_t relX = x - d->getX();
+            int32_t relY = y - d->getY();
             const float alpha = d->getAlpha(relX, relY) / 256.0F;
             r = alphaBlending(r, d->getRed(relX, relY), alpha);
             g = alphaBlending(g, d->getGreen(relX, relY), alpha);
@@ -157,8 +208,9 @@ void Compositor::drawSingle(Drawable *d, const Rectangle &_rect)
 
 void Compositor::drawNikita()
 {
-    addDrawable(new Desktop());
-    addDrawable(new Mouse());
+    rootContainer = new Desktop();
+    redraw(rootContainer->getBoundingRectangle());
+    rootContainer->addChild(new Mouse());
 }
 
 void Compositor::enterVideoMode()
