@@ -14,13 +14,24 @@ def convert(arg):
         "2": 28,
         "3": 42,
     }
+    switcherWidth = {
+        "1": 10,
+        "2": 14,
+        "3": 20,
+    }
     stdColLen = switcher[os.path.basename(arg)[0]]
+    stdWidth = switcherWidth[os.path.basename(arg)[0]]
     with open(arg + '.conv', 'wb') as f:
+        numRow = 0
         for row in bitmap:
-            f.write(bytearray(row))
-            if len(row) < stdColLen:
-                for i in range((stdColLen - len(row))):
-                    f.write(bytearray([0]))
+            extendedRow = list(row)
+            extendedRow = extendedRow[1::2]
+            if len(extendedRow) < stdWidth: extendedRow += [0]*(stdWidth - len(extendedRow))
+            f.write(bytearray(extendedRow))
+            numRow += 1
+        while numRow < stdColLen:
+            f.write(bytearray([0]*stdWidth))
+            numRow += 1
 
 for arg in args:
     convert(arg)
