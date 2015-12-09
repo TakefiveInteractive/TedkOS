@@ -52,7 +52,7 @@ static void handle(uint32_t kernelKeycode);
 // Alt + # is handled here, but Ctrl+ l is handled in terminal.
 static bool handleShortcut(uint32_t kernelKeycode);
 
-static void switchToTextTerm(size_t clientId);
+static void switchTo(size_t clientId);
 
 // -------------- An important helper      ------------------
 
@@ -132,7 +132,7 @@ DEFINE_DRIVER_INIT(kb) {
     register_devfs("term", []() { return Term::FOps::getNewInstance(); });
     register_devfs("keyb", []() { return KeyB::FOps::getNewInstance(); });
 
-    getFirstTextTerm()->show();
+    Term::TextModePainter::init();
 
     return;
 }
@@ -269,22 +269,25 @@ bool handleShortcut(uint32_t kernelKeycode)
     else switch(kernelKeycode)
     {
     case KKC_ALT | KKC_F1:
-        switchToTextTerm(0);
+        switchTo(0);
         return true;
     case KKC_ALT | KKC_F2:
-        switchToTextTerm(1);
+        switchTo(1);
         return true;
     case KKC_ALT | KKC_F3:
-        switchToTextTerm(2);
+        switchTo(2);
         return true;
     case KKC_ALT | KKC_F4:
-        switchToTextTerm(3);
+        switchTo(3);
         return true;
     case KKC_ALT | KKC_F5:
-        switchToTextTerm(4);
+        switchTo(4);
         return true;
     case KKC_ALT | KKC_F6:
-        switchToTextTerm(5);
+        switchTo(5);
+        return true;
+    case KKC_ALT | KKC_F7:
+        switchTo(6);
         return true;
 
     default:
@@ -293,10 +296,10 @@ bool handleShortcut(uint32_t kernelKeycode)
     }
 }
 
-void switchToTextTerm(size_t clientId)
+void switchTo(size_t clientId)
 {
     currClient = clientId;
-    ((Term::TextTerm*)(clients[clientId]))->show();
+    (clients[clientId])->show();
 }
 
 // -------- PUBLIC C functions used by printf --------
@@ -347,5 +350,13 @@ namespace KeyB
     IEvent* KbClients::operator [] (size_t i)
     {
         return clients[i];
+    }
+    bool KbClients::updateClient(size_t clientId, IEvent* listener)
+    {
+        AutoSpinLock l(&keyboard_lock);
+        if(clientId < numTextTerms)
+            return false;
+        clients[clientId] = listener;
+        return true;
     }
 }
