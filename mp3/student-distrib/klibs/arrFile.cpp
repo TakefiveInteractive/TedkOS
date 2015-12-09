@@ -21,9 +21,10 @@ ArrFile* ArrFile::getInstance(char *ptr) {
     obj->_subArrLength = new uint32_t[obj->_length];
     obj->_subArr = new void*[obj->_length];
 
-    ptr++;
+    ptr += 4;
     for (uint32_t i = 0; i < obj->_length; i++) {
-        obj->_subArrLength[i] = *((uint32_t *)ptr++);
+        obj->_subArrLength[i] = *((uint32_t *)ptr);
+        ptr += 4;
         obj->_subArr[i] = ptr;
         if (obj->_subArrLength[i] == 0)
             obj->_subArr[i] = nullptr;
