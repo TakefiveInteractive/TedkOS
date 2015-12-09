@@ -36,6 +36,9 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
 {
     pcbLoadable = true;
 
+    // TODO: Duang
+    play_wav((char*) "duang.wav");
+
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
 
     initHelper* helpers = new initHelper[KeyB::KbClients::numClients];
@@ -97,17 +100,13 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
             delete[] ((helper->recyclable));
     }
 
-    ece391_write(1, TTY, sizeof(TTY));
-    char number = '0' + kbClientId;
-    ece391_write(1, &number, 1);
-    ece391_write(1, "\n", 1);
-
-    // TODO: Duang
-    if (kbClientId == 0)
-        play_wav((char*) "duang.wav");
-
     if (isTextTerm)
     {
+        ece391_write(1, TTY, sizeof(TTY));
+        char number = '0' + kbClientId;
+        ece391_write(1, &number, 1);
+        ece391_write(1, "\n", 1);
+
         for (;;)
         {
             ece391_execute((const uint8_t *)"shell");
