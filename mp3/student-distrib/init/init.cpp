@@ -33,7 +33,7 @@ __attribute__((used)) void init_main(void* arg)
     theDispatcher->open(fontFile, "testArrFile");
     theDispatcher->read(fontFile, buffer, 40);
     theDispatcher->close(fontFile);
-    ArrFile *arrFile = ArrFile().getInstance((char*)buffer);
+    ArrFile *arrFile = ArrFile::getInstance((char*)buffer);
     printf("%d\n", arrFile->length());
 
     pcbLoadable = true;
