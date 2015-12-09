@@ -34,8 +34,8 @@ private:
     void** _subArr;
 
     void copy(const ArrFile *rhs);
-    ArrFile();
     void freeAll();
+    ArrFile();
 public:
     static ArrFile* getInstance(char *ptr);
     ~ArrFile();

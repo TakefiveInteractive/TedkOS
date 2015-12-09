@@ -7,11 +7,10 @@
 #include <inc/proc/sched.h>
 #include <inc/proc/tasks.h>
 #include <inc/ece391syscall.h>
+#include <inc/drivers/sb16.h>
 #include <stdint.h>
 #include <stddef.h>
 #include "draw_nikita.h"
-
-#include <inc/drivers/sb16.h>
 
 using scheduler::makeKThread;
 using scheduler::attachThread;
@@ -24,7 +23,7 @@ struct initHelper
     size_t kbClientId;
     bool isTextTerm;
 
-    // Lock the lock before using the following fields 
+    // Lock the lock before using the following fields
     spinlock_t* multitaskLock;
     int32_t* numLoadedClients;
     struct initHelper* recyclable;
@@ -77,7 +76,7 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
         }
         isFallbackTerm = false;
     }
-    
+
     scheduler::enablePreemptiveScheduling();
     /* Enable interrupts */
     sti();
