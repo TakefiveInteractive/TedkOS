@@ -10,6 +10,11 @@
 #include <stddef.h>
 #include "draw_nikita.h"
 
+#include <inc/klibs/arrFile.h>
+#include <inc/fs/filesystem.h>
+#include <inc/syscalls/filesystem_wrapper.h>
+using namespace filesystem;
+
 using scheduler::makeKThread;
 
 volatile bool pcbLoadable = false;
@@ -23,6 +28,14 @@ __attribute__((used)) void init_halted()
 
 __attribute__((used)) void init_main(void* arg)
 {
+    File fontFile;
+    auto buffer = new uint8_t[40];
+    theDispatcher->open(fontFile, "testArrFile");
+    theDispatcher->read(fontFile, buffer, 40);
+    theDispatcher->close(fontFile);
+    ArrFile *arrFile = ArrFile().getInstance((char*)buffer);
+    printf("%d\n", arrFile->length());
+
     pcbLoadable = true;
 
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
@@ -58,4 +71,3 @@ __attribute__((used)) void launcher(void* arg)
         printf("Falling back to init.\nRe-");
     }
 }
-
