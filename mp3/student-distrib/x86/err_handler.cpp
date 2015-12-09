@@ -90,6 +90,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
     }
     print_control_registers();
     printf("Faulting instruction address: 0x%#x, CS: 0x%#x\n", info->EIP, info->CS);
+    printf("EFLAGS: 0x%#x\n", info->EFLAGS);
     printf("====================== END OF TRACE ======================");
 
     // TODO: we gotta return control to program in subsequent checkpoints
