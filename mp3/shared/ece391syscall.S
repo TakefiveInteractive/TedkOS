@@ -3,11 +3,14 @@
 #define DO_CALL(name,number)   \
 .GLOBL name                   ;\
 name:   PUSHL	%EBX          ;\
+	PUSHL	%ESI          ;\
 	MOVL	$number,%EAX  ;\
 	MOVL	8(%ESP),%EBX  ;\
 	MOVL	12(%ESP),%ECX ;\
 	MOVL	16(%ESP),%EDX ;\
-	INT	$0x80         ;\
+	MOVL	20(%ESP),%ESI ;\
+	INT		$0x80         ;\
+	POPL	%ESI          ;\
 	POPL	%EBX          ;\
 	RET
 
@@ -30,3 +33,14 @@ DO_CALL(ece391_fork,SYS_FORK)
 /* Only Kernel threads can call this */
 DO_CALL(ece391_dotask, SYS_DOTASK)
 
+/* GUI stuff */
+DO_CALL(TedCreateWindow,SYS_CREATE_WINDOW)
+DO_CALL(TedSetText,SYS_SET_TEXT)
+DO_CALL(TedGetText,SYS_GET_TEXT)
+DO_CALL(TedElemShow,SYS_ELEM_SHOW)
+DO_CALL(TedElemHide,SYS_ELEM_HIDE)
+DO_CALL(TedCreateButton,SYS_CREATE_BUTTON)
+DO_CALL(TedGetMessage,SYS_GET_MESSAGE)
+DO_CALL(TedAttachMessageHandler,SYS_ATTACH_MSG_HANDLER)
+DO_CALL(TedCreateImage,SYS_CREATE_IMAGE)
+DO_CALL(TedSetImageData,SYS_SET_IMAGE_DATA)
