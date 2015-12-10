@@ -159,8 +159,6 @@ namespace Term
     {
         AutoSpinLock l(&lock);
 
-        if (!isFallbackTerm)
-            return;
         if (isLoadedInVmem)
             return;
 

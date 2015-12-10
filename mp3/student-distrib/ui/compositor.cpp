@@ -194,8 +194,8 @@ void Compositor::enterVideoMode()
         legacyInt(0x10, real_context);
         displayMode = Video;
         drawHelper.cls(videoMemory, 0);
-        // Trigger whole screen update
-        redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = ScreenWidth, .y2 = ScreenHeight });
+        // whole screen update
+        drawHelper.copyRegion(videoMemory, (uint8_t *) buildBuffer, 0, ScreenWidth, 0, ScreenHeight);
     });
 }
 

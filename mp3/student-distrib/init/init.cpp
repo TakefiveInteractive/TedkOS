@@ -10,10 +10,12 @@
 #include <inc/drivers/sb16.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "draw_nikita.h"
+#include <inc/ui/compositor.h>
 
 using scheduler::makeKThread;
 using scheduler::attachThread;
+
+using ui::Compositor;
 
 volatile bool pcbLoadable = false;
 volatile bool isFallbackTerm = true;
@@ -116,7 +118,10 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
     }
     else
     {
-        KeyB::clients.updateClient(kbClientId, draw_nikita());
+        KeyB::clients.updateClient(kbClientId, Compositor::getInstance());
+        Compositor *comp = Compositor::getInstance();
+        comp->drawNikita();
         asm volatile("1: hlt; jmp 1b;");
     }
 }
+
