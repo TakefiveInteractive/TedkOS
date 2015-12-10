@@ -70,7 +70,6 @@ class Compositor : public KeyB::IEvent {
 
         Maybe<vbe::VideoModeInfo> infoMaybe;
 
-        Container *rootContainer;
         VBEMemHelp drawHelper;
 
         // Compositor singleton object
@@ -86,6 +85,8 @@ class Compositor : public KeyB::IEvent {
         static Compositor* getInstance();
 
         void drawNikita();
+
+        Container *rootContainer;
 
         // redraw entire rectangular area (costly!)
         void redraw(const Rectangle &rect);
