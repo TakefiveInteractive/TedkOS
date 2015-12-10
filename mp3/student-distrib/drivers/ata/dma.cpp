@@ -188,7 +188,8 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
     {
         osdev_outb(bmr + base, 0);
         uint32_t retval;
-        uint8_t atastatus=ata_wait(dev, 1);
+        ata_wait(dev, 1);
+        uint8_t atastatus=0;
         if(inb(bmr + base+2) & 0x02) atastatus=1;
         if(atastatus){
             panic("(ATA DMA) DMA FAILED");
