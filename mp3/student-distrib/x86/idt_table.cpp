@@ -16,7 +16,6 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "push %%ebp;    \n"
             "movl %%esp, %%ebp;     \n"
 #endif
-
             "pushl %%ecx               ;\n"
             "movl %2, %%ecx            ;\n"
             "movw %%cx, %%ds           ;\n"
@@ -30,8 +29,8 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "jae 1f;                \n"     // Average interrupt
             "movl %1, %%esp;        \n"
             "btl %0, %%esp;         \n"
-            "leave;                 \n"
 
+            "leave;                 \n"
             "jnc 2f;                \n"     // exception with no code?
 
             "movl %%ebx, -32(%%esp);    \n" // Exception with code

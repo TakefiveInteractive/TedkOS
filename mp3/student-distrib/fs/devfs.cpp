@@ -65,8 +65,12 @@ int32_t DevFS::fstat(FsSpecificData *data, stat *st)
 
 bool DevFS::canSeek(FsSpecificData *fdData)
 {
-    // Assume unseekable
-    return false;
+    return reinterpret_cast<IFOps *>(fdData)->canSeek();
+}
+
+void DevFS::seekCallback(FsSpecificData *fdData, uint32_t newOffset)
+{
+    return reinterpret_cast<IFOps *>(fdData)->seekCallback(newOffset);
 }
 
 Maybe<uint32_t> DevFS::getFileSize(FsSpecificData *fdData)

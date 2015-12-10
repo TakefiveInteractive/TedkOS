@@ -132,19 +132,22 @@ struct __attribute__ ((__packed__)) name_tmp { char name[MaxFilenameLength]; };
 void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
 {
     // map the module to virtual addresses
-    uint32_t numPages = memory::ceil((uint32_t)(endingAddr - startingAddr), 4_MB);
-    unique_ptr<uint16_t[]> physPageIndices(new uint16_t[numPages]);
+    uint32_t alignedStart = (uint32_t) startingAddr & ALIGN_4MB_ADDR;
+    uint32_t alignedEnd = memory::ceil((uint32_t) endingAddr, 4_MB) * 4_MB;
+    uint32_t numPages = memory::ceil((uint32_t) (alignedEnd - alignedStart), 4_MB);
     auto virtAddr = palloc::virtLast1G.allocConsPage(numPages, true);
+    // If starting address is not aligned to 4mb
     if (virtAddr)
     {
         // Establish mapping
         for (size_t i = 0; i < numPages; i++)
         {
-            palloc::cpu0_memmap.addCommonPage(
+            bool res = palloc::cpu0_memmap.addCommonPage(
                     palloc::VirtAddr((uint8_t *)(+virtAddr) + i * 4_MB),
-                    palloc::PhysAddr((uint32_t)(startingAddr + i * 4_MB) >> 22, PG_WRITABLE));
+                    palloc::PhysAddr((uint32_t)(alignedStart + i * 4_MB) >> 22, PG_WRITABLE));
+            if (!res)
+                trigger_exception<27>();
         }
-        RELOAD_CR3();
     }
     else
     {
@@ -152,7 +155,7 @@ void KissFS::initFromMemoryAddress(uint8_t *startingAddr, uint8_t *endingAddr)
     }
 
     this->imageStartingAddress = (uint8_t *) +virtAddr
-        + ((uint32_t)startingAddr - ((uint32_t)startingAddr & ALIGN_4MB_ADDR));
+        + ((uint32_t) startingAddr - alignedStart);
     Reader reader(this->imageStartingAddress);
     // Read boot block
     reader >> numDentries >> numInodes >> numTotalDataBlocks >> Reader::skip<52>();
@@ -267,3 +270,4 @@ bool KissFS::readBlock(uint32_t datablockId, uint32_t offset, uint8_t *buf, uint
 }
 
 }
+
