@@ -6,6 +6,7 @@
 #include <inc/x86/real.h>
 #include <inc/ui/vbe.h>
 #include <inc/klibs/maybe.h>
+#include <inc/drivers/ievent.h>
 
 using vbe::VBEMemHelp;
 
@@ -55,7 +56,7 @@ constexpr Rectangle EmptyRectangle(-1000, -1000, -2000, -2000);
 typedef uint8_t (RGBAGroup)[4];
 typedef RGBAGroup (PixelRow)[ScreenWidth];
 
-class Compositor {
+class Compositor : public KeyB::IEvent {
     private:
         real_context_t real_context;
 
@@ -90,6 +91,30 @@ class Compositor {
         // draw single element
         void drawSingle(const Container *d, const Rectangle &rect);
         void drawSingle(const Container *d, const Rectangle &rect, const Rectangle &difference);
+
+    public:
+        virtual void key(uint32_t kkc, bool capslock)
+        {
+        }
+
+        // Down and Up cuts changes to ONE single key at a time.
+        virtual void keyDown(uint32_t kkc, bool capslock)
+        {
+        }
+
+        virtual void keyUp(uint32_t kkc, bool capslock)
+        {
+        }
+
+        virtual void show()
+        {
+            //enterVideoMode();
+        }
+
+        virtual void hide()
+        {
+            //enterTextMode();
+        }
 };
 
 }
