@@ -113,8 +113,9 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
             char *buf = new char[1024];
             auto fd = ece391_open((uint8_t*)"/dev/ata00");
             ece391_read(fd, buf, 1024);
+            ece391_read(fd, buf, 1024);
             for(size_t i=0; i<1024; i++)
-                printf("%x ", buf[i]);
+                printf("%x ", (uint8_t)buf[i]);
             printf("\n");
         }
 

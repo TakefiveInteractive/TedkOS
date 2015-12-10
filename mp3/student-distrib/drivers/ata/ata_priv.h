@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/klibs/lib.h>
+#include <inc/klibs/function.h>
 
 #define dbgpf printf
 #define dbgout printf
@@ -186,7 +187,7 @@ void cache_drop(size_t deviceid, size_t sector);
 
 void preinit_dma();
 bool init_dma();
-int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint32_t nbytes);
+int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint32_t nbytes, function<void ()> dadClassCallback);
 
 }
 

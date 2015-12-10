@@ -118,7 +118,7 @@ bool init_dma(){
     //return false;
 }
 
-int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint32_t nbytes){
+int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint32_t nbytes, function<void ()> dadClassCallback){
 
     if(!dma_init) return -EFOPS;
     if(nbytes % ATA_SECTOR_SIZE)
@@ -202,6 +202,7 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
             cpu0_memmap.loadProcessMap(getCurrentThreadInfo()->getProcessDesc());
             dbgpf("ATA DMA: DMA complete.\n");
             retval = nbytes;
+            dadClassCallback();
         }
 
         getRegs(thisThread)->eax = retval;
@@ -211,7 +212,7 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
     });
 
     scheduler::block(thisThread);
-    return -EFOPS;  // This return value is not received by any thread.
+    return 0;  // This return value is not received by any thread.
 }
 
 void preinit_dma(){
