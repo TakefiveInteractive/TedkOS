@@ -14,7 +14,7 @@ constexpr int FontHeight = 42;
 constexpr int FontCharSpacing = 0;
 constexpr int FontLineSpacing = 8;
 
-uint8_t *renderRGBAFont(ArrFile &parser, int width, int height)
+static uint8_t *renderRGBAFont(ArrFile &parser, int width, int height)
 {
     auto buffer = new uint8_t[CalcRGBASize(width * 40, height)];
     for (int i = 0; i < 40; i++)
@@ -48,5 +48,20 @@ TestFont::TestFont() : Drawable(FontWidth * 40, FontHeight, 0, 0) {
     pixelBuffer = renderRGBAFont(*fileParser, FontWidth, FontHeight);
     theDispatcher->close(fontFile);
 }
+
+/*
+Font::Font(int txtX, int txtY, char c) : Drawable(FontWidth * 40, FontHeight, x, 0) {
+    File fontFile;
+    struct stat st;
+    theDispatcher->open(fontFile, "inconsolata_36.carr");
+    theDispatcher->fstat(fontFile, &st);
+    const uint32_t size = st.st_size;
+    auto buffer = new uint8_t[size];
+    theDispatcher->read(fontFile, buffer, size);
+    ArrFile* fileParser = ArrFile::getInstance((char*) buffer);
+    pixelBuffer = renderRGBAFont(*fileParser, FontWidth, FontHeight);
+    theDispatcher->close(fontFile);
+}
+*/
 
 }
