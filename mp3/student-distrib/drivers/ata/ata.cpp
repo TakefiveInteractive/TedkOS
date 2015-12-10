@@ -197,6 +197,7 @@ template<ata_device* WhichDev>
 class FOps : public IFOps
 {
 private:
+    size_t currOffset = 0;
     FOps() {}
 public:
     ~FOps() {}
@@ -208,7 +209,11 @@ public:
         
         // TEST mode: the unit of fseek is LBA
         // TODO: FIXME: no seek. currently we always start from sector 0
-        return dma_begin_read_sector(WhichDev, 0, buf, bytes);
+        auto retval = dma_begin_read_sector(WhichDev, currOffset / ATA_SECTOR_SIZE, buf, bytes, [this, bytes] () {
+            currOffset += bytes;
+        });
+
+        return retval;
         /*
         hold_lock hl(&ata_drv_lock);
         ata_instance *inst=(ata_instance*)instance;
@@ -243,6 +248,17 @@ public:
         return bytes;
         */
     }
+
+    virtual bool canSeek()
+    {
+        return true;
+    }
+
+    // This is called whenever a seek happens
+    virtual void seekCallback(uint32_t newOffset)
+    {
+        currOffset = newOffset;
+    };
 
     static Maybe<IFOps*> getNewInstance()
     {

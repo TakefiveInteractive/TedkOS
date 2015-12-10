@@ -130,7 +130,7 @@ public:
         f = other.f->clone(pool);
     }
 
-    void operator()(Args... args)
+    void operator()(Args... args) const
     {
         if (f)
            (*f)(args...);
