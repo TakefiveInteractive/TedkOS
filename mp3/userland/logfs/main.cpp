@@ -80,7 +80,9 @@ extern "C" int main ()
 
     printf("\n------\nInput Something!\n");
 
-    scanf("%s", &buf[logfsMagicLen]);
+    size_t nbytes = ece391_read(0, &buf[logfsMagicLen], 80);
+    buf[logfsMagicLen + nbytes] = 0;
+    
 
     fd = ece391_open(fsPath);
 
