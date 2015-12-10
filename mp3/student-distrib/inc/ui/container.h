@@ -37,6 +37,21 @@ class Container {
         {
         }
 
+        void updateLocation(int32_t newX, int32_t newY)
+        {
+            const int32_t oldX = x;
+            const int32_t oldY = y;
+
+            x = newX;
+            y = newY;
+
+            // erase old drawable
+            const Rectangle & oldRectangle = Rectangle { .x1 = oldX, .y1 = oldY, .x2 = oldX + width, .y2 = oldY + height };
+            Compositor::getInstance()->redraw(oldRectangle);
+            // draw ourself on new location
+            Compositor::getInstance()->drawSingle(this, getBoundingRectangle(), oldRectangle);
+        }
+
         virtual bool isDrawable() const { return false; }
 
         bool isPixelInRange(int32_t tx, int32_t ty) const

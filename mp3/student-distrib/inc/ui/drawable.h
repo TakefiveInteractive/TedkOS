@@ -21,20 +21,6 @@ class Drawable : public Container {
         // RGBA layout
         uint8_t *pixelBuffer;
 
-        void updateLocation(int32_t newX, int32_t newY)
-        {
-            const int32_t oldX = x;
-            const int32_t oldY = y;
-
-            x = newX;
-            y = newY;
-
-            // erase old drawable
-            Compositor::getInstance()->redraw(Rectangle { .x1 = oldX, .y1 = oldY, .x2 = oldX + width, .y2 = oldY + height });
-
-            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
-        }
-
         uint8_t getRed(int32_t tx, int32_t ty) const
         {
             return pixelBuffer[(ty * width + tx) * 4 + 0];

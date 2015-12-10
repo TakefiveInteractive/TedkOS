@@ -125,22 +125,28 @@ public:
 
 void Compositor::redraw(const Rectangle &_rect)
 {
-    drawSingleContainer(rootContainer, _rect);
+    if (rootContainer != nullptr)
+        drawSingle(rootContainer, _rect);
 }
 
 void Compositor::drawSingle(const Container *d, const Rectangle &_rect)
 {
+    drawSingle(d, _rect, EmptyRectangle);
+}
+
+void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Rectangle &_diff)
+{
     if (d->isDrawable())
     {
-        drawSingleDrawable(reinterpret_cast<const Drawable *>(d), _rect);
+        drawSingleDrawable(reinterpret_cast<const Drawable *>(d), _rect, _diff);
     }
     else
     {
-        drawSingleContainer(d, _rect);
+        drawSingleContainer(d, _rect, _diff);
     }
 }
 
-void Compositor::drawSingleContainer(const Container *d, const Rectangle &_rect)
+void Compositor::drawSingleContainer(const Container *d, const Rectangle &_rect, const Rectangle &_diff)
 {
     const Rectangle &rect = _rect.bound();
     TreeIterator itr(d);
@@ -148,6 +154,8 @@ void Compositor::drawSingleContainer(const Container *d, const Rectangle &_rect)
     {
         for (int32_t x = rect.x1; x < rect.x2; x++)
         {
+            if (_diff.hasPoint(x, y)) continue;
+
             // Fill it with black ink
             float r = 0.0F;
             float g = 0.0F;
@@ -182,7 +190,7 @@ void Compositor::drawSingleContainer(const Container *d, const Rectangle &_rect)
         drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
-void Compositor::drawSingleDrawable(const Drawable *d, const Rectangle &_rect)
+void Compositor::drawSingleDrawable(const Drawable *d, const Rectangle &_rect, const Rectangle &_diff)
 {
     if (d->isVisible() == false) return;
 
@@ -191,6 +199,8 @@ void Compositor::drawSingleDrawable(const Drawable *d, const Rectangle &_rect)
     {
         for (int32_t x = rect.x1; x < rect.x2; x++)
         {
+            if (_diff.hasPoint(x, y)) continue;
+
             uint8_t r, g, b;
             r = buildBuffer[y][x][0];
             g = buildBuffer[y][x][1];
