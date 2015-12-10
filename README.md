@@ -1,6 +1,6 @@
 # ECE 391 - TedkOS
 
-## We released the code for study purposes only. No copying! (should you even pondering attempting that feat)
+## We released the code for study purposes only. No copying! (should you even contemplate attempting that feat)
 
 OS X and Linux users, run
 ```
