@@ -207,8 +207,6 @@ public:
         // Cannot read more than 1MB at one time, that's too much memory.
         if(bytes > 1024 * 1024) return -EFOPS;
         
-        // TEST mode: the unit of fseek is LBA
-        // TODO: FIXME: no seek. currently we always start from sector 0
         auto retval = dma_begin_read_sector(WhichDev, currOffset / ATA_SECTOR_SIZE, buf, bytes, [this, bytes] () {
             currOffset += bytes;
         });
@@ -218,11 +216,9 @@ public:
 
     virtual int32_t write(FsSpecificData *fdData, const uint8_t *buf, int32_t bytes)
     {
-        // Cannot read more than 1MB at one time, that's too much memory.
+        // Cannot write more than 1MB at one time, that's too much memory.
         if(bytes > 1024 * 1024) return -EFOPS;
         
-        // TEST mode: the unit of fseek is LBA
-        // TODO: FIXME: no seek. currently we always start from sector 0
         auto retval = dma_begin_write_sector(WhichDev, currOffset / ATA_SECTOR_SIZE, buf, bytes, [this, bytes] () {
             currOffset += bytes;
         });
