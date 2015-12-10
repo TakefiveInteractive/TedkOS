@@ -28,6 +28,21 @@ extern int32_t ece391_sigreturn (void);
 extern int32_t ece391_dotask (int32_t tid);
 extern int32_t ece391_fork (void);
 
+// GUI functions
+extern void * TedCreateWindow(int32_t width, int32_t height);
+extern int32_t TedSetText(void *elem, char *text);
+extern int32_t TedGetText(void *elem, char *buffer);
+extern int32_t TedElemShow(void *elem);
+extern int32_t TedElemHide(void *elem);
+
+extern void * TedCreateButton(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y);
+
+extern int32_t TedGetMessage(void *message);
+extern int32_t TedAttachMessageHandler(void *elem, void *fn);
+
+extern void * TedCreateImage(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y);
+extern int32_t TedSetImageData(void *elem, void *data);
+
 #ifdef __cplusplus
 }
 #endif

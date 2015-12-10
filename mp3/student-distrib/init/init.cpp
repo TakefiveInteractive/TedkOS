@@ -10,10 +10,12 @@
 #include <inc/drivers/sb16.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "draw_nikita.h"
+#include <inc/ui/compositor.h>
 
 using scheduler::makeKThread;
 using scheduler::attachThread;
+
+using ui::Compositor;
 
 volatile bool pcbLoadable = false;
 volatile bool isFallbackTerm = true;
@@ -64,7 +66,7 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
         {
             auto thread = makeKThread(launcher, (void*) (&helpers[i]));
             thread->getProcessDesc()->currTerm = &(KeyB::clients.textTerms[i]);
-            thread->getProcessDesc()->currTerm->setOwner(true, -1);
+            thread->getProcessDesc()->currTerm->setOwner(true, thread->getProcessDesc()->getPid());
             thread->getProcessDesc()->currTerm->cls();
             attachThread(thread, Running);
         }
@@ -97,7 +99,7 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
         AutoSpinLock l(helper->multitaskLock);
         kbClientId = helper->kbClientId;
         isTextTerm = helper->isTextTerm;
-        *(helper->numLoadedClients)++;
+        *(helper->numLoadedClients) += 1;
         if(*(helper->numLoadedClients) == KeyB::KbClients::numClients)
             delete[] ((helper->recyclable));
     }
@@ -111,12 +113,15 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 
         for (;;)
         {
-            ece391_execute((const uint8_t *)"shell");
+            ece391_execute((const uint8_t *) "shell");
         }
     }
     else
     {
-        KeyB::clients.updateClient(kbClientId, draw_nikita());
+        KeyB::clients.updateClient(kbClientId, Compositor::getInstance());
+        Compositor *comp = Compositor::getInstance();
+        comp->drawNikita();
         asm volatile("1: hlt; jmp 1b;");
     }
 }
+
