@@ -257,6 +257,7 @@ Container* createWindow(int32_t width, int32_t height)
     auto wind = new Window(width, height, 150, 150);
     Compositor::getInstance()->rootContainer->addChild(wind);
     getCurrentThreadInfo()->getProcessDesc()->setMainWindow(wind);
+    wind->show();
     return wind;
 }
 
