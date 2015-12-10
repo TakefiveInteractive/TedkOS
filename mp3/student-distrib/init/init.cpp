@@ -11,8 +11,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <inc/ui/compositor.h>
+#include <inc/drivers/pci.h>
 
 using scheduler::makeKThread;
+using namespace pci;
 using scheduler::attachThread;
 
 using ui::Compositor;
@@ -91,9 +93,9 @@ constexpr char TTY[] = "On TTY";
 __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 {
     // I am the guard process to ensure terminals have shells running in them!
+
     size_t kbClientId;
     bool isTextTerm;
-
     {
         initHelper* helper = (initHelper*) arg;
         AutoSpinLock l(helper->multitaskLock);
@@ -106,6 +108,26 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 
     if (isTextTerm)
     {
+
+        //try read ata
+        if(kbClientId == 0)
+        {
+            /*char *buf = new char[1024];
+            auto fd = ece391_open((uint8_t*)"/dev/ata00");
+            ece391_read(fd, buf, 1024);
+            ece391_read(fd, buf, 1024);
+            for(size_t i=0; i<1024; i++)
+                printf("%x ", (uint8_t)buf[i]);
+            ece391_close(fd);
+
+            memset(buf, 0xee, 1024);
+
+            fd = ece391_open((uint8_t*)"/dev/ata00");
+            ece391_write(fd, buf, 1024);
+            ece391_close(fd);
+            printf("\n");*/
+        }
+
         ece391_write(1, TTY, sizeof(TTY));
         char number = '0' + kbClientId;
         ece391_write(1, &number, 1);

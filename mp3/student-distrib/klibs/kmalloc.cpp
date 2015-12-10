@@ -208,8 +208,11 @@ bool paraFree(void *addr)
     return success;
 }
 
+spinlock_t kmalloc_lock = SPINLOCK_UNLOCKED;
+
 Maybe<void *> allocImpl(size_t size)
 {
+    AutoSpinLock l(&kmalloc_lock);
     if (size <= 16)
     {
         return paraAllocate<16>();
@@ -238,6 +241,7 @@ Maybe<void *> allocImpl(size_t size)
 
 void freeImpl(void *addr)
 {
+    AutoSpinLock l(&kmalloc_lock);
     if (!paraFree<16>(addr)
     && !paraFree<256>(addr)
     && !paraFree<8_KB>(addr)
