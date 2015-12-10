@@ -28,6 +28,8 @@ DEFINE_DRIVER_INIT(scanpci)
         {
             printf("\t DISK!");
             PATAControllers->push_back(UnitDev(bus, device, func));
+            Register intConfig(bus, device, func, 0x3C);
+            //intConfig.set((intConfig.get() & 0xFFFFFF00) | 14);
         }
         else printf("\tclass = 0x%x", classInfo >> 24);
 

@@ -24,7 +24,7 @@ const int DMA_READ = 8;
 const int bus0_io_base=0x1F0;
 const int bus1_io_base=0x170;
 
-function<void ()> dma_finish_read[2];
+function<void ()>* dma_finish_read[2];
 bool dma_waiting_read[2] = {false, false};
 
 struct prd{
@@ -40,6 +40,8 @@ spinlock_t dma_lock, dma_init_lock;
 uint32_t bmr;
 
 int dma_int_handler(int irq, unsigned int saved_reg){
+    dbgpf("ATA DMA: interrupt!\n");
+
     uint8_t bus0status=inb(bmr+0x02);
     uint8_t bus1status=inb(bmr+0x0A);
     if(bus0status & 0x04){
@@ -48,7 +50,7 @@ int dma_int_handler(int irq, unsigned int saved_reg){
         osdev_outb(bmr+0x02, 0x04);
 
         if(dma_waiting_read[0])
-            dma_finish_read[0]();
+            (*dma_finish_read[0])();
     }
     if(bus1status & 0x04){
         dbgpf("ATA DMA: Bus 1 interrupt!\n");
@@ -56,7 +58,7 @@ int dma_int_handler(int irq, unsigned int saved_reg){
         osdev_outb(bmr+0x0A, 0x04);
 
         if(dma_waiting_read[1])
-            dma_finish_read[1]();
+            (*dma_finish_read[1])();
     }
     return 0;
 }
@@ -90,7 +92,7 @@ bool init_dma(){
             return false;
         UnitDev dev=(*PATAControllers)[0];
         bmr=Register(dev, 0x20).get();
-        bmr&=~1;
+        bmr&= (~1);
 
         // RegisterId should be 0x04 according to OSDev
         uint32_t cmdAndStatus = Register(dev, 0x04).get();
@@ -182,7 +184,7 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
     thread_kinfo* thisThread = getCurrentThreadInfo();
 
     dma_waiting_read[busId] = true;
-    dma_finish_read[busId] = [=]()
+    dma_finish_read[busId] = new function<void ()> ([=]()
     {
         osdev_outb(bmr + base, 0);
         uint32_t retval;
@@ -205,7 +207,7 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
         scheduler::unblock(thisThread);
         dma_waiting_read[busId] = false;
         delete[] dma_buffer;
-    };
+    });
 
     scheduler::block(thisThread);
     return -EFOPS;  // This return value is not received by any thread.

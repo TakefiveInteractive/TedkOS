@@ -43,7 +43,7 @@ void i8259_init(void)
     io_wait();
      */
 
-    master_mask = slave_mask = 0xFF;
+    master_mask = slave_mask = 0;
 
     outb(ICW1, MASTER_8259_PORT);
     io_wait();
