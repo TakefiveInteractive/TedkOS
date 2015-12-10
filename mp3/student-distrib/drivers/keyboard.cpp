@@ -28,8 +28,6 @@ namespace KeyB
 using KeyB::clients;
 using KeyB::keyboard_lock;
 
-static size_t currClient = 0;
-
 static bool caps_locked = false;
 
 // This field is used to tell whether COMBINATION key is pressed
@@ -191,12 +189,12 @@ int kb_handler(int irq, unsigned int saved_reg)
     pending_special = 0;
     if ((keyboard_scancode & RELEASE_OFFSET) == 0 ) {                     // pressed
         uint32_t kernel_keycode = KBascii[keyboard_scancode];
-        handle(kernel_keycode|KKC_PRESS);
+        handle(kernel_keycode | KKC_PRESS);
     }
 
     if (keyboard_scancode & RELEASE_OFFSET) {                             // released
         uint32_t kernel_keycode = KBascii[keyboard_scancode & (~RELEASE_OFFSET)];
-        handle(kernel_keycode|KKC_RELEASE);
+        handle(kernel_keycode | KKC_RELEASE);
     }
 
     return 0;
@@ -241,7 +239,7 @@ void handle(uint32_t kernelKeycode)
 
         pending_kc &= change;
 
-        clients[currClient]->keyUp(kernelKeycode, caps_locked);
+        clients[clients.currClient]->keyUp(kernelKeycode, caps_locked);
     }
     else
     {
@@ -252,9 +250,9 @@ void handle(uint32_t kernelKeycode)
             pending_kc = pending_kc | combine_part;
         else if (ascii_part || special_part)             // avoid 0x0
         {
-            clients[currClient]->keyDown(pending_kc | special_part | ascii_part, caps_locked);
+            clients[clients.currClient]->keyDown(pending_kc | special_part | ascii_part, caps_locked);
             if (!handleShortcut(pending_kc | special_part | ascii_part))
-                clients[currClient]->key(pending_kc | special_part | ascii_part, caps_locked);
+                clients[clients.currClient]->key(pending_kc | special_part | ascii_part, caps_locked);
         }
     }
 }
@@ -298,9 +296,7 @@ bool handleShortcut(uint32_t kernelKeycode)
 
 void switchTo(size_t clientId)
 {
-    (clients[currClient])->hide();
-    currClient = clientId;
-    (clients[clientId])->show();
+    clients.showClient(clientId);
 }
 
 // -------- PUBLIC C functions used by printf --------
@@ -344,14 +340,27 @@ namespace KeyB
 {
     KbClients::KbClients()
     {
-        for(size_t i=0; i<numClients; i++)
+        for(size_t i = 0; i < numClients; i++)
             clients[i] = &textTerms[i];
     }
-    KbClients::~KbClients() {}
+
+    KbClients::~KbClients()
+    {
+    }
+
     IEvent* KbClients::operator [] (size_t i)
     {
         return clients[i];
     }
+
+    void KbClients::showClient(size_t id)
+    {
+        if (id == currClient) return;
+        clients[currClient]->hide();
+        clients[id]->show();
+        currClient = id;
+    }
+
     bool KbClients::updateClient(size_t clientId, IEvent* listener)
     {
         AutoSpinLock l(&keyboard_lock);

@@ -78,7 +78,6 @@ Compositor::Compositor()
         drawHelper = +getMemHelp(mode);
 
         memset(buildBuffer, 0, RGBASize<ScreenWidth, ScreenHeight>);
-        drawHelper.cls(videoMemory, 0);
     });
 }
 
@@ -194,6 +193,7 @@ void Compositor::enterVideoMode()
         real_context.bx = 0x8000 | videoModeIndex;
         legacyInt(0x10, real_context);
         displayMode = Video;
+        drawHelper.cls(videoMemory, 0);
         // Trigger whole screen update
         redraw(Rectangle { .x1 = 0, .y1 = 0, .x2 = ScreenWidth, .y2 = ScreenHeight });
     });
