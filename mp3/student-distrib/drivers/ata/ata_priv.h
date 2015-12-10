@@ -15,6 +15,10 @@
 
 #define dbgpf printf
 #define dbgout printf
+#define osdev_outb(port, data) outb((data), (port))
+#define osdev_outl(port, data) outl((data), (port))
+#define osdev_outw(port, data) outw((data), (port))
+
 inline void panic(const char* str) {
     printf(str);
     asm volatile("1: hlt; jmp 1b;");

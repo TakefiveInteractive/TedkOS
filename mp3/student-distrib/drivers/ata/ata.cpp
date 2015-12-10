@@ -59,21 +59,21 @@ int ata_wait(struct ata_device * dev, int advanced) {
 }
 
 static void ata_soft_reset(struct ata_device * dev) {
-    outb(dev->control, 0x04);
-    outb(dev->control, 0x00);
+    osdev_outb(dev->control, 0x04);
+    osdev_outb(dev->control, 0x00);
 }
 
 static void ata_device_init(struct ata_device * dev) {
 
     dbgpf("ATA: Initializing IDE device on bus %d\n", dev->io_base);
 
-    outb(dev->io_base + 1, 1);
-    outb(dev->control, 0);
+    osdev_outb(dev->io_base + 1, 1);
+    osdev_outb(dev->control, 0);
 
-    outb(dev->io_base + ATA_REG_HDDEVSEL, 0xA0 | dev->slave << 4);
+    osdev_outb(dev->io_base + ATA_REG_HDDEVSEL, 0xA0 | dev->slave << 4);
     ata_io_wait(dev);
 
-    outb(dev->io_base + ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
+    osdev_outb(dev->io_base + ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
     ata_io_wait(dev);
 
     int status = inb(dev->io_base + ATA_REG_COMMAND);
@@ -98,12 +98,12 @@ static void ata_device_init(struct ata_device * dev) {
     dbgpf("ATA: Sectors (48): %d\n", (uint32_t)dev->identity.sectors_48);
     dbgpf("ATA: Sectors (24): %d\n", dev->identity.sectors_28);
 
-    outb(dev->io_base + ATA_REG_CONTROL, 0);
+    osdev_outb(dev->io_base + ATA_REG_CONTROL, 0);
 }
 
 static int ata_device_detect(struct ata_device * dev) {
     ata_soft_reset(dev);
-    outb(dev->io_base + ATA_REG_HDDEVSEL, 0xA0 | dev->slave << 4);
+    osdev_outb(dev->io_base + ATA_REG_HDDEVSEL, 0xA0 | dev->slave << 4);
     ata_io_wait(dev);
 
     unsigned char cl = inb(dev->io_base + ATA_REG_LBA1); /* CYL_LO */
@@ -145,21 +145,21 @@ void ata_device_write_sector(struct ata_device * dev, uint32_t lba, uint8_t * bu
     uint16_t bus = dev->io_base;
     uint8_t slave = dev->slave;
 
-    outb(bus + ATA_REG_CONTROL, 0);
+    osdev_outb(bus + ATA_REG_CONTROL, 0);
 
     ata_wait(dev, 0);
-    outb(bus + ATA_REG_HDDEVSEL, 0xe0 | slave << 4 | (lba & 0x0f000000) >> 24);
+    osdev_outb(bus + ATA_REG_HDDEVSEL, 0xe0 | slave << 4 | (lba & 0x0f000000) >> 24);
     ata_wait(dev, 0);
 
-    outb(bus + ATA_REG_SECCOUNT0, 0x01);
-    outb(bus + ATA_REG_LBA0, (lba & 0x000000ff) >>  0);
-    outb(bus + ATA_REG_LBA1, (lba & 0x0000ff00) >>  8);
-    outb(bus + ATA_REG_LBA2, (lba & 0x00ff0000) >> 16);
-    outb(bus + ATA_REG_COMMAND, ATA_CMD_WRITE_PIO);
+    osdev_outb(bus + ATA_REG_SECCOUNT0, 0x01);
+    osdev_outb(bus + ATA_REG_LBA0, (lba & 0x000000ff) >>  0);
+    osdev_outb(bus + ATA_REG_LBA1, (lba & 0x0000ff00) >>  8);
+    osdev_outb(bus + ATA_REG_LBA2, (lba & 0x00ff0000) >> 16);
+    osdev_outb(bus + ATA_REG_COMMAND, ATA_CMD_WRITE_PIO);
     ata_wait(dev, 0);
     int size = ATA_SECTOR_SIZE / 2;
-    outsm(bus,buf,size);
-    outb(bus + 0x07, ATA_CMD_CACHE_FLUSH);
+    osdev_outsm(bus,buf,size);
+    osdev_outb(bus + 0x07, ATA_CMD_CACHE_FLUSH);
     ata_wait(dev, 0);
     spin_unlock(&ata_lock);
 }

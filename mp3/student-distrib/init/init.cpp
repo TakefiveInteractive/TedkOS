@@ -35,7 +35,14 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
             termNumbers->push_back(i);
     }
 
+    char *buf = new char[1024];
+    auto fd = ece391_open((uint8_t*)"/dev/ata00");
+    ece391_read(fd, buf, 1024);
+    ece391_write(1, buf, 1024);
     printf("=> I am the idle process!\n   I am a kernel process!\n   I am every other process's parent!\n");
+    
+    // DEBUG
+    asm volatile("1: hlt; jmp 1b;");
 
     bool isChild = false;
     for (register size_t i = 1; i < KeyB::KbClients::numTextTerms; i++)
