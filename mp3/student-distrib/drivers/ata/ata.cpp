@@ -42,6 +42,8 @@ int ata_wait(struct ata_device * dev, int advanced) {
     if (advanced) {
         status = inb(dev->io_base + ATA_REG_STATUS);
         if (status   & ATA_SR_ERR) {
+            // clear the error
+            osdev_outb(dev->io_base + ATA_REG_STATUS, 2);
             dbgpf("ATA: ATA_SR_ERR\n");
             return 1;
         }
@@ -58,7 +60,7 @@ int ata_wait(struct ata_device * dev, int advanced) {
     return 0;
 }
 
-static void ata_soft_reset(struct ata_device * dev) {
+void ata_soft_reset(struct ata_device * dev) {
     osdev_outb(dev->control, 0x04);
     osdev_outb(dev->control, 0x00);
 }
@@ -207,8 +209,6 @@ public:
         // Cannot read more than 1MB at one time, that's too much memory.
         if(bytes > 1024 * 1024) return -EFOPS;
         
-        // TEST mode: the unit of fseek is LBA
-        // TODO: FIXME: no seek. currently we always start from sector 0
         auto retval = dma_begin_read_sector(WhichDev, currOffset / ATA_SECTOR_SIZE, buf, bytes, [this, bytes] () {
             currOffset += bytes;
         });
@@ -218,11 +218,9 @@ public:
 
     virtual int32_t write(FsSpecificData *fdData, const uint8_t *buf, int32_t bytes)
     {
-        // Cannot read more than 1MB at one time, that's too much memory.
+        // Cannot write more than 1MB at one time, that's too much memory.
         if(bytes > 1024 * 1024) return -EFOPS;
         
-        // TEST mode: the unit of fseek is LBA
-        // TODO: FIXME: no seek. currently we always start from sector 0
         auto retval = dma_begin_write_sector(WhichDev, currOffset / ATA_SECTOR_SIZE, buf, bytes, [this, bytes] () {
             currOffset += bytes;
         });
@@ -272,18 +270,18 @@ DEFINE_DRIVER_INIT(pata) {
     // init_queue();
 
     /* Detect drives and mount them */
-    ata_device_detect(&ata_primary_master);
-    ata_device_detect(&ata_primary_slave);
-    ata_device_detect(&ata_secondary_master);
-    ata_device_detect(&ata_secondary_slave);
+    if(ata_device_detect(&ata_primary_master))
+        register_devfs("ata00", []() { return FOps<&ata_primary_master>::getNewInstance(); });
+    if(ata_device_detect(&ata_primary_slave))
+        register_devfs("ata01", []() { return FOps<&ata_primary_slave>::getNewInstance(); });
+    if(ata_device_detect(&ata_secondary_master))
+        register_devfs("ata10", []() { return FOps<&ata_secondary_master>::getNewInstance(); });
+    if(ata_device_detect(&ata_secondary_slave))
+        register_devfs("ata11", []() { return FOps<&ata_secondary_slave>::getNewInstance(); });
 
     preinit_dma();
     init_dma();
 
-    register_devfs("ata00", []() { return FOps<&ata_primary_master>::getNewInstance(); });
-    register_devfs("ata01", []() { return FOps<&ata_primary_slave>::getNewInstance(); });
-    register_devfs("ata10", []() { return FOps<&ata_secondary_master>::getNewInstance(); });
-    register_devfs("ata11", []() { return FOps<&ata_secondary_slave>::getNewInstance(); });
 }
 
 DEFINE_DRIVER_REMOVE(pata) {
