@@ -128,7 +128,7 @@ _entry (unsigned long magic, unsigned long addr)
     /* Initialize file system */
     filesystem::Dispatcher::init();
 
-    /* Initialize devices, memory, filesystem, enable device interrupts on the
+    /* Initialize devices, memory, file system, enable device interrupts on the
      * PIC, any other initialization stuff... */
 
     for(size_t i = 0; i < num_known_drivers; i++)

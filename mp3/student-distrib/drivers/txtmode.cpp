@@ -267,5 +267,10 @@ namespace Term
         RELOAD_CR3();
         return;
     }
+
+    void TextModePainter::init()
+    {
+        currShowing = NULL;
+    }
 }
 

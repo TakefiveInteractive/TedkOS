@@ -68,6 +68,7 @@ public:
     virtual int32_t fstat(FsSpecificData *data, stat *st) = 0;
     virtual bool canSeek(FsSpecificData *fdData) = 0;
     virtual Maybe<uint32_t> getFileSize(FsSpecificData *fdData) = 0;
+    virtual void seekCallback(FsSpecificData *fdData, uint32_t newOffset) { }
 };
 
 class Dispatcher {

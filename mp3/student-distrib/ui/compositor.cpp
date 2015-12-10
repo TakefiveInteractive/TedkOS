@@ -3,6 +3,7 @@
 #include <inc/ui/desktop.h>
 #include <inc/ui/mouse.h>
 #include <inc/ui/window.h>
+#include <inc/ui/testFont.h>
 #include <inc/ui/vbe.h>
 #include <inc/x86/err_handler.h>
 #include <inc/x86/idt_init.h>
@@ -159,6 +160,7 @@ void Compositor::drawNikita()
 {
     addDrawable(new Desktop());
     addDrawable(new Mouse());
+    addDrawable(new TestFont());
 }
 
 void Compositor::enterVideoMode()

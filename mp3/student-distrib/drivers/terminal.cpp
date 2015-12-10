@@ -7,6 +7,10 @@
 #include <inc/klibs/spinlock.h>
 #include <inc/proc/tasks.h>
 #include <inc/proc/sched.h>
+#include <inc/ui/compositor.h>
+#include <inc/init.h>
+
+using ui::Compositor;
 
 //********** DEFINE HANDLERS for special keycodes **********
 extern char ascii_shift_table[128];
@@ -361,6 +365,10 @@ namespace Term
         getTermPainter()->setCursor(next_char_x, next_char_y);
     }
 
+    void Term::show()
+    {
+    }
+
     // +++++++++ TextTerm ++++++++++
 
     // Private function: no need to lock.
@@ -370,10 +378,13 @@ namespace Term
     }
 
     // PUBLIC function: Lock the spinlock !
-    // this will switch text mode window to this term
-    // this function does not help switch from GUI to text mode
     void TextTerm::show()
     {
+        if(!isFallbackTerm)
+        {
+            Compositor *comp = Compositor::getInstance();
+            comp->enterTextMode();
+        }
         AutoSpinLock l(&term_lock);
         painter.show();
     }

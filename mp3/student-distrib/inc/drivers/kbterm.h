@@ -26,6 +26,7 @@ struct _thread_pcb;
 namespace KeyB
 {
     // By default, all functions do nothing.
+    // TODO: FIXME: add "virtual void show() = 0"
     class IEvent
     {
     public:
@@ -34,6 +35,8 @@ namespace KeyB
         // Down and Up cuts changes to ONE single key at a time.
         virtual void keyDown(uint32_t kkc, bool capslock) = 0;
         virtual void keyUp(uint32_t kkc, bool capslock) = 0;
+
+        virtual void show() = 0;
     };
     class FOps : public IFOps
     {
@@ -142,6 +145,7 @@ namespace Term
         void clearScreenNolock();
         void tryMapVidmapNolock(const struct _thread_pcb* pcbToLoadMemmap);
     public:
+        static void init();
         TextModePainter();
         virtual void show();
 
@@ -220,6 +224,7 @@ namespace Term
         virtual void key(uint32_t kkc, bool capslock) final;
         virtual void keyDown(uint32_t kkc, bool capslock) final;
         virtual void keyUp(uint32_t kkc, bool capslock) final;
+        virtual void show();
 
         // These are used by printf in klibs
         // calling these operations WILL clear the buffer.
@@ -256,7 +261,7 @@ namespace KeyB
     class KbClients
     {
     public:
-        static constexpr size_t numClients = 6;
+        static constexpr size_t numClients = 7;
         static constexpr size_t numTextTerms = 6;
     private:
         // In order to support GUI later, here we do NOT directly use TermImpl as type of clients
@@ -266,6 +271,9 @@ namespace KeyB
 
         KbClients();
         virtual ~KbClients();
+
+        // It's impossible to update the listener of a text terminal, though.
+        bool updateClient(size_t clientId, IEvent* listener);
 
         IEvent* operator [] (size_t i);
     };

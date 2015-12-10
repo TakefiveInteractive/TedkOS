@@ -19,6 +19,8 @@ constexpr int32_t ScreenHeight = 768;
 template<int32_t width, int32_t height>
 constexpr size_t RGBASize = width * height * 4;
 
+constexpr size_t CalcRGBASize(int32_t width, int32_t height) { return width * height * 4; }
+
 enum DisplayMode {
     Video,
     Text

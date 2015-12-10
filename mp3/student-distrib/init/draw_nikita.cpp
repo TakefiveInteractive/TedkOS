@@ -8,24 +8,34 @@
 
 using ui::Compositor;
 
-
-void draw_nikita()
+class SimpleIEvent : public KeyB::IEvent
 {
-    // Must use actual syscall if it's SUPPOSED to block!
-    int32_t keyb = 0;
+public:
+    virtual void key(uint32_t kkc, bool capslock)
+    {
+    }
 
-    char buf[32];
+    // Down and Up cuts changes to ONE single key at a time.
+    virtual void keyDown(uint32_t kkc, bool capslock)
+    {
+    }
 
-    // Wait for user
-    ece391_read(keyb, buf, 1);
+    virtual void keyUp(uint32_t kkc, bool capslock)
+    {
+    }
 
-    Compositor *comp = Compositor::getInstance();
-    comp->enterVideoMode();
-    comp->drawNikita();
+    virtual void show()
+    {
+        Compositor *comp = Compositor::getInstance();
+        comp->enterVideoMode();
 
-    // Wait for user
-    ece391_read(keyb, buf, 1);
-    comp->enterTextMode();
+        // TODO: FIXME: do not draw everytime (directly copy from build buffer)
+        comp->drawNikita();
+    }
+};
 
-    printf("Back to KERNEL!\n");
+
+KeyB::IEvent* draw_nikita()
+{
+    return new SimpleIEvent();
 }
