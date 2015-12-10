@@ -5,7 +5,7 @@
 struct __attribute__ ((__packed__)) idt_stack_t {
     uint32_t EIP;
     uint16_t CS;
-    uint32_t : 0;
+    uint16_t _padding_;
     uint32_t EFLAGS;
 };
 
@@ -14,7 +14,7 @@ extern const unsigned long int ErrorCodeInExceptionBitField;
 /*
  * This function is invoked by the common interrupt function when an 'error' occurs.
  */
-extern "C" void exception_handler_with_number(size_t index, unsigned long int code, idt_stack_t *info);
+extern "C" void exception_handler_with_number(size_t vec, unsigned long int code, void *espAtEIP);
 
 template <uint32_t idx>
 void trigger_exception()

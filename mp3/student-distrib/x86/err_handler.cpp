@@ -74,8 +74,9 @@ void print_control_registers(void)
     printf("CR0 = 0x%#x, CR2 = 0x%#x, CR3 = 0x%#x\n", cr0, cr2, cr3);
 }
 
-void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned long int code, idt_stack_t *info)
+void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned long int code, void *espAtEIP)
 {
+    idt_stack_t *info = (idt_stack_t*) ((uint32_t) espAtEIP);
     int have_error_code = ErrorCodeInExceptionBitField & (1 << vec);
 
     printf("================= WTF Exception Occurred =================\n");
@@ -89,8 +90,7 @@ void __attribute__((used)) exception_handler_with_number(size_t vec, unsigned lo
         printf("\n");
     }
     print_control_registers();
-    printf("Faulting instruction address: 0x%#x, CS: 0x%#x\n", info->EIP, info->CS);
-    printf("EFLAGS: 0x%#x\n", info->EFLAGS);
+    printf("Faulting instruction address: 0x%x, CS: 0x%x, EFLAGS: 0x%x\n", info->EIP, info->CS, info->EFLAGS);
     printf("====================== END OF TRACE ======================");
 
     // TODO: we gotta return control to program in subsequent checkpoints
