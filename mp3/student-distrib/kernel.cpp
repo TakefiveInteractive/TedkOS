@@ -113,7 +113,10 @@ _entry (unsigned long magic, unsigned long addr)
     i8259_init();
 
     /* Init the interrupts */
-    init_idt();
+    runWithoutNMI([]()
+    {
+        init_idt();
+    });
 
     /* Initialize runtime library */
     _init();

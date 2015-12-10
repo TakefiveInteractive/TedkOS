@@ -4,6 +4,8 @@
 #include <inc/drivers/rtc.h>
 #include <inc/drivers/kbterm.h>
 #include <inc/drivers/pit.h>
+#include <inc/drivers/scan_pci.h>
+#include <inc/drivers/ata.h>
 #include <inc/drivers/sb16.h>
 
 /* Include the header of your driver here. */
@@ -16,6 +18,8 @@
 }
 
 driver_t known_drivers[] = {
+    ADD_DRIVER(scanpci, "PCI driver\n"),
+    ADD_DRIVER(pata, "IDE Controller driver"),
     ADD_DRIVER(kb, "Keyboard"),
     ADD_DRIVER(rtc, "Real Time Clock driver"),
     ADD_DRIVER(mouse, "Mouse"),
