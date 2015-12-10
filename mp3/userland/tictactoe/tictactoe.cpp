@@ -8,7 +8,7 @@ tictactoe::tictactoe() {
     drawButtons();
 }
 
-auto loadImageHelper(char *ptr, char *filename) -> void {
+auto loadImageHelper(char* &ptr, char *filename) -> void {
     FILE *fp = fopen (filename, "rb");
     fseek(fp, 0L, SEEK_END);
     auto sz = ftell(fp);
