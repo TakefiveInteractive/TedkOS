@@ -28,10 +28,13 @@ enum DisplayMode {
 };
 
 struct Rectangle {
-    int32_t x1;     // top left
-    int32_t y1;
-    int32_t x2;     // bottom right
-    int32_t y2;
+    const int32_t x1;     // top left
+    const int32_t y1;
+    const int32_t x2;     // bottom right
+    const int32_t y2;
+
+    constexpr Rectangle(int32_t a, int32_t b, int32_t c, int32_t d)
+        : x1(a), y1(b), x2(c), y2(d) { }
 
     static int32_t BoundX(int32_t input) { return input < 0 ? 0 : input > ScreenWidth ? ScreenWidth : input; }
     static int32_t BoundY(int32_t input) { return input < 0 ? 0 : input > ScreenHeight ? ScreenHeight : input; }
@@ -39,7 +42,14 @@ struct Rectangle {
     const Rectangle bound() const {
         return Rectangle { .x1 = BoundX(x1), .y1 = BoundY(y1), .x2 = BoundX(x2), .y2 = BoundY(y2) };
     }
+
+    bool hasPoint(int32_t x, int32_t y) const
+    {
+        return x >= x1 && x <= x2 && y >= y1 && y <= y2;
+    }
 };
+
+constexpr Rectangle EmptyRectangle(-1000, -1000, -2000, -2000);
 
 typedef uint8_t (RGBAGroup)[4];
 typedef RGBAGroup (PixelRow)[ScreenWidth];
@@ -65,8 +75,8 @@ class Compositor {
         static Compositor *comp;
         Compositor();
 
-        void drawSingleDrawable(const Drawable *d, const Rectangle &_rect);
-        void drawSingleContainer(const Container *d, const Rectangle &_rect);
+        void drawSingleDrawable(const Drawable *d, const Rectangle &_rect, const Rectangle &_diff);
+        void drawSingleContainer(const Container *d, const Rectangle &_rect, const Rectangle &_diff);
 
     public:
         static Compositor* getInstance();
@@ -81,6 +91,7 @@ class Compositor {
 
         // draw single element
         void drawSingle(const Container *d, const Rectangle &rect);
+        void drawSingle(const Container *d, const Rectangle &rect, const Rectangle &difference);
 };
 
 }
