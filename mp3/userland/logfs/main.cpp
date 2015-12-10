@@ -66,27 +66,39 @@ extern "C" int main ()
         }
     }
 
-    uint32_t fd = fopen(fsPath, "w");
-    uint8_t buf[1024];
+    FILE* fd = fopen((char*)fsPath, "w");
+    char buf[1024];
+
+    size_t currBlockByte = 0;
+    size_t nextToWrite = 0;
 
     printf("Printing content!\n");
 
     // ignore the first 1024 bytes
-    if(fread(fd, buf, 1024) > 0) while(1)
+    if(fread(buf, 1, 1024, fd) > 0) while(1)
     {
-        if(ece391_read(fd, buf, 1024) <= 0)
+        currBlockByte += 1024;
+        if(fread(buf, 1, 1024, fd) <= 0)
             break;
         printf("%s", buf);
 
         bool shouldBreak=false;
         for(size_t i=0; i<1024; i++)
             if(buf[i]==0)
+            {
+                nextToWrite = i;
                 shouldBreak = true;
+            }
         if(shouldBreak)
             break;
     }
 
-    printf("\n------\nBye!\n");
+    printf("\n------\nPlease write something:\n");
+    scanf("%s", &buf[nextToWrite]);
+    printf("seek to %d\n", currBlockByte);
+    fseek(fd, currBlockByte, SEEK_SET);
+    fwrite(buf, 1, 1024, fd);
+    fclose(fd);
 
     return 0;
 }
