@@ -11,6 +11,8 @@
 #include <inc/klibs/stack.h>
 #include <inc/klibs/maybe.h>
 
+#include "title_bar.h"
+
 using namespace vbe;
 using namespace palloc;
 
@@ -161,7 +163,7 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
                         auto d = reinterpret_cast<const Drawable *>(c);
                         int32_t relX = x - d->getX();
                         int32_t relY = y - d->getY();
-                        const float alpha = d->getAlpha(relX, relY) / 256.0F;
+                        const float alpha = d->getAlpha(relX, relY) / 255.0F;
                         r = alphaBlending(r, d->getRed(relX, relY), alpha);
                         g = alphaBlending(g, d->getGreen(relX, relY), alpha);
                         b = alphaBlending(b, d->getBlue(relX, relY), alpha);
@@ -183,6 +185,7 @@ void Compositor::drawNikita()
     rootContainer = new Desktop();
     redraw(rootContainer->getBoundingRectangle());
     rootContainer->addChild(new Mouse());
+    rootContainer->addChild(new TitleBar(400, 50, 50));
 }
 
 void Compositor::enterVideoMode()

@@ -117,6 +117,8 @@ class Compositor : public KeyB::IEvent {
         }
 };
 
+float alphaBlending(float p1, float p2, float alpha);
+
 }
 
 #endif
