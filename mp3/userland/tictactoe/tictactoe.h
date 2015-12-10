@@ -23,6 +23,7 @@ private:
     constexpr static char ODrop = 'O';
     constexpr static char XDrop = 'X';
     constexpr static int WindowSize = 600;
+    constexpr static int SingleSize = WindowSize / 3;
 
     char board[3][3] = { {Space}, {Space}, {Space} };
     bool isOTerm = true;
@@ -35,6 +36,7 @@ private:
     auto loadImageResources() -> void;
     auto drawBoardWindow() -> void;
     auto drawButtons() -> void;
+    auto drawDrop(int row, int col) -> void;
     auto gameEndWithDraw() -> void;
     auto gameEndWithWinner() -> void;
 

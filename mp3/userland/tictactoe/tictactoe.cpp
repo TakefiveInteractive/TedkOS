@@ -37,11 +37,10 @@ auto tictactoe::loadImageResources() -> void {
 }
 
 auto tictactoe::drawButtons() -> void {
-    constexpr int SingleSize = WindowSize / 3;
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            void *dropButton = TedCreateImage(SingleSize, SingleSize, SingleSize * j, SingleSize * i);
+            void *dropButton = TedCreateButton(SingleSize, SingleSize, SingleSize * j, SingleSize * i);
             TedAttachMessageHandler(dropButton, (void *)(i * 3 + j));
             TedElemShow(dropButton);
         }
@@ -57,16 +56,42 @@ auto tictactoe::checkWin(int row, int col) -> bool {
     else return false;
 }
 
+auto tictactoe::drawDrop(int row, int col) -> void {
+    if (board[row][col] == Space) return;
+    void *drop = TedCreateImage(SingleSize, SingleSize, SingleSize * col, SingleSize * row);
+    char *buf = (isOTerm == true) ? ODropImageBuffer : XDropImageBuffer;
+    TedSetImageData(drop, (void *)buf);
+    TedElemShow(drop);
+}
+
 auto tictactoe::runGame() -> void {
     drawBoardWindow();
+    bool isDraw = false;
     for (int i = 0; i < 9; i++) {
         void *message;
         TedGetMessage(message);
-        int button_tag = (int)(message);
-        if (isOTerm)
+        int buttonTag = (int)(message);
+        int buttonRow = buttonTag / 3;
+        int buttonCol = buttonTag % 3;
+        board[buttonRow][buttonCol] = (isOTerm == true) ? ODrop : XDrop;
+        drawDrop(buttonRow, buttonCol);
+        if (checkWin(buttonRow, buttonCol)) {
+            isDraw = false;
+            break;
+        }
         isOTerm = !isOTerm;
     }
-    gameEndWithDraw();
+    if (isDraw)
+        gameEndWithDraw();
+    else gameEndWithWinner();
+}
+
+auto tictactoe::gameEndWithDraw() -> void {
+
+}
+
+auto tictactoe::gameEndWithWinner() -> void {
+
 }
 
 tictactoe::~tictactoe() {
