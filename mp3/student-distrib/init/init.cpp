@@ -116,6 +116,13 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
             ece391_read(fd, buf, 1024);
             for(size_t i=0; i<1024; i++)
                 printf("%x ", (uint8_t)buf[i]);
+            ece391_close(fd);
+
+            memset(buf, 0xee, 1024);
+
+            fd = ece391_open((uint8_t*)"/dev/ata00");
+            ece391_write(fd, buf, 1024);
+            ece391_close(fd);
             printf("\n");
         }
 

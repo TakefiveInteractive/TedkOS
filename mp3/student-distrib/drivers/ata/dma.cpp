@@ -20,6 +20,7 @@ static bool dma_init=false;
 
 const int DMA_ON = 1;
 const int DMA_READ = 8;
+const int DMA_WRITE = 0;
 
 const int bus0_io_base=0x1F0;
 const int bus1_io_base=0x170;
@@ -38,6 +39,20 @@ struct prd{
 prd bus0prd __attribute__((aligned(8))), bus1prd __attribute__((aligned(8)));
 spinlock_t dma_lock, dma_init_lock;
 uint32_t bmr;
+
+inline void startDMA(int base)
+{
+    uint8_t cmd=inb(bmr + base);
+    osdev_outb(bmr + base, cmd | DMA_ON);
+}
+
+inline void stopDMA(int base)
+{
+    uint8_t cmd=inb(bmr + base);
+    osdev_outb(bmr + base, 0);
+}
+
+
 
 int dma_int_handler(int irq, unsigned int saved_reg){
     dbgpf("ATA DMA: interrupt!\n");
@@ -154,6 +169,9 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
         panic("(ATA DMA) Unrecognised device!");
         return -EFOPS;
     }
+
+    stopDMA(base);
+
     osdev_outb(bus + ATA_REG_CONTROL, 2);
     osdev_outb(bmr + base, DMA_READ);
 
@@ -176,8 +194,7 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
     osdev_outb(bus + ATA_REG_LBA2, (lba & 0x00ff0000) >> 16);
     osdev_outb(bus + ATA_REG_COMMAND, ATA_CMD_READ_DMA);
 
-    uint8_t cmd=inb(bmr + base);
-    osdev_outb(bmr + base, cmd | DMA_ON);
+    startDMA(base);
 
     dbgpf("ATA DMA: Waiting for DMA to complete...\n");
 
@@ -200,6 +217,103 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
             cpu0_memmap.loadProcessMap(thisThread->getProcessDesc());
             memcpy(buf, dma_buffer, nbytes);
             cpu0_memmap.loadProcessMap(getCurrentThreadInfo()->getProcessDesc());
+            dbgpf("ATA DMA: DMA complete.\n");
+            retval = nbytes;
+            dadClassCallback();
+        }
+
+        getRegs(thisThread)->eax = retval;
+        scheduler::unblock(thisThread);
+        dma_waiting_read[busId] = false;
+        delete[] dma_buffer;
+    });
+
+    scheduler::block(thisThread);
+    return 0;  // This return value is not received by any thread.
+}
+
+int32_t dma_begin_write_sector(ata_device *dev, uint32_t lba, const uint8_t *buf, uint32_t nbytes, function<void ()> dadClassCallback){
+
+    if(!dma_init) return -EFOPS;
+    if(nbytes % ATA_SECTOR_SIZE)
+        return -EFOPS;
+
+    size_t bufferSize = (nbytes % 0x1000) ? ((nbytes / 0x1000) + 1) * 0x1000 : nbytes;
+    auto dma_buffer = new char [bufferSize];
+
+    dbgpf("ATA DMA: DMA **WRITE**: dev: %x, lba: %x, buf: %x\n", dev, lba, physaddr((void*)buf));
+    memcpy(dma_buffer, buf, nbytes);
+    int bus=dev->io_base;
+    int slave=dev->slave;
+
+    uint16_t base;
+    size_t busId;
+
+    AutoSpinLock hl(&dma_lock);
+    if(dev->io_base==bus0_io_base){
+        bus0prd.data=physaddr((void*)dma_buffer);
+        bus0prd.bytes=nbytes;
+        busId = 0;
+        base=0;
+        set_bus0_prdt(bmr, &bus0prd);
+        dbgout("ATA DMA: Primary.\n");
+    }else if(dev->io_base==bus1_io_base){
+        bus1prd.data=physaddr((void*)dma_buffer);
+        bus1prd.bytes=nbytes;
+        busId = 1;
+        base=0x08;
+        set_bus1_prdt(bmr, &bus1prd);
+        dbgout("ATA DMA: Secondary.\n");
+    }else{
+        panic("(ATA DMA) Unrecognised device!");
+        return -EFOPS;
+    }
+
+    stopDMA(base);
+
+    osdev_outb(bus + ATA_REG_CONTROL, 2);
+    osdev_outb(bmr + base, DMA_WRITE);
+
+    uint8_t status=inb(bmr + base + 2);
+    osdev_outb(bmr + base + 2, status | 2 | 4);
+
+    ata_wait(dev, 0);
+    osdev_outb(bus + ATA_REG_CONTROL, 0);
+
+    osdev_outb(bus + ATA_REG_HDDEVSEL, 0xe0 | slave << 4 | (lba & 0x0f000000) >> 24);
+    osdev_outb(bus + 1, 0x03);
+    osdev_outb(bus + 2, 0x21);
+    osdev_outb(bus + ATA_REG_COMMAND, 0xEF);
+    uint8_t q=inb(ATA_REG_STATUS);
+    dbgpf("ATA DMA: q=%x\n", q);
+    //osdev_outb(bus + ATA_REG_FEATURES, 0x01);
+    osdev_outb(bus + ATA_REG_SECCOUNT0, 1);
+    osdev_outb(bus + ATA_REG_LBA0, (lba & 0x000000ff) >>  0);
+    osdev_outb(bus + ATA_REG_LBA1, (lba & 0x0000ff00) >>  8);
+    osdev_outb(bus + ATA_REG_LBA2, (lba & 0x00ff0000) >> 16);
+    osdev_outb(bus + ATA_REG_COMMAND, ATA_CMD_WRITE_DMA);
+
+
+    startDMA(base);
+
+    dbgpf("ATA DMA: Waiting for DMA to complete...\n");
+
+    thread_kinfo* thisThread = getCurrentThreadInfo();
+
+    dma_waiting_read[busId] = true;
+    dma_finish_read[busId] = new function<void ()> ([=]()
+    {
+        osdev_outb(bmr + base, 0);
+        uint32_t retval;
+        ata_wait(dev, 1);
+        uint8_t atastatus=0;
+        if(inb(bmr + base+2) & 0x02) atastatus=1;
+        if(atastatus){
+            panic("(ATA DMA) DMA FAILED");
+            dbgpf("ATA DMA: DMA error!\n");
+            // TODO: FIXME: should do a SOFTWARE RESET before return.
+            retval = -EFOPS;
+        }else{
             dbgpf("ATA DMA: DMA complete.\n");
             retval = nbytes;
             dadClassCallback();

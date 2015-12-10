@@ -51,7 +51,7 @@ int ata_wait(struct ata_device * dev, int advanced) {
         }
         if (!(status & ATA_SR_DRQ)) {
             dbgpf("ATA: ATA_SR_DRQ\n");
-            return 1;
+            return 2;
         }
     }
 
@@ -214,39 +214,20 @@ public:
         });
 
         return retval;
-        /*
-        hold_lock hl(&ata_drv_lock);
-        ata_instance *inst=(ata_instance*)instance;
-        for(size_t i=0; i<bytes; i+=512){
-            if(!cache_get((size_t)inst->dev, inst->pos/512, &buf[i])) {
-                spin_unlock(&ata_drv_lock);
-                ata_queued_read(inst->dev, inst->pos / 512, (uint8_t *) &buf[i]);
-                spin_lock(&ata_drv_lock);
-                cache_add((size_t)inst->dev, inst->pos/512, &buf[i]);
-            }
-            inst->pos+=512;
-        }
-        */
-        return bytes;
     }
 
     virtual int32_t write(FsSpecificData *fdData, const uint8_t *buf, int32_t bytes)
     {
-        // Currently read-only
-        return -EFOPS;
-        /*
-        hold_lock hl(&ata_drv_lock);
-        if(bytes % 512) return 0;
-        ata_instance *inst=(ata_instance*)instance;
-        for(size_t i=0; i<bytes; i+=512){
-            cache_drop((size_t)inst->dev, inst->pos/512);
-            spin_unlock(&ata_drv_lock);
-            ata_queued_write(inst->dev, inst->pos/512, (uint8_t*)&buf[i]);
-            spin_lock(&ata_drv_lock);
-            inst->pos+=512;
-        }
-        return bytes;
-        */
+        // Cannot read more than 1MB at one time, that's too much memory.
+        if(bytes > 1024 * 1024) return -EFOPS;
+        
+        // TEST mode: the unit of fseek is LBA
+        // TODO: FIXME: no seek. currently we always start from sector 0
+        auto retval = dma_begin_write_sector(WhichDev, currOffset / ATA_SECTOR_SIZE, buf, bytes, [this, bytes] () {
+            currOffset += bytes;
+        });
+
+        return retval;
     }
 
     virtual bool canSeek()
