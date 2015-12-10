@@ -13,6 +13,7 @@ namespace ui {
 
 class Drawable;
 class Container;
+class Window;
 
 constexpr int32_t ScreenWidth = 1024;
 constexpr int32_t ScreenHeight = 768;
@@ -74,9 +75,6 @@ class Compositor {
         // Compositor singleton object
         static Compositor *comp;
         Compositor();
-
-        void drawSingleDrawable(const Drawable *d, const Rectangle &_rect, const Rectangle &_diff);
-        void drawSingleContainer(const Container *d, const Rectangle &_rect, const Rectangle &_diff);
 
     public:
         static Compositor* getInstance();
