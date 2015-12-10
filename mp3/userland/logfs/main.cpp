@@ -75,13 +75,20 @@ extern "C" int main ()
         return 2;
     printf("%s", &buf[logfsMagicLen]);
 
+    size_t appendFrom = logfsMagicLen;
+    while(buf[appendFrom] != 0) appendFrom++;
+
+    buf[appendFrom] = '\n';
+    appendFrom++;
+    buf[appendFrom] = '\0';
+
     ece391_close(fd);
     
 
     printf("\n------\nInput Something!\n");
 
-    size_t nbytes = ece391_read(0, &buf[logfsMagicLen], 80);
-    buf[logfsMagicLen + nbytes] = 0;
+    size_t nbytes = ece391_read(0, &buf[appendFrom], 80);
+    buf[appendFrom + nbytes] = 0;
     
 
     fd = ece391_open(fsPath);
