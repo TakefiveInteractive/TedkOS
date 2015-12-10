@@ -22,7 +22,7 @@ private:
     constexpr static char Space = ' ';
     constexpr static char ODrop = 'O';
     constexpr static char XDrop = 'X';
-    constexpr static int WindowSize = 600;
+    constexpr static int WindowSize = 300;
     constexpr static int SingleSize = WindowSize / 3;
 
     char board[3][3] = { {Space}, {Space}, {Space} };
