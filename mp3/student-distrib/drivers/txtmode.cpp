@@ -8,8 +8,6 @@ using palloc::virtOfPage0;
 
 namespace Term
 {
-    TextModePainter* TextModePainter::currShowing = NULL;
-
     uint8_t* TextModePainter::videoMem()
     {
         auto page0Maybe = virtOfPage0();
@@ -160,18 +158,17 @@ namespace Term
     void TextModePainter::show()
     {
         AutoSpinLock l(&lock);
+
+        if (!isFallbackTerm)
+            return;
+        if (isLoadedInVmem)
+            return;
+
         auto page0Maybe = virtOfPage0();
         if(!page0Maybe)
             return;
         uint32_t page0 = +page0Maybe;
 
-        if(!isFallbackTerm && currShowing && currShowing == this)
-            return;
-
-        if(currShowing)
-        {
-            currShowing->hide();
-        }
         asm volatile (
             "cld                                                    ;"
             "movl %0, %%ecx                                         ;"
@@ -182,7 +179,6 @@ namespace Term
               "D" ((uint8_t*)(page0 + TXT_VMEM_OFF))
             : "cc", "memory", "ecx"
         );
-        currShowing = this;
         isLoadedInVmem = true;
         helpSetCursor(cursorX, cursorY);
         tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
@@ -191,6 +187,8 @@ namespace Term
     void TextModePainter::hide()
     {
         AutoSpinLock _lock(&lock);
+
+        if (!isLoadedInVmem) return;
 
         auto page0Maybe = virtOfPage0();
         if(!page0Maybe)
@@ -208,7 +206,6 @@ namespace Term
             : "cc", "memory", "ecx"
         );
         isLoadedInVmem = false;
-        currShowing = NULL;
         AutoSpinLock l2(&cpu0_paging_lock);
         tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
     }
@@ -280,7 +277,6 @@ namespace Term
 
     void TextModePainter::init()
     {
-        currShowing = NULL;
     }
 }
 

@@ -112,8 +112,6 @@ namespace Term
 
     class TextModePainter : public TermPainter
     {
-        static TextModePainter* currShowing;
-
         // We do NOT need a lock for main Vmem, because no other functions operate on text vmem,
         //          and because using lock in each instance is sufficient.
         //static spinlock_t txtVMemLock = SPINLOCK_UNLOCKED;
@@ -121,7 +119,7 @@ namespace Term
         spinlock_t lock = SPINLOCK_UNLOCKED;
         uint8_t backupBuffer[SCREEN_WIDTH * SCREEN_HEIGHT * 2] __attribute__((aligned (4096)));
         uint32_t cursorX = 0, cursorY = 0;
-        bool isLoadedInVmem;
+        bool isLoadedInVmem = false;
         bool bIsVidmapEnabled = false;
 
         const struct _thread_pcb* vidmapOwner = NULL;
@@ -256,7 +254,8 @@ namespace KeyB
         static constexpr size_t numTextTerms = 6;
     private:
         // In order to support GUI later, here we do NOT directly use TermImpl as type of clients
-        IEvent* clients[numClients];
+        IEvent* clients[numClients] = {};
+
     public:
         Term::TextTerm textTerms[numTextTerms] = {};
 
@@ -267,6 +266,9 @@ namespace KeyB
         bool updateClient(size_t clientId, IEvent* listener);
 
         IEvent* operator [] (size_t i);
+
+        size_t currClient = 0;
+        void showClient(size_t id);
     };
 
     extern Term::TextTerm* getFirstTextTerm();

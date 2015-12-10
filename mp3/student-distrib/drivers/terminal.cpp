@@ -377,12 +377,6 @@ namespace Term
     void TextTerm::show()
     {
         AutoSpinLock l(&term_lock);
-
-        if(!isFallbackTerm)
-        {
-            Compositor *comp = Compositor::getInstance();
-            comp->enterTextMode();
-        }
         painter.show();
     }
 

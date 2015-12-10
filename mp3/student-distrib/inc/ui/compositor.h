@@ -77,11 +77,11 @@ class Compositor : public KeyB::IEvent {
         static Compositor *comp;
         Compositor();
 
-    public:
-        static Compositor* getInstance();
-
         void enterVideoMode();
         void enterTextMode();
+
+    public:
+        static Compositor* getInstance();
 
         void drawNikita();
 
@@ -108,12 +108,12 @@ class Compositor : public KeyB::IEvent {
 
         virtual void show()
         {
-            //enterVideoMode();
+            enterVideoMode();
         }
 
         virtual void hide()
         {
-            //enterTextMode();
+            enterTextMode();
         }
 };
 

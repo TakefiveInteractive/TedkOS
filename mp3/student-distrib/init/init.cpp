@@ -111,12 +111,12 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 
         for (;;)
         {
-            ece391_execute((const uint8_t *)"shell");
+            ece391_execute((const uint8_t *) "shell");
         }
     }
     else
     {
-        //KeyB::clients.updateClient(kbClientId, draw_nikita());
+        KeyB::clients.updateClient(kbClientId, draw_nikita());
         asm volatile("1: hlt; jmp 1b;");
     }
 }

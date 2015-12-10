@@ -9,3 +9,4 @@ KeyB::IEvent* draw_nikita()
     comp->drawNikita();
     return comp;
 }
+
