@@ -5,10 +5,10 @@
 name:   PUSHL	%EBX          ;\
 	PUSHL	%ESI          ;\
 	MOVL	$number,%EAX  ;\
-	MOVL	8(%ESP),%EBX  ;\
-	MOVL	12(%ESP),%ECX ;\
-	MOVL	16(%ESP),%EDX ;\
-	MOVL	20(%ESP),%ESI ;\
+	MOVL	12(%ESP),%EBX  ;\
+	MOVL	16(%ESP),%ECX ;\
+	MOVL	20(%ESP),%EDX ;\
+	MOVL	24(%ESP),%ESI ;\
 	INT		$0x80         ;\
 	POPL	%ESI          ;\
 	POPL	%EBX          ;\
