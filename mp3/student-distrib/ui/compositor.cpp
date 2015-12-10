@@ -243,7 +243,9 @@ void Compositor::enterTextMode()
 
 Container* createWindow(int32_t width, int32_t height)
 {
-
+    auto wind = new Window(width, height, 150, 150);
+    Compositor::getInstance()->rootContainer->addChild(wind);
+    return wind;
 }
 
 int32_t setText(Container *elem, char *text)
@@ -258,12 +260,12 @@ int32_t getText(Container *elem, char *buffer)
 
 int32_t showElement(Container *elem)
 {
-
+    elem->show();
 }
 
 int32_t hideElement(Container *elem)
 {
-
+    elem->hide();
 }
 
 Container* createButton(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y)
