@@ -42,7 +42,7 @@ class Container {
         }
 
         Container(int32_t _width, int32_t _height, int32_t _x, int32_t _y)
-            : width(_width), height(_height), visible(true)
+            : width(_width), height(_height), visible(false)
         {
             relX = absX = _x;
             relY = absY = _y;

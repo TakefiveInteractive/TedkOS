@@ -27,7 +27,7 @@ public:
     template<typename F>
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
-        return fptr();
+        return super_cast<int32_t>(fptr());
     }
 };
 
@@ -37,7 +37,8 @@ public:
     template<typename F>
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
-        return fptr(super_cast<typename boost::function_traits<F>::arg1_type>(p1));
+        return reinterpret_cast<int32_t>(fptr(
+                    super_cast<typename boost::function_traits<F>::arg1_type>(p1)));
     }
 };
 
@@ -47,10 +48,10 @@ public:
     template<typename F>
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
-        return fptr(
+        return reinterpret_cast<int32_t>(fptr(
                     super_cast<typename boost::function_traits<F>::arg1_type>(p1),
                     super_cast<typename boost::function_traits<F>::arg2_type>(p2)
-                 );
+                 ));
     }
 };
 
@@ -60,11 +61,11 @@ public:
     template<typename F>
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
-        return fptr(
+        return reinterpret_cast<int32_t>(fptr(
                     super_cast<typename boost::function_traits<F>::arg1_type>(p1),
                     super_cast<typename boost::function_traits<F>::arg2_type>(p2),
                     super_cast<typename boost::function_traits<F>::arg3_type>(p3)
-                 );
+                 ));
     }
 };
 
@@ -74,12 +75,12 @@ public:
     template<typename F>
     static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
-        return fptr(
+        return reinterpret_cast<int32_t>(fptr(
                     super_cast<typename boost::function_traits<F>::arg1_type>(p1),
                     super_cast<typename boost::function_traits<F>::arg2_type>(p2),
                     super_cast<typename boost::function_traits<F>::arg3_type>(p3),
                     super_cast<typename boost::function_traits<F>::arg3_type>(p4)
-                 );
+                 ));
     }
 };
 

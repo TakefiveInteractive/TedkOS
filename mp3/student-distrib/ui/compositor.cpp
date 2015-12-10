@@ -12,6 +12,7 @@
 #include <inc/klibs/maybe.h>
 
 #include "title_bar.h"
+#include <inc/ui/ui_syscall.h>
 
 using namespace vbe;
 using namespace palloc;
@@ -201,11 +202,16 @@ void Compositor::drawNikita()
 {
     rootContainer = new Desktop();
     redraw(rootContainer->getBoundingRectangle());
-    rootContainer->addChild(new Window(300, 300, 50, 50));
+    auto wind = new Window(300, 300, 50, 50);
+    rootContainer->addChild(wind);
 
     // Mouse is at the top
     theMouse = new Mouse();
     rootContainer->addChild(theMouse);
+
+    rootContainer->show();
+    theMouse->show();
+    wind->show();
 }
 
 void Compositor::enterVideoMode()
@@ -231,5 +237,58 @@ void Compositor::enterTextMode()
         displayMode = Text;
     });
 }
+
+
+// SYSCALLS
+
+Container* createWindow(int32_t width, int32_t height)
+{
+
+}
+
+int32_t setText(Container *elem, char *text)
+{
+
+}
+
+int32_t getText(Container *elem, char *buffer)
+{
+
+}
+
+int32_t showElement(Container *elem)
+{
+
+}
+
+int32_t hideElement(Container *elem)
+{
+
+}
+
+Container* createButton(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y)
+{
+
+}
+
+int32_t getMessage(void *msg)
+{
+}
+
+int32_t attacheMessageHandler(Container *elem, void *args)
+{
+
+}
+
+Container* createImage(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y)
+{
+
+}
+
+int32_t setImageData(Container *img, uint8_t *data)
+{
+
+}
+
 
 }

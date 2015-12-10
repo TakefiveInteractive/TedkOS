@@ -9,6 +9,9 @@ Window::Window(int width, int height, int x, int y) : Container(width, height, x
 
     addChild(body);
     addChild(bar);
+
+    body->show();
+    bar->show();
 }
 
 WindowBody::WindowBody(int width, int height, int x, int y)
