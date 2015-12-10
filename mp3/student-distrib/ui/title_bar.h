@@ -24,6 +24,16 @@ class TitleBar : public Drawable {
 
     public:
         TitleBar(int width, int x, int y);
+
+        virtual void updateLocation(int32_t newX, int32_t newY) override
+        {
+            // we delegate moving to parent
+            parent->updateLocation(newX, newY);
+        }
+
+        virtual bool isMovable() const { return true; }
+        virtual const char * getDescription() const override { return "Title bar"; }
+
 };
 
 }   // namespace ui

@@ -80,6 +80,8 @@ class Compositor : public KeyB::IEvent {
         void enterVideoMode();
         void enterTextMode();
 
+        Container *theMouse;
+
     public:
         static Compositor* getInstance();
 
@@ -91,6 +93,8 @@ class Compositor : public KeyB::IEvent {
         // draw single element
         void drawSingle(const Container *d, const Rectangle &rect);
         void drawSingle(const Container *d, const Rectangle &rect, const Rectangle &difference);
+
+        Container *getElementAtPosition(int absX, int absY);
 
     public:
         virtual void key(uint32_t kkc, bool capslock)

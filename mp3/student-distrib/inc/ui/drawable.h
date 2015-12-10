@@ -17,6 +17,7 @@ class Drawable : public Container {
         }
 
         virtual bool isDrawable() const override { return true; }
+        virtual const char * getDescription() const override { return "Drawable"; }
 
         // RGBA layout
         uint8_t *pixelBuffer;

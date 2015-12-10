@@ -9,7 +9,7 @@ class Desktop : public Drawable {
 
     public:
         Desktop();
-
+        virtual const char * getDescription() const override { return "Desktop"; }
 };
 
 }

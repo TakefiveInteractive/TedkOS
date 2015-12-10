@@ -24,6 +24,7 @@ class Container {
 
         bool visible;
         Deque<Container *> children;
+        Container *parent;
 
     public:
 
@@ -31,6 +32,9 @@ class Container {
         int32_t getAbsY() const { return absY; }
         int32_t getWidth() const { return width; }
         int32_t getHeight() const { return height; }
+
+        virtual bool isMovable() const { return false; }
+        virtual const char * getDescription() const { return "Container"; }
 
         const Rectangle getBoundingRectangle() const
         {
@@ -54,7 +58,7 @@ class Container {
             }
         }
 
-        void updateLocation(int32_t newX, int32_t newY)
+        virtual void updateLocation(int32_t newX, int32_t newY)
         {
             const int32_t oldX = absX;
             const int32_t oldY = absY;
@@ -111,8 +115,9 @@ class Container {
             return visible;
         }
 
-        virtual void setParent(Container *parent)
+        virtual void setParent(Container *_parent)
         {
+            parent = _parent;
             absX = parent->getAbsX() + relX;
             absY = parent->getAbsY() + relY;
         }

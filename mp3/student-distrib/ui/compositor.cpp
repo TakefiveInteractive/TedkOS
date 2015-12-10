@@ -124,6 +124,23 @@ public:
     }
 };
 
+Container * Compositor::getElementAtPosition(int absX, int absY)
+{
+    TreeIterator itr(rootContainer);
+    const Container *candidate = nullptr;
+    while (auto resMaybe = itr.iterate())
+    {
+        auto c = +resMaybe;
+        if (c == theMouse) continue;        // never select the mouse
+        if (c->isPixelInRange(absX, absY))
+        {
+            candidate = c;
+            itr.descend(c);
+        }
+    }
+    return const_cast<Container *>(candidate);
+}
+
 void Compositor::redraw(const Rectangle &_rect)
 {
     if (rootContainer != nullptr)
@@ -184,10 +201,11 @@ void Compositor::drawNikita()
 {
     rootContainer = new Desktop();
     redraw(rootContainer->getBoundingRectangle());
-    rootContainer->addChild(new Window(400, 400, 50, 50));
+    rootContainer->addChild(new Window(300, 300, 50, 50));
 
     // Mouse is at the top
-    rootContainer->addChild(new Mouse());
+    theMouse = new Mouse();
+    rootContainer->addChild(theMouse);
 }
 
 void Compositor::enterVideoMode()

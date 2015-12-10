@@ -180,17 +180,15 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                 if (deltax || deltay) mouse_moved = true;
                 else mouse_moved = false;
 
-
-
                 if (flags & LEFT_BUTTON)
                 {
                     left_botton_pressed = true;
-                    //printf("LEFT_BUTTON PRESS\n");
+                    ui::leftClickHandler();
 
                     if (mouse_moved)//mouse is moving
                     {
-                        //printf("DRAG handler\n");
                         //call DRAG handler
+                        ui::dragHandler();
                     }
 
                 }
@@ -199,7 +197,7 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     if (left_botton_pressed)//left button is already pressed before
                     {
                         left_botton_pressed = false;
-                        //printf("LEFT_BUTTON RELEASE\n");
+                        ui::leftReleaseHandler();
 
                     if (!mouse_moved) {
                         uint32_t delta_click_time;
@@ -214,14 +212,13 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                         else
                         {
                             //printf("LEFT CLICK handler\n");
-                            //call LEFT_BUTTON click handler
+                            ui::leftClickHandler();
                         }
                     }
                     }
                 }
                 if (flags & RIGHT_BUTTON) {
                     right_botton_pressed = true;
-                    //printf("RIGHT_BUTTON PRESS\n");
                     //call RIGHT_BUTTON click handler
                 }
                 else
