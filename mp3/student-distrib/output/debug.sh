@@ -42,7 +42,7 @@ case "$(uname -s)" in
             echo
             if [ "$confirm" == "y" ];
             then
-                (qemu-system-i386 -hda ./osx/grub.img -hdb ./osx/tedkos.img -soundhw all -m 256 -gdb tcp:127.0.0.1:1234 -name "TedkOS (hdb)")&
+                (qemu-system-i386 -hda ./osx/grub.img -hdb ./osx/tedkos.img  -hdc ./osx/logfs.img -soundhw all -m 256 -gdb tcp:127.0.0.1:1234 -name "TedkOS (hdb)")&
                 echo "PID of qemu = $!"
             fi
             exit 0

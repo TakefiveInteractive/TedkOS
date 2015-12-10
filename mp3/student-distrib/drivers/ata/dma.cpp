@@ -203,15 +203,17 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
     dma_waiting_read[busId] = true;
     dma_finish_read[busId] = new function<void ()> ([=]()
     {
+        dma_waiting_read[busId] = false;
         osdev_outb(bmr + base, 0);
         uint32_t retval;
-        ata_wait(dev, 1);
         uint8_t atastatus=0;
+        if(ata_wait(dev, 1) == 1) atastatus=1;
         if(inb(bmr + base+2) & 0x02) atastatus=1;
         if(atastatus){
-            panic("(ATA DMA) DMA FAILED");
-            dbgpf("ATA DMA: DMA error!\n");
+            dbgpf("(ATA DMA) DMA FAILED");
             // TODO: FIXME: should do a SOFTWARE RESET before return.
+            stopDMA(busId);
+             ata_soft_reset(dev);
             retval = -EFOPS;
         }else{
             cpu0_memmap.loadProcessMap(thisThread->getProcessDesc());
@@ -224,7 +226,6 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
 
         getRegs(thisThread)->eax = retval;
         scheduler::unblock(thisThread);
-        dma_waiting_read[busId] = false;
         delete[] dma_buffer;
     });
 
@@ -303,15 +304,17 @@ int32_t dma_begin_write_sector(ata_device *dev, uint32_t lba, const uint8_t *buf
     dma_waiting_read[busId] = true;
     dma_finish_read[busId] = new function<void ()> ([=]()
     {
+        dma_waiting_read[busId] = false;
         osdev_outb(bmr + base, 0);
         uint32_t retval;
-        ata_wait(dev, 1);
         uint8_t atastatus=0;
+        if(ata_wait(dev, 1) == 1) atastatus=1;
         if(inb(bmr + base+2) & 0x02) atastatus=1;
         if(atastatus){
-            panic("(ATA DMA) DMA FAILED");
-            dbgpf("ATA DMA: DMA error!\n");
+            dbgpf("(ATA DMA) DMA FAILED");
             // TODO: FIXME: should do a SOFTWARE RESET before return.
+            stopDMA(busId);
+             ata_soft_reset(dev);
             retval = -EFOPS;
         }else{
             dbgpf("ATA DMA: DMA complete.\n");
@@ -321,7 +324,6 @@ int32_t dma_begin_write_sector(ata_device *dev, uint32_t lba, const uint8_t *buf
 
         getRegs(thisThread)->eax = retval;
         scheduler::unblock(thisThread);
-        dma_waiting_read[busId] = false;
         delete[] dma_buffer;
     });
 
