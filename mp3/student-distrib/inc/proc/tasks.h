@@ -17,6 +17,7 @@
 #include <inc/klibs/stack.h>
 #include <inc/klibs/bitset.h>
 #include <inc/klibs/maybe.h>
+#include <inc/ui/container.h>
 
 using namespace palloc;
 using namespace util;
@@ -137,6 +138,7 @@ private:
     static ProcessDesc** all_processes;
     ProcessDesc(int32_t _upid, ProcessType processType);
     Pid pid;
+    ui::Container *mainWindow;
 
 public:
     static ProcessDesc** all();
@@ -150,6 +152,9 @@ public:
 
     FileDescArr fileDescs;
     bool fdInitialized;
+
+    ui::Container *getMainWindow() { return mainWindow; }
+    void setMainWindow(ui::Container *bla) { mainWindow = bla; }
 
     // Currently no multi-thread support
     thread_kinfo *mainThreadInfo;

@@ -117,16 +117,16 @@ int32_t __attribute__((used)) systemCallDispatcher(
         case SYS_FORK:          retval = systemCallRunner(fork, p1, p2, p3, p4); break;
 
         // GUI
-        case SYS_CREATE_WINDOW:         retval = (int32_t) systemCallRunner(ui::createWindow, p1, p2, p3, p4); break;
-        case SYS_SET_TEXT:              retval = (int32_t) systemCallRunner(ui::setText, p1, p2, p3, p4); break;
-        case SYS_GET_TEXT:              retval = (int32_t) systemCallRunner(ui::getText, p1, p2, p3, p4); break;
-        case SYS_ELEM_SHOW:             retval = (int32_t) systemCallRunner(ui::showElement, p1, p2, p3, p4); break;
-        case SYS_ELEM_HIDE:             retval = (int32_t) systemCallRunner(ui::hideElement, p1, p2, p3, p4); break;
-        case SYS_CREATE_BUTTON:         retval = (int32_t) systemCallRunner(ui::createButton, p1, p2, p3, p4); break;
-        case SYS_GET_MESSAGE:           retval = (int32_t) systemCallRunner(ui::getMessage, p1, p2, p3, p4); break;
-        case SYS_ATTACH_MSG_HANDLER:    retval = (int32_t) systemCallRunner(ui::attacheMessageHandler, p1, p2, p3, p4); break;
-        case SYS_CREATE_IMAGE:          retval = (int32_t) systemCallRunner(ui::createImage, p1, p2, p3, p4); break;
-        case SYS_SET_IMAGE_DATA:        retval = (int32_t) systemCallRunner(ui::setImageData, p1, p2, p3, p4); break;
+        case SYS_CREATE_WINDOW:         retval = systemCallRunner(ui::createWindow, p1, p2, p3, p4); break;
+        case SYS_SET_TEXT:              retval = systemCallRunner(ui::setText, p1, p2, p3, p4); break;
+        case SYS_GET_TEXT:              retval = systemCallRunner(ui::getText, p1, p2, p3, p4); break;
+        case SYS_ELEM_SHOW:             retval = systemCallRunner(ui::showElement, p1, p2, p3, p4); break;
+        case SYS_ELEM_HIDE:             retval = systemCallRunner(ui::hideElement, p1, p2, p3, p4); break;
+        case SYS_CREATE_BUTTON:         retval = systemCallRunner(ui::createButton, p1, p2, p3, p4); break;
+        case SYS_GET_MESSAGE:           retval = systemCallRunner(ui::getMessage, p1, p2, p3, p4); break;
+        case SYS_ATTACH_MSG_HANDLER:    retval = systemCallRunner(ui::attacheMessageHandler, p1, p2, p3, p4); break;
+        case SYS_CREATE_IMAGE:          retval = systemCallRunner(ui::createImage, p1, p2, p3, p4); break;
+        case SYS_SET_IMAGE_DATA:        retval = systemCallRunner(ui::setImageData, p1, p2, p3, p4); break;
 
         /* Unknown syscall */
         default: retval = -1; break;

@@ -8,6 +8,15 @@ tictactoe::tictactoe() {
     drawButtons();
 }
 
+extern "C" void _Unwind_Resume() {}
+void *__gxx_personality_v0;
+
+extern "C" int main() {
+    tictactoe a;
+    a.runGame();
+    return 0;
+}
+
 auto loadImageHelper(char* &ptr, char *filename) -> void {
     FILE *fp = fopen (filename, "rb");
     fseek(fp, 0L, SEEK_END);

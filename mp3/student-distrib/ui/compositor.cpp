@@ -9,13 +9,23 @@
 #include <inc/klibs/palloc.h>
 #include <inc/klibs/lib.h>
 #include <inc/klibs/stack.h>
+#include <inc/proc/tasks.h>
 #include <inc/klibs/maybe.h>
 
 #include "title_bar.h"
+#include "button.h"
+#include "image.h"
 #include <inc/ui/ui_syscall.h>
 
 using namespace vbe;
 using namespace palloc;
+
+
+namespace syscall {
+    bool validUserPointer(const void* ptr);
+}
+
+using syscall::validUserPointer;
 
 namespace ui {
 
@@ -210,8 +220,8 @@ void Compositor::drawNikita()
     rootContainer->addChild(theMouse);
 
     rootContainer->show();
-    theMouse->show();
     wind->show();
+    theMouse->show();
 }
 
 void Compositor::enterVideoMode()
@@ -240,56 +250,71 @@ void Compositor::enterTextMode()
 
 
 // SYSCALLS
+//
 
 Container* createWindow(int32_t width, int32_t height)
 {
     auto wind = new Window(width, height, 150, 150);
     Compositor::getInstance()->rootContainer->addChild(wind);
+    getCurrentThreadInfo()->getProcessDesc()->setMainWindow(wind);
     return wind;
 }
 
 int32_t setText(Container *elem, char *text)
 {
-
+    if (!validUserPointer(elem)) return -1;
+    return 0;
 }
 
 int32_t getText(Container *elem, char *buffer)
 {
-
+    if (!validUserPointer(elem)) return -1;
+    return 0;
 }
 
 int32_t showElement(Container *elem)
 {
+    if (!validUserPointer(elem)) return -1;
     elem->show();
+    return 0;
 }
 
 int32_t hideElement(Container *elem)
 {
+    if (!validUserPointer(elem)) return -1;
     elem->hide();
+    return 0;
 }
 
 Container* createButton(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y)
 {
-
+    auto wind = getCurrentThreadInfo()->getProcessDesc()->getMainWindow();
+    auto btn = new Button(width, height, pos_x, pos_y);
+    wind->addChild(btn);
+    return btn;
 }
 
 int32_t getMessage(void *msg)
 {
+    if (!validUserPointer(msg)) return -1;
 }
 
 int32_t attacheMessageHandler(Container *elem, void *args)
 {
-
+    if (!validUserPointer(elem)) return -1;
 }
 
 Container* createImage(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y)
 {
-
+    auto wind = getCurrentThreadInfo()->getProcessDesc()->getMainWindow();
+    auto img = new Image(width, height, pos_x, pos_y);
+    wind->addChild(img);
+    return img;
 }
 
 int32_t setImageData(Container *img, uint8_t *data)
 {
-
+    if (!validUserPointer(img)) return -1;
 }
 
 
