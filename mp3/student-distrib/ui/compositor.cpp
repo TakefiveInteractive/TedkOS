@@ -11,6 +11,11 @@
 #include <inc/klibs/stack.h>
 #include <inc/proc/tasks.h>
 #include <inc/klibs/maybe.h>
+#include <inc/drivers/kkc.h>
+#include <inc/ui/testFont.h>
+#include <inc/fs/filesystem.h>
+#include <inc/klibs/arrFile.h>
+#include <inc/fs/stat.h>
 
 #include "title_bar.h"
 #include "button.h"
@@ -208,6 +213,53 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
         drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
 
+using namespace filesystem;
+
+static uint8_t *renderRGBAFont(ArrFile &parser, int width, int height, char c)
+{
+    auto buffer = new uint8_t[CalcRGBASize(width * 40, height)];
+    uint8_t *grayScaleFont = (uint8_t*) parser[(size_t)c];
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            uint8_t *pix = buffer + (y * width * 40 + x) * 4;
+            uint8_t *grayPix = grayScaleFont + (y * width + x);
+            pix[0] = 0;
+            pix[1] = 0;
+            pix[2] = 0;
+            pix[3] = grayPix[0];
+        }
+    }
+    return buffer;
+}
+
+
+Drawable* Compositor::addText(int txtX, int txtY, char c)
+{
+    constexpr int NumFont = 94;
+    constexpr int FontWidth = 20;
+    constexpr int FontHeight = 42;
+    constexpr int FontCharSpacing = 0;
+    constexpr int FontLineSpacing = 8;
+
+    Drawable* draw = new Drawable(20 * 40, 42,txtX * 20, txtY * 42);
+    File fontFile;
+    struct stat st;
+    theDispatcher->open(fontFile, "inconsolata_36.carr");
+    theDispatcher->fstat(fontFile, &st);
+    const uint32_t size = st.st_size;
+    auto buffer = new uint8_t[size];
+    theDispatcher->read(fontFile, buffer, size);
+    ArrFile* fileParser = ArrFile::getInstance((char*) buffer);
+    draw->pixelBuffer = renderRGBAFont(*fileParser, FontWidth, FontHeight, c);
+    theDispatcher->close(fontFile);
+    rootContainer->addChild(draw);
+    draw->show();
+
+    return draw;
+}
+
 void Compositor::drawNikita()
 {
     rootContainer = new Desktop();
@@ -246,6 +298,21 @@ void Compositor::enterTextMode()
         legacyInt(0x10, real_context);
         displayMode = Text;
     });
+}
+
+void Compositor::key(uint32_t kkc, bool capslock)
+{
+    if(kkc &(~KKC_ASCII_MASK))
+        return;
+    static Drawable* all[40] = {0};
+    all[txtX] = addText(txtX++, 0, (char)kkc);
+    if(txtX >= 40)
+    {
+    txtX = 0;
+    for(int i=0; i<40; i++)
+        (all[i])->hide();
+    }
+        
 }
 
 

@@ -10,6 +10,13 @@ public:
     TestFont();
 };
 
+/*
+class Font : public Drawable {
+public:
+    Font(int txtX, int txtY, char c);
+};
+*/
+
 }
 
 #endif

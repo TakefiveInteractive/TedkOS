@@ -7,6 +7,7 @@
 #include <inc/ui/vbe.h>
 #include <inc/klibs/maybe.h>
 #include <inc/drivers/ievent.h>
+#include <inc/drivers/kkc.h>
 
 using vbe::VBEMemHelp;
 
@@ -95,12 +96,15 @@ class Compositor : public KeyB::IEvent {
         void drawSingle(const Container *d, const Rectangle &rect);
         void drawSingle(const Container *d, const Rectangle &rect, const Rectangle &difference);
 
+        Drawable* addText(int txtX, int txtY, char c);
+
         Container *getElementAtPosition(int absX, int absY);
 
+        // Unit: text font width
+        int32_t txtX = 0;
+
     public:
-        virtual void key(uint32_t kkc, bool capslock)
-        {
-        }
+        virtual void key(uint32_t kkc, bool capslock);
 
         // Down and Up cuts changes to ONE single key at a time.
         virtual void keyDown(uint32_t kkc, bool capslock)
