@@ -365,10 +365,6 @@ namespace Term
         getTermPainter()->setCursor(next_char_x, next_char_y);
     }
 
-    void Term::show()
-    {
-    }
-
     // +++++++++ TextTerm ++++++++++
 
     // Private function: no need to lock.
@@ -380,13 +376,14 @@ namespace Term
     // PUBLIC function: Lock the spinlock !
     void TextTerm::show()
     {
-        if(!isFallbackTerm)
-        {
-            Compositor *comp = Compositor::getInstance();
-            comp->enterTextMode();
-        }
         AutoSpinLock l(&term_lock);
         painter.show();
+    }
+
+    void TextTerm::hide()
+    {
+        AutoSpinLock l(&term_lock);
+        painter.hide();
     }
 
     TextTerm::TextTerm() : Term()

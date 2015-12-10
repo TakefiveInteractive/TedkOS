@@ -41,11 +41,6 @@ void attachThread(thread_kinfo* pcb, ThreadState newState)
 
 void setTSS(const thread_pcb& pcb)
 {
-    /*
-    if(pcb.type == KERNEL_PROCESS)
-        tss.esp0 = (uint32_t)pcb.esp0 + (8 + 3) * 4;
-    else tss.esp0 = (uint32_t)pcb.esp0 + (8 + 5) * 4;
-    */
     tss.esp0 = (uint32_t)pcb.esp0;
 }
 
