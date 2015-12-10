@@ -225,7 +225,7 @@ static uint8_t *renderRGBAFont(ArrFile &parser, int width, int height, char c)
 }
 
 
-void Compositor::addText(int txtX, int txtY, char c)
+Drawable* Compositor::addText(int txtX, int txtY, char c)
 {
     constexpr int NumFont = 94;
     constexpr int FontWidth = 20;
@@ -246,6 +246,8 @@ void Compositor::addText(int txtX, int txtY, char c)
     theDispatcher->close(fontFile);
     rootContainer->addChild(draw);
     draw->show();
+
+    return draw;
 }
 
 void Compositor::drawNikita()
@@ -286,6 +288,21 @@ void Compositor::enterTextMode()
         legacyInt(0x10, real_context);
         displayMode = Text;
     });
+}
+
+void Compositor::key(uint32_t kkc, bool capslock)
+{
+    if(kkc &(~KKC_ASCII_MASK))
+        return;
+    static Drawable* all[10] = {0};
+    all[txtX] = addText(txtX++, 0, (char)kkc);
+    if(txtX >= 10)
+    {
+    txtX = 0;
+    for(int i=0; i<10; i++)
+        (all[i])->hide();
+    }
+        
 }
 
 

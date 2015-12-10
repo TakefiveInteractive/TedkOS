@@ -96,7 +96,7 @@ class Compositor : public KeyB::IEvent {
         void drawSingle(const Container *d, const Rectangle &rect);
         void drawSingle(const Container *d, const Rectangle &rect, const Rectangle &difference);
 
-        void addText(int txtX, int txtY, char c);
+        Drawable* addText(int txtX, int txtY, char c);
 
         Container *getElementAtPosition(int absX, int absY);
 
@@ -104,12 +104,7 @@ class Compositor : public KeyB::IEvent {
         int32_t txtX = 0;
 
     public:
-        virtual void key(uint32_t kkc, bool capslock)
-        {
-            if(kkc &(~KKC_ASCII_MASK))
-                return;
-            addText(txtX++, 0, (char)kkc);
-        }
+        virtual void key(uint32_t kkc, bool capslock);
 
         // Down and Up cuts changes to ONE single key at a time.
         virtual void keyDown(uint32_t kkc, bool capslock)
