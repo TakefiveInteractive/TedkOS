@@ -18,6 +18,11 @@ static void send_eoi_nolock(uint32_t irq_num);
 static void disable_irq_nolock(uint32_t irq_num);
 static void enable_irq_nolock(uint32_t irq_num);
 
+static inline void io_wait(void)
+{
+    asm volatile ( "outb %%al, $0x80" : : "a"(0) );
+}
+
 // TODO: discuss this!
 irq_desc_t irq_descs [NR_IRQS];
 
@@ -31,23 +36,41 @@ void i8259_init(void)
     uint8_t master_mask; /* IRQs 0-7 */
     uint8_t slave_mask; /* IRQs 8-15 */
 
+    /*
     master_mask = inb(MASTER_8259_PORT + 1);
+    io_wait();
     slave_mask = inb(SLAVE_8259_PORT + 1);
+    io_wait();
+     */
+
+    master_mask = slave_mask = 0xFF;
 
     outb(ICW1, MASTER_8259_PORT);
-    outb(ICW2_MASTER, MASTER_8259_PORT + 1);
-    outb(ICW3_MASTER, MASTER_8259_PORT + 1);
-    outb(ICW4, MASTER_8259_PORT + 1);
-
+    io_wait();
     outb(ICW1, SLAVE_8259_PORT);
+    io_wait();
+
+    outb(ICW2_MASTER, MASTER_8259_PORT + 1);
+    io_wait();
     outb(ICW2_SLAVE, SLAVE_8259_PORT + 1);
+    io_wait();
+
+    outb(ICW3_MASTER, MASTER_8259_PORT + 1);
+    io_wait();
     outb(ICW3_SLAVE, SLAVE_8259_PORT + 1);
+    io_wait();
+
+    outb(ICW4, MASTER_8259_PORT + 1);
+    io_wait();
     outb(ICW4, SLAVE_8259_PORT + 1);
+    io_wait();
 
     for(volatile int i = 0; i < 1000; i++);     // Wait for PIC to initialize
 
     outb(master_mask, MASTER_8259_PORT + 1);
+    io_wait();
     outb(slave_mask, SLAVE_8259_PORT + 1);
+    io_wait();
 
     // Initialize DS that stores IRQ state
     for(int i = 0; i < NR_IRQS; i++)
