@@ -13,7 +13,7 @@ auto loadImageHelper(char* &ptr, char *filename) -> void {
     fseek(fp, 0L, SEEK_END);
     auto sz = ftell(fp);
     fseek(fp, 0L, SEEK_SET);
-    ptr = new char[sz];
+    ptr = (char *) malloc(sizeof(char) * sz);
     fread(ptr, sz, 1, fp);
     fclose(fp);
 }
@@ -114,7 +114,7 @@ auto tictactoe::gameEndWithWinner() -> void {
 }
 
 tictactoe::~tictactoe() {
-    delete [] backgroundImageBuffer;
-    delete [] ODropImageBuffer;
-    delete [] XDropImageBuffer;
+    free(backgroundImageBuffer);
+    free(ODropImageBuffer);
+    free(XDropImageBuffer);
 }
