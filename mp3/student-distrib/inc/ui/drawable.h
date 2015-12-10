@@ -2,82 +2,25 @@
 #define _INC_UI_DRAWABLE_H_
 
 #include <inc/ui/compositor.h>
+#include <inc/ui/container.h>
 
 namespace ui {
 
 // Whenever a drawable is moved around, it should trigger redraw on every pixel
 // in its old location, and draw itself onto its new location.
-class Drawable {
-    public:
-
-        int32_t getX() const { return x; }
-        int32_t getY() const { return y; }
-
-        const Rectangle getBoundingRectangle() const
-        {
-            return Rectangle { .x1 = x, .y1 = y, .x2 = x + width, .y2 = y + height };
-        }
-
-    protected:
-
-        int32_t width;
-        int32_t height;
-
-        // coordinates of the top left corner
-        int32_t x;
-        int32_t y;
-
-        bool visible;
+class Drawable : public Container {
 
     public:
-
         Drawable(int32_t _width, int32_t _height, int32_t _x, int32_t _y)
-            : width(_width), height(_height), x(_x), y(_y), visible(true)
+            : Container(_width, _height, _x, _y)
         {
         }
+
+        virtual bool isDrawable() const override { return true; }
+        virtual const char * getDescription() const override { return "Drawable"; }
 
         // RGBA layout
         uint8_t *pixelBuffer;
-
-        void updateLocation(int32_t newX, int32_t newY)
-        {
-            const int32_t oldX = x;
-            const int32_t oldY = y;
-
-            x = newX;
-            y = newY;
-
-            // erase old drawable
-            Compositor::getInstance()->redraw(Rectangle { .x1 = oldX, .y1 = oldY, .x2 = oldX + width, .y2 = oldY + height });
-
-            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
-        }
-
-        void show()
-        {
-            visible = true;
-            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
-        }
-
-        void hide()
-        {
-            visible = false;
-            Compositor::getInstance()->redraw(getBoundingRectangle());
-        }
-
-        bool isVisible() const
-        {
-            return visible;
-        }
-
-        bool isPixelInRange(int32_t tx, int32_t ty)
-        {
-            if (tx < x) return false;
-            if (tx >= x + width) return false;
-            if (ty < y) return false;
-            if (ty >= y + height) return false;
-            return true;
-        }
 
         uint8_t getRed(int32_t tx, int32_t ty) const
         {

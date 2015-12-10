@@ -2,8 +2,34 @@
  * Partially adapted from https://github.com/mallardtheduck/osdev/
  */
 
+/*
+ * This code is copied from https://github.com/mallardtheduck/osdev and slightly revised.
+ */
+
 #ifndef _INC_ATA_HPP_
 #define _INC_ATA_HPP_
+
+#include <stdint.h>
+#include <stddef.h>
+#include <inc/klibs/lib.h>
+#include <inc/klibs/function.h>
+
+#ifndef RELEASE_BUILD
+#define dbgpf printf
+#define dbgout printf
+#else
+inline void dbgpf(const char* s, ...) {}
+inline void dbgout(const char* s, ...) {}
+#endif
+
+#define osdev_outb(port, data) outb((data), (port))
+#define osdev_outl(port, data) outl((data), (port))
+#define osdev_outw(port, data) outw((data), (port))
+
+inline void panic(const char* str) {
+    printf(str);
+    asm volatile("1: hlt; jmp 1b;");
+}
 
 namespace ata {
 
@@ -167,7 +193,10 @@ void cache_drop(size_t deviceid, size_t sector);
 
 void preinit_dma();
 bool init_dma();
-void dma_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf);
+int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint32_t nbytes, function<void ()> dadClassCallback);
+int32_t dma_begin_write_sector(ata_device *dev, uint32_t lba, const uint8_t *buf, uint32_t nbytes, function<void ()> dadClassCallback);
+
+void ata_soft_reset(struct ata_device * dev);
 
 }
 

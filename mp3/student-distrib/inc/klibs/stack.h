@@ -30,6 +30,11 @@ class Stack {
             return idx;
         }
 
+        void resetStackPointer()
+        {
+            idx = 0;
+        }
+
         T pop()
         {
             if (idx == 0)

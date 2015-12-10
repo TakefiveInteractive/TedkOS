@@ -88,7 +88,8 @@ int32_t fork()
 }
 
 extern "C"
-int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, uint32_t p2, uint32_t p3)
+int32_t __attribute__((used)) systemCallDispatcher(
+    uint32_t idx, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
 {
     int32_t retval;
     uint32_t flag;
@@ -98,21 +99,21 @@ int32_t __attribute__((used)) systemCallDispatcher(uint32_t idx, uint32_t p1, ui
 
     switch (idx)
     {
-        case SYS_HALT:          retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
-        case SYS_EXECUTE:       retval = systemCallRunner(exec::sysexec, p1, p2, p3); break;
-        case SYS_READ:          retval = systemCallRunner(fops::read, p1, p2, p3); break;
-        case SYS_WRITE:         retval = systemCallRunner(fops::write, p1, p2, p3); break;
-        case SYS_OPEN:          retval = systemCallRunner(fops::open, p1, p2, p3); break;
-        case SYS_CLOSE:         retval = systemCallRunner(fops::close, p1, p2, p3); break;
-        case SYS_GETARGS:       retval = systemCallRunner(exec::getargs, p1, p2, p3); break;
-        case SYS_VIDMAP:        retval = systemCallRunner(vidmap, p1, p2, p3); break;
-        case SYS_SET_HANDLER:   retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
-        case SYS_SIGRETURN:     retval = systemCallRunner(halt::syshalt, p1, p2, p3); break;
-        case SYS_SBRK:          retval = systemCallRunner(sbrk::syssbrk, p1, p2, p3); break;
-        case SYS_FSTAT:         retval = systemCallRunner(fops::fstat, p1, p2, p3); break;
-        case SYS_LSEEK:         retval = systemCallRunner(fops::lseek, p1, p2, p3); break;
-        case SYS_DOTASK:        retval = systemCallRunner(dotask, p1, p2, p3);  break;
-        case SYS_FORK:          retval = systemCallRunner(fork, p1, p2, p3); break;
+        case SYS_HALT:          retval = systemCallRunner(halt::syshalt, p1, p2, p3, p4); break;
+        case SYS_EXECUTE:       retval = systemCallRunner(exec::sysexec, p1, p2, p3, p4); break;
+        case SYS_READ:          retval = systemCallRunner(fops::read, p1, p2, p3, p4); break;
+        case SYS_WRITE:         retval = systemCallRunner(fops::write, p1, p2, p3, p4); break;
+        case SYS_OPEN:          retval = systemCallRunner(fops::open, p1, p2, p3, p4); break;
+        case SYS_CLOSE:         retval = systemCallRunner(fops::close, p1, p2, p3, p4); break;
+        case SYS_GETARGS:       retval = systemCallRunner(exec::getargs, p1, p2, p3, p4); break;
+        case SYS_VIDMAP:        retval = systemCallRunner(vidmap, p1, p2, p3, p4); break;
+        case SYS_SET_HANDLER:   retval = systemCallRunner(halt::syshalt, p1, p2, p3, p4); break;
+        case SYS_SIGRETURN:     retval = systemCallRunner(halt::syshalt, p1, p2, p3, p4); break;
+        case SYS_SBRK:          retval = systemCallRunner(sbrk::syssbrk, p1, p2, p3, p4); break;
+        case SYS_FSTAT:         retval = systemCallRunner(fops::fstat, p1, p2, p3, p4); break;
+        case SYS_LSEEK:         retval = systemCallRunner(fops::lseek, p1, p2, p3, p4); break;
+        case SYS_DOTASK:        retval = systemCallRunner(dotask, p1, p2, p3, p4);  break;
+        case SYS_FORK:          retval = systemCallRunner(fork, p1, p2, p3, p4); break;
 
         /* Unknown syscall */
         default: retval = -1; break;
@@ -163,18 +164,19 @@ void __attribute__((optimize("O0"))) systemCallHandler(void)
         "movw %%cx, %%gs           ;\n"
         "popl %%ecx                ;\n"
 
+        "pushl %%esi;   \n"
         "pushl %%edx;   \n"
         "pushl %%ecx;   \n"
         "pushl %%ebx;   \n"
         "pushl %%eax;   \n"
 
-        "leal  4*4(%%esp), %%eax   ;\n"
+        "leal  5*4(%%esp), %%eax   ;\n"
         "pushl %%eax               ;\n"
         "call  schedBackupState    ;\n"         // !!! Must ensure schedBackupState only uses ONE ARGUMENT
         "addl  $4, %%esp           ;\n"         // (otherwise I cannot ensure eax-edx are passed to systemCallDispatcher)
 
         "call systemCallDispatcher ;\n"         // Responsibility to increment the nested counter goes to systemCallDispatcher
-        "addl $16, %%esp           ;\n"
+        "addl $20, %%esp           ;\n"
         "movl %%eax, 28+0(%%esp)   ;\n"         // Set %%eax of CALLER(old thread) context to return val of syscall.
         "jmp iret_sched_policy     ;\n"
         :

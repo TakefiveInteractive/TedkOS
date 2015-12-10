@@ -4,7 +4,7 @@
 
 OUTDIR = output/
 
-release: CFLAGS_EXTRA = -flto -ffat-lto-objects -fwhole-program -O2
+release: CFLAGS_EXTRA = -flto -ffat-lto-objects -fwhole-program -O2 -DRELEASE_BUILD
 release: bootimg
 
 # Flags to use when compiling, preprocessing, assembling, and linking
@@ -24,8 +24,8 @@ CRTI_OBJ=crti.o
 CRTN_OBJ=crtn.o
 
 # This generates the list of source files
-SRC =  $(wildcard **/*.S) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
-SRC_CPP =  $(wildcard **/*.cpp) $(wildcard *.cpp)
+SRC =  $(wildcard **/**/*.S) $(wildcard **/*.S) $(wildcard **/**/*.c) $(wildcard **/*.c) $(wildcard *.S) $(wildcard *.c)
+SRC_CPP =  $(wildcard **/**/*.cpp) $(wildcard **/*.cpp) $(wildcard *.cpp)
 
 # This generates the list of .o files. The order matters, boot.o must be first
 OBJS     = $(filter-out crtn.o, $(filter-out crti.o, $(filter-out boot.o,$(patsubst %.S,%.o,$(filter %.S,$(SRC))))))

@@ -25,7 +25,7 @@ template<>
 class SystemCallArgN<0> {
 public:
     template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
+    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
         return fptr();
     }
@@ -35,7 +35,7 @@ template<>
 class SystemCallArgN<1> {
 public:
     template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
+    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
         return fptr(super_cast<typename boost::function_traits<F>::arg1_type>(p1));
     }
@@ -45,7 +45,7 @@ template<>
 class SystemCallArgN<2> {
 public:
     template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
+    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
         return fptr(
                     super_cast<typename boost::function_traits<F>::arg1_type>(p1),
@@ -58,7 +58,7 @@ template<>
 class SystemCallArgN<3> {
 public:
     template<typename F>
-    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
+    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
     {
         return fptr(
                     super_cast<typename boost::function_traits<F>::arg1_type>(p1),
@@ -68,10 +68,25 @@ public:
     }
 };
 
+template<>
+class SystemCallArgN<4> {
+public:
+    template<typename F>
+    static int32_t run(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
+    {
+        return fptr(
+                    super_cast<typename boost::function_traits<F>::arg1_type>(p1),
+                    super_cast<typename boost::function_traits<F>::arg2_type>(p2),
+                    super_cast<typename boost::function_traits<F>::arg3_type>(p3),
+                    super_cast<typename boost::function_traits<F>::arg3_type>(p4)
+                 );
+    }
+};
+
 template<typename F>
-static int32_t systemCallRunner(F fptr, uint32_t p1, uint32_t p2, uint32_t p3)
+static int32_t systemCallRunner(F fptr, uint32_t p1, uint32_t p2, uint32_t p3, uint32_t p4)
 {
-    return SystemCallArgN<boost::function_traits<F>::arity>::run(fptr, p1, p2, p3);
+    return SystemCallArgN<boost::function_traits<F>::arity>::run(fptr, p1, p2, p3, p4);
 }
 
 }   // namespace syscall

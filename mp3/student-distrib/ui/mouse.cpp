@@ -23,6 +23,21 @@ void moveOurMouse(int dx, int dy)
     mouseObj->moveMouse(dx, dy);
 }
 
+void leftClickHandler()
+{
+    mouseObj->leftClick();
+}
+
+void leftReleaseHandler()
+{
+    mouseObj->leftRelease();
+}
+
+void dragHandler()
+{
+    mouseObj->drag();
+}
+
 Mouse::Mouse() : Drawable(MouseWidth, MouseHeight, ScreenWidth / 2, ScreenHeight / 2)
 {
     File mouseFile;
@@ -42,8 +57,8 @@ void Mouse::moveMouse(int dx, int dy)
 {
     AutoSpinLock lock(&mouse_draw_lock);
 
-    int32_t newX = x;
-    int32_t newY = y;
+    int32_t newX = absX;
+    int32_t newY = absY;
 
     newX += dx;
     newY -= dy;
@@ -53,6 +68,36 @@ void Mouse::moveMouse(int dx, int dy)
     if (newY > ScreenHeight - ClickPointOffsetY) newY = ScreenHeight - ClickPointOffsetY;
 
     updateLocation(newX, newY);
+}
+
+void Mouse::leftClick()
+{
+    AutoSpinLock lock(&mouse_draw_lock);
+
+    if (isDragging) return;
+    isDragging = Compositor::getInstance()->getElementAtPosition(absX, absY);
+    auto elem = +isDragging;
+    printf("clicked: %s\n", elem->getDescription());
+    dragOffsetX = absX - elem->getAbsX();
+    dragOffsetY = absY - elem->getAbsY();
+}
+
+void Mouse::leftRelease()
+{
+    AutoSpinLock lock(&mouse_draw_lock);
+
+    isDragging = Nothing;
+}
+
+void Mouse::drag()
+{
+    AutoSpinLock lock(&mouse_draw_lock);
+
+    if (!isDragging) isDragging = Compositor::getInstance()->getElementAtPosition(absX, absY);
+    auto elem = +isDragging;
+    printf("drag: %s\n", elem->getDescription());
+    if (elem->isMovable())
+        elem->updateLocation(absX - dragOffsetX, absY - dragOffsetY);
 }
 
 }

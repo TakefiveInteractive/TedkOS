@@ -15,6 +15,14 @@
 
 void registerMouseMovementHandler(void (*fn) (int, int));
 
+namespace ui {
+
+void leftClickHandler();
+void leftReleaseHandler();
+void dragHandler();
+
+}
+
 #endif//#ifdef __cplusplus
 
 DEFINE_DRIVER_INIT(mouse);

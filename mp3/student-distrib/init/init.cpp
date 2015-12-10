@@ -10,10 +10,14 @@
 #include <inc/drivers/sb16.h>
 #include <stdint.h>
 #include <stddef.h>
-#include "draw_nikita.h"
+#include <inc/ui/compositor.h>
+#include <inc/drivers/pci.h>
 
 using scheduler::makeKThread;
+using namespace pci;
 using scheduler::attachThread;
+
+using ui::Compositor;
 
 volatile bool pcbLoadable = false;
 volatile bool isFallbackTerm = true;
@@ -64,7 +68,7 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
         {
             auto thread = makeKThread(launcher, (void*) (&helpers[i]));
             thread->getProcessDesc()->currTerm = &(KeyB::clients.textTerms[i]);
-            thread->getProcessDesc()->currTerm->setOwner(true, -1);
+            thread->getProcessDesc()->currTerm->setOwner(true, thread->getProcessDesc()->getPid());
             thread->getProcessDesc()->currTerm->cls();
             attachThread(thread, Running);
         }
@@ -89,21 +93,41 @@ constexpr char TTY[] = "On TTY";
 __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 {
     // I am the guard process to ensure terminals have shells running in them!
+
     size_t kbClientId;
     bool isTextTerm;
-
     {
         initHelper* helper = (initHelper*) arg;
         AutoSpinLock l(helper->multitaskLock);
         kbClientId = helper->kbClientId;
         isTextTerm = helper->isTextTerm;
-        *(helper->numLoadedClients)++;
+        *(helper->numLoadedClients) += 1;
         if(*(helper->numLoadedClients) == KeyB::KbClients::numClients)
             delete[] ((helper->recyclable));
     }
 
     if (isTextTerm)
     {
+
+        //try read ata
+        if(kbClientId == 0)
+        {
+            /*char *buf = new char[1024];
+            auto fd = ece391_open((uint8_t*)"/dev/ata00");
+            ece391_read(fd, buf, 1024);
+            ece391_read(fd, buf, 1024);
+            for(size_t i=0; i<1024; i++)
+                printf("%x ", (uint8_t)buf[i]);
+            ece391_close(fd);
+
+            memset(buf, 0xee, 1024);
+
+            fd = ece391_open((uint8_t*)"/dev/ata00");
+            ece391_write(fd, buf, 1024);
+            ece391_close(fd);
+            printf("\n");*/
+        }
+
         ece391_write(1, TTY, sizeof(TTY));
         char number = '0' + kbClientId;
         ece391_write(1, &number, 1);
@@ -111,12 +135,15 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
 
         for (;;)
         {
-            ece391_execute((const uint8_t *)"shell");
+            ece391_execute((const uint8_t *) "shell");
         }
     }
     else
     {
-        KeyB::clients.updateClient(kbClientId, draw_nikita());
+        KeyB::clients.updateClient(kbClientId, Compositor::getInstance());
+        Compositor *comp = Compositor::getInstance();
+        comp->drawNikita();
         asm volatile("1: hlt; jmp 1b;");
     }
 }
+

@@ -8,8 +8,6 @@ using palloc::virtOfPage0;
 
 namespace Term
 {
-    TextModePainter* TextModePainter::currShowing = NULL;
-
     uint8_t* TextModePainter::videoMem()
     {
         auto page0Maybe = virtOfPage0();
@@ -160,33 +158,15 @@ namespace Term
     void TextModePainter::show()
     {
         AutoSpinLock l(&lock);
+
+        if (isLoadedInVmem)
+            return;
+
         auto page0Maybe = virtOfPage0();
         if(!page0Maybe)
             return;
         uint32_t page0 = +page0Maybe;
 
-        //TODO: FIXME: Should First use vbe.cpp to switch back to Text Mode .
-
-        if(currShowing == this)
-            return;
-
-        if(currShowing)
-        {
-            AutoSpinLock theirLock(&currShowing->lock);
-            asm volatile (
-                "cld                                                    ;"
-                "movl %0, %%ecx                                         ;"
-                "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
-                : /* no outputs */
-                : "i" (SCREEN_HEIGHT * SCREEN_WIDTH * 2 / 4),
-                  "S" ((uint8_t*)(page0 + TXT_VMEM_OFF)),
-                  "D" (currShowing->backupBuffer)
-                : "cc", "memory", "ecx"
-            );
-            currShowing->isLoadedInVmem = false;
-            AutoSpinLock l2(&cpu0_paging_lock);
-            currShowing->tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
-        }
         asm volatile (
             "cld                                                    ;"
             "movl %0, %%ecx                                         ;"
@@ -197,9 +177,34 @@ namespace Term
               "D" ((uint8_t*)(page0 + TXT_VMEM_OFF))
             : "cc", "memory", "ecx"
         );
-        currShowing = this;
         isLoadedInVmem = true;
         helpSetCursor(cursorX, cursorY);
+        tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
+    }
+
+    void TextModePainter::hide()
+    {
+        AutoSpinLock _lock(&lock);
+
+        if (!isLoadedInVmem) return;
+
+        auto page0Maybe = virtOfPage0();
+        if(!page0Maybe)
+            return;
+        uint32_t page0 = +page0Maybe;
+
+        asm volatile (
+            "cld                                                    ;"
+            "movl %0, %%ecx                                         ;"
+            "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
+            : /* no outputs */
+            : "i" (SCREEN_HEIGHT * SCREEN_WIDTH * 2 / 4),
+              "S" ((uint8_t*)(page0 + TXT_VMEM_OFF)),
+              "D" (backupBuffer)
+            : "cc", "memory", "ecx"
+        );
+        isLoadedInVmem = false;
+        AutoSpinLock l2(&cpu0_paging_lock);
         tryMapVidmapNolock(getCurrentThreadInfo()->getPCB());
     }
 
@@ -270,7 +275,6 @@ namespace Term
 
     void TextModePainter::init()
     {
-        currShowing = NULL;
     }
 }
 
