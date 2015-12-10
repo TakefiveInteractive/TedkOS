@@ -34,7 +34,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "jz 2f;                 \n"     // exception with no code?
 
             "movl %%ebx, -32(%%esp);    \n" // Exception with code
-            "popl %%ebx;                \n" // Pop code into EBX. EBX is call-EE saved.
+            "popl %%ebx;                \n" // Pop error code into EBX. EBX is call-EE saved.
             "pushal;                    \n"
             "movl -4(%%esp), %%eax;     \n"
             "movl %%eax, 16(%%esp);     \n"
@@ -57,7 +57,14 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "movl $0, %%ebx;            \n"
 "3:;\n"
             "cld;                               \n"     // Exception with error code (CASE 3)
-            "leal 32(%%esp), %%eax;             \n"     // Load addr of top of stack at beginning of interrupt
+
+            /*
+            "pushl %%esp               ;\n"             // covers CASE 2 and CASE 3
+            "call  schedBackupState    ;\n"             // This does NOT clobber EBX. So we are fine.
+            "addl  $4, %%esp           ;\n"
+            */
+
+            "leal  32(%%esp), %%eax;            \n"     // Load addr of top of stack at beginning of interrupt
             "pushl %%eax;                       \n"
             "pushl %%ebx;                       \n"
             "pushl %0;                          \n"
