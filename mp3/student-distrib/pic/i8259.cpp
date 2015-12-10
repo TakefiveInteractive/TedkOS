@@ -65,12 +65,8 @@ void i8259_init(void)
     outb(ICW4, SLAVE_8259_PORT + 1);
     io_wait();
 
-    for(volatile int i = 0; i < 1000; i++);     // Wait for PIC to initialize
-
     outb(master_mask, MASTER_8259_PORT + 1);
-    io_wait();
     outb(slave_mask, SLAVE_8259_PORT + 1);
-    io_wait();
 
     // Initialize DS that stores IRQ state
     for(int i = 0; i < NR_IRQS; i++)
@@ -161,8 +157,8 @@ static void send_eoi_nolock(uint32_t irq_num)
     if (irq_num < 8) {
         outb(PIC_SPEC_EOI | irq_num, MASTER_8259_PORT);
     } else {
-        outb(PIC_SPEC_EOI | SLAVE_PIN, MASTER_8259_PORT);
         outb(PIC_SPEC_EOI | (irq_num - 8), SLAVE_8259_PORT);
+        outb(PIC_SPEC_EOI | SLAVE_PIN, MASTER_8259_PORT);
     }
 }
 

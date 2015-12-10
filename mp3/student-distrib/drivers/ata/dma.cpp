@@ -45,7 +45,7 @@ int dma_int_handler(int irq, unsigned int saved_reg){
     if(bus0status & 0x04){
         dbgpf("ATA DMA: Bus 0 interrupt!\n");
         dbgpf("ATA DMA: Bus 0 status: %x\n", bus0status);
-        outb(bmr+0x02, 0x04);
+        osdev_outb(bmr+0x02, 0x04);
 
         if(dma_waiting_read[0])
             dma_finish_read[0]();
@@ -53,7 +53,7 @@ int dma_int_handler(int irq, unsigned int saved_reg){
     if(bus1status & 0x04){
         dbgpf("ATA DMA: Bus 1 interrupt!\n");
         dbgpf("ATA DMA: Bus 1 status: %x\n", bus1status);
-        outb(bmr+0x0A, 0x04);
+        osdev_outb(bmr+0x0A, 0x04);
 
         if(dma_waiting_read[1])
             dma_finish_read[1]();
@@ -68,14 +68,14 @@ inline uint32_t physaddr(void* ptr) {
 void set_bus0_prdt(uint32_t bmr, prd *prd){
     uint32_t phys=physaddr(prd);
     dbgpf("ATA DMA: Setting bus 0 PRDT pointer to %x.\n", phys);
-    outl(bmr+0x04, phys);
+    osdev_outl(bmr+0x04, phys);
     bus0prd=*prd;
 }
 
 void set_bus1_prdt(uint32_t bmr, prd *prd){
     uint32_t phys=physaddr(prd);
     dbgpf("ATA DMA: Setting bus 1 PRDT pointer to %x.\n", phys);
-    outl(bmr+0x0C, phys);
+    osdev_outl(bmr+0x0C, phys);
     bus1prd=*prd;
 }
 
@@ -152,30 +152,30 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
         panic("(ATA DMA) Unrecognised device!");
         return -EFOPS;
     }
-    outb(bus + ATA_REG_CONTROL, 2);
-    outb(bmr + base, DMA_READ);
+    osdev_outb(bus + ATA_REG_CONTROL, 2);
+    osdev_outb(bmr + base, DMA_READ);
 
     uint8_t status=inb(bmr + base + 2);
-    outb(bmr + base + 2, status | 2 | 4);
+    osdev_outb(bmr + base + 2, status | 2 | 4);
 
     ata_wait(dev, 0);
-    outb(bus + ATA_REG_CONTROL, 0);
+    osdev_outb(bus + ATA_REG_CONTROL, 0);
 
-    outb(bus + ATA_REG_HDDEVSEL, 0xe0 | slave << 4 | (lba & 0x0f000000) >> 24);
-    outb(bus + 1, 0x03);
-    outb(bus + 2, 0x21);
-    outb(bus + ATA_REG_COMMAND, 0xEF);
+    osdev_outb(bus + ATA_REG_HDDEVSEL, 0xe0 | slave << 4 | (lba & 0x0f000000) >> 24);
+    osdev_outb(bus + 1, 0x03);
+    osdev_outb(bus + 2, 0x21);
+    osdev_outb(bus + ATA_REG_COMMAND, 0xEF);
     uint8_t q=inb(ATA_REG_STATUS);
     dbgpf("ATA DMA: q=%x\n", q);
-    //outb(bus + ATA_REG_FEATURES, 0x01);
-    outb(bus + ATA_REG_SECCOUNT0, 1);
-    outb(bus + ATA_REG_LBA0, (lba & 0x000000ff) >>  0);
-    outb(bus + ATA_REG_LBA1, (lba & 0x0000ff00) >>  8);
-    outb(bus + ATA_REG_LBA2, (lba & 0x00ff0000) >> 16);
-    outb(bus + ATA_REG_COMMAND, ATA_CMD_READ_DMA);
+    //osdev_outb(bus + ATA_REG_FEATURES, 0x01);
+    osdev_outb(bus + ATA_REG_SECCOUNT0, 1);
+    osdev_outb(bus + ATA_REG_LBA0, (lba & 0x000000ff) >>  0);
+    osdev_outb(bus + ATA_REG_LBA1, (lba & 0x0000ff00) >>  8);
+    osdev_outb(bus + ATA_REG_LBA2, (lba & 0x00ff0000) >> 16);
+    osdev_outb(bus + ATA_REG_COMMAND, ATA_CMD_READ_DMA);
 
     uint8_t cmd=inb(bmr + base);
-    outb(bmr + base, cmd | DMA_ON);
+    osdev_outb(bmr + base, cmd | DMA_ON);
 
     dbgpf("ATA DMA: Waiting for DMA to complete...\n");
 
@@ -184,7 +184,7 @@ int32_t dma_begin_read_sector(ata_device *dev, uint32_t lba, uint8_t *buf, uint3
     dma_waiting_read[busId] = true;
     dma_finish_read[busId] = [=]()
     {
-        outb(bmr + base, 0);
+        osdev_outb(bmr + base, 0);
         uint32_t retval;
         uint8_t atastatus=ata_wait(dev, 1);
         if(inb(bmr + base+2) & 0x02) atastatus=1;
