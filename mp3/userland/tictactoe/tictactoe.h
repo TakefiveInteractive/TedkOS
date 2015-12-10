@@ -32,6 +32,7 @@ private:
     char* XDropImageBuffer;
 
     auto checkWin(int row, int col) -> bool;
+    auto loadImageResources() -> void;
     auto drawBoardWindow() -> void;
     auto drawButtons() -> void;
     auto gameEndWithDraw() -> void;
