@@ -294,12 +294,12 @@ void Compositor::key(uint32_t kkc, bool capslock)
 {
     if(kkc &(~KKC_ASCII_MASK))
         return;
-    static Drawable* all[10] = {0};
+    static Drawable* all[40] = {0};
     all[txtX] = addText(txtX++, 0, (char)kkc);
-    if(txtX >= 10)
+    if(txtX >= 40)
     {
     txtX = 0;
-    for(int i=0; i<10; i++)
+    for(int i=0; i<40; i++)
         (all[i])->hide();
     }
         
