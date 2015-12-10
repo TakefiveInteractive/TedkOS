@@ -26,12 +26,6 @@ bool isLogFS(const uint8_t* path)
 
     ece391_close(fd);
 
-    for(size_t i=0; i<15; i++)
-    {
-        printf("0x%x ", buf[i]);
-    }
-    printf("\n");
-
     if(0 != memcmp(buf, logfsMagic, logfsMagicLen))
         return false;
     else 
@@ -71,6 +65,28 @@ extern "C" int main ()
             return 1;
         }
     }
+
+    uint32_t fd = fopen(fsPath, "w");
+    uint8_t buf[1024];
+
+    printf("Printing content!\n");
+
+    // ignore the first 1024 bytes
+    if(fread(fd, buf, 1024) > 0) while(1)
+    {
+        if(ece391_read(fd, buf, 1024) <= 0)
+            break;
+        printf("%s", buf);
+
+        bool shouldBreak=false;
+        for(size_t i=0; i<1024; i++)
+            if(buf[i]==0)
+                shouldBreak = true;
+        if(shouldBreak)
+            break;
+    }
+
+    printf("\n------\nBye!\n");
 
     return 0;
 }
