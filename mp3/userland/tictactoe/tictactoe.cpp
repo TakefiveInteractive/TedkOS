@@ -5,19 +5,7 @@
 tictactoe::tictactoe() {
     drawBoardWindow();
     loadImageResources();
-}
-
-auto tictactoe::drawBoardWindow() -> void {
-    // Draw Window
-    void *window = TedCreateWindow(WindowSize, WindowSize);
-    TedSetText(window, (char *)"Tic Tac Toe");
-    TedElemShow(window);
-
-    // Draw background image on main window
-    void *background = TedCreateImage(WindowSize, WindowSize, 0, 0);
-
-    TedSetImageData(background, backgroundImageBuffer);
-    TedElemShow(background);
+    drawButtons();
 }
 
 auto loadImageHelper(char *ptr, char *filename) -> void {
@@ -36,6 +24,18 @@ auto tictactoe::loadImageResources() -> void {
     loadImageHelper(XDropImageBuffer, (char *)"tictactoe_x_img");
 }
 
+auto tictactoe::drawBoardWindow() -> void {
+    // Draw Window
+    void *window = TedCreateWindow(WindowSize, WindowSize);
+    TedSetText(window, (char *)"Tic Tac Toe");
+    TedElemShow(window);
+
+    // Draw background image on main window
+    void *background = TedCreateImage(WindowSize, WindowSize, 0, 0);
+    TedSetImageData(background, backgroundImageBuffer);
+    TedElemShow(background);
+}
+
 auto tictactoe::drawButtons() -> void {
 
     for (int i = 0; i < 3; i++) {
@@ -50,8 +50,27 @@ auto tictactoe::drawButtons() -> void {
 auto tictactoe::checkWin(int row, int col) -> bool {
     if (
         (board[row][col] != Space) &&
-        ((board[row][0] == board[row][1] && board[row][0] == board[row][2]) ||
-        (board[0][col] == board[1][col] && board[0][col] == board[2][col]))
+        (
+            (
+                board[row][0] == board[row][1] &&
+                board[row][0] == board[row][2]
+            ) || (
+                board[0][col] == board[1][col] &&
+                board[0][col] == board[2][col]
+            )
+        )
+    ) return true;
+    else if (
+        (board[1][1] != Space) &&
+        (
+            (
+                (board[1][1] == board[0][0]) &&
+                (board[1][1] == board[2][2])
+            ) || (
+                (board[1][1] == board[0][2]) &&
+                (board[1][1] == board[2][0])
+            )
+        )
     ) return true;
     else return false;
 }
