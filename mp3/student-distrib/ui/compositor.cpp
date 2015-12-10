@@ -117,7 +117,7 @@ public:
     void descend(const Container *c)
     {
         auto children = c->getChildren();
-        for (size_t i = 0; i < children.size(); i++)
+        for (int i = children.size() - 1; i >= 0; i--)
         {
             stack.push(children[i]);
         }
@@ -161,8 +161,8 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
                     if (c->isDrawable())
                     {
                         auto d = reinterpret_cast<const Drawable *>(c);
-                        int32_t relX = x - d->getX();
-                        int32_t relY = y - d->getY();
+                        int32_t relX = x - d->getAbsX();
+                        int32_t relY = y - d->getAbsY();
                         const float alpha = d->getAlpha(relX, relY) / 255.0F;
                         r = alphaBlending(r, d->getRed(relX, relY), alpha);
                         g = alphaBlending(g, d->getGreen(relX, relY), alpha);
@@ -184,8 +184,10 @@ void Compositor::drawNikita()
 {
     rootContainer = new Desktop();
     redraw(rootContainer->getBoundingRectangle());
+    rootContainer->addChild(new Window(400, 400, 50, 50));
+
+    // Mouse is at the top
     rootContainer->addChild(new Mouse());
-    rootContainer->addChild(new TitleBar(400, 50, 50));
 }
 
 void Compositor::enterVideoMode()

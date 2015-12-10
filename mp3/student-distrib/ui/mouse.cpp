@@ -42,8 +42,8 @@ void Mouse::moveMouse(int dx, int dy)
 {
     AutoSpinLock lock(&mouse_draw_lock);
 
-    int32_t newX = x;
-    int32_t newY = y;
+    int32_t newX = absX;
+    int32_t newY = absY;
 
     newX += dx;
     newY -= dy;
