@@ -110,7 +110,7 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
         //try read ata
         if(kbClientId == 0)
         {
-            char *buf = new char[1024];
+            /*char *buf = new char[1024];
             auto fd = ece391_open((uint8_t*)"/dev/ata00");
             ece391_read(fd, buf, 1024);
             ece391_read(fd, buf, 1024);
@@ -123,7 +123,7 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
             fd = ece391_open((uint8_t*)"/dev/ata00");
             ece391_write(fd, buf, 1024);
             ece391_close(fd);
-            printf("\n");
+            printf("\n");*/
         }
 
         ece391_write(1, TTY, sizeof(TTY));
