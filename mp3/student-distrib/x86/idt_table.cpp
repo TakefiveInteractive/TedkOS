@@ -31,7 +31,9 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "movl %1, %%esp;        \n"
             "btl %0, %%esp;         \n"
             "leave;                 \n"
-            "jz 2f;                 \n"
+
+            "jnc 2f;                \n"     // exception with no code?
+
             "movl %%ebx, -32(%%esp);    \n" // Exception with code
             "popl %%ebx;                \n" // Pop error code into EBX. EBX is call-EE saved.
             "pushal;                    \n"
