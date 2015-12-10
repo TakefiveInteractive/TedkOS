@@ -5,7 +5,8 @@
 #include <string.h>
 #include "../../shared/ece391syscall.h"
 
-const char logfsMagic[] = "\0ca\0feece391logfs\0be\0ef";
+const char logfsMagic[] = {'\xca', '\xfe', 'e', 'c', 'e', '3', '9', '1', 'l', 'o', 'g', 'f', 's', '\xbe', '\xef'};
+const size_t logfsMagicLen = 15;
 const char hdds[4][20] = {"/dev/ata00", "/dev/ata01", "/dev/ata10", "/dev/ata11"};
 
 bool isLogFS(const uint8_t* path)
@@ -16,15 +17,22 @@ bool isLogFS(const uint8_t* path)
         return false;
 
     uint8_t buf[1024];
-    if(0 != ece391_read(fd, buf, 1024))
+    if(0 >= ece391_read(fd, buf, 1024))
     {
+        printf("read failed\n");
         ece391_close(fd);
         return false;
     }
 
     ece391_close(fd);
 
-    if(0 != memcmp(buf, logfsMagic, strlen(logfsMagic)))
+    for(size_t i=0; i<15; i++)
+    {
+        printf("0x%x ", buf[i]);
+    }
+    printf("\n");
+
+    if(0 != memcmp(buf, logfsMagic, logfsMagicLen))
         return false;
     else 
     {
