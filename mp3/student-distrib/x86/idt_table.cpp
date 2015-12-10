@@ -33,7 +33,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "leave;                 \n"
             "jz 2f;                 \n"
             "movl %%ebx, -32(%%esp);    \n" // Exception with code
-            "popl %%ebx;                \n" // Pop code into EBX. EBX is call-EE saved.
+            "popl %%ebx;                \n" // Pop error code into EBX. EBX is call-EE saved.
             "pushal;                    \n"
             "movl -4(%%esp), %%eax;     \n"
             "movl %%eax, 16(%%esp);     \n"
@@ -63,7 +63,7 @@ template<size_t index> struct VectorExtractingMetaFunc {
             "addl  $4, %%esp           ;\n"
             */
 
-            "leal -32(%%esp), %%eax;            \n"     // Load addr of top of stack at beginning of interrupt
+            "leal  32(%%esp), %%eax;            \n"     // Load addr of top of stack at beginning of interrupt
             "pushl %%eax;                       \n"
             "pushl %%ebx;                       \n"
             "pushl %0;                          \n"
