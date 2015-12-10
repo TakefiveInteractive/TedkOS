@@ -1,10 +1,6 @@
 #include <inc/ui/compositor.h>
 #include <inc/ui/testFont.h>
-#include <inc/drivers/mouse.h>
-#include <inc/klibs/palloc.h>
 #include <inc/fs/filesystem.h>
-#include <inc/syscalls/filesystem_wrapper.h>
-#include <inc/klibs/AutoSpinLock.h>
 #include <inc/klibs/arrFile.h>
 #include <inc/fs/stat.h>
 
