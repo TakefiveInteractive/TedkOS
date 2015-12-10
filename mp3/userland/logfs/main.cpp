@@ -66,27 +66,29 @@ extern "C" int main ()
         }
     }
 
-    uint32_t fd = fopen(fsPath, "w");
-    uint8_t buf[1024];
+    uint32_t fd = ece391_open(fsPath);
+    uint8_t buf[10240];
 
     printf("Printing content!\n");
 
-    // ignore the first 1024 bytes
-    if(fread(fd, buf, 1024) > 0) while(1)
-    {
-        if(ece391_read(fd, buf, 1024) <= 0)
-            break;
-        printf("%s", buf);
+    if(ece391_read(fd, buf, 10240) <= 0)
+        return 2;
+    printf("%s", &buf[logfsMagicLen]);
 
-        bool shouldBreak=false;
-        for(size_t i=0; i<1024; i++)
-            if(buf[i]==0)
-                shouldBreak = true;
-        if(shouldBreak)
-            break;
-    }
+    ece391_close(fd);
+    
 
-    printf("\n------\nBye!\n");
+    printf("\n------\nInput Something!\n");
+
+    scanf("%s", &buf[logfsMagicLen]);
+
+    fd = ece391_open(fsPath);
+
+    ece391_write(fd, buf, 10240);
+
+    ece391_close(fd);
+
+
 
     return 0;
 }
