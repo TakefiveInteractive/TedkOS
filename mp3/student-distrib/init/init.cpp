@@ -64,7 +64,7 @@ __attribute__((used)) __attribute__((fastcall)) void init_main(void* arg)
         {
             auto thread = makeKThread(launcher, (void*) (&helpers[i]));
             thread->getProcessDesc()->currTerm = &(KeyB::clients.textTerms[i]);
-            thread->getProcessDesc()->currTerm->setOwner(true, -1);
+            thread->getProcessDesc()->currTerm->setOwner(true, thread->getProcessDesc()->getPid());
             thread->getProcessDesc()->currTerm->cls();
             attachThread(thread, Running);
         }
@@ -97,7 +97,7 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
         AutoSpinLock l(helper->multitaskLock);
         kbClientId = helper->kbClientId;
         isTextTerm = helper->isTextTerm;
-        *(helper->numLoadedClients)++;
+        *(helper->numLoadedClients) += 1;
         if(*(helper->numLoadedClients) == KeyB::KbClients::numClients)
             delete[] ((helper->recyclable));
     }
@@ -116,7 +116,7 @@ __attribute__((used)) __attribute__((fastcall)) void launcher(void* arg)
     }
     else
     {
-        KeyB::clients.updateClient(kbClientId, draw_nikita());
+        //KeyB::clients.updateClient(kbClientId, draw_nikita());
         asm volatile("1: hlt; jmp 1b;");
     }
 }

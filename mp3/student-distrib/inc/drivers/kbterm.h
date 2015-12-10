@@ -16,28 +16,14 @@
 #include <inc/i8259.h>
 #include <inc/syscalls/exec.h>
 #include <inc/syscalls/halt.h>
-
+#include <inc/drivers/ievent.h>
 #include <inc/fs/filesystem.h>
 #include <inc/fs/fops.h>
 
 struct _thread_pcb;
 
-
 namespace KeyB
 {
-    // By default, all functions do nothing.
-    // TODO: FIXME: add "virtual void show() = 0"
-    class IEvent
-    {
-    public:
-        virtual void key(uint32_t kkc, bool capslock) = 0;
-
-        // Down and Up cuts changes to ONE single key at a time.
-        virtual void keyDown(uint32_t kkc, bool capslock) = 0;
-        virtual void keyUp(uint32_t kkc, bool capslock) = 0;
-
-        virtual void show() = 0;
-    };
     class FOps : public IFOps
     {
     private:
@@ -68,7 +54,6 @@ typedef struct
     // Otherwise (=0) no new line.
     uint8_t y_offset;
 } term_buf_item;
-
 
 /*
  *
@@ -101,7 +86,7 @@ typedef struct
 #define SCREEN_WIDTH    80
 #define SCREEN_HEIGHT   25
 #define TEXT_STYLE      0x7
-#define TXT_VMEM_OFF    0xB8000
+#define TXT_VMEM_OFF    PRE_INIT_VIDEO
 
 namespace Term
 {
@@ -120,7 +105,11 @@ namespace Term
         virtual void setCursor(uint32_t x, uint32_t y) = 0;
         virtual void showChar(uint32_t x, uint32_t y, uint8_t c) = 0;
         virtual void clearLine(uint32_t y) = 0;
+
+        virtual void show() = 0;
+        virtual void hide() = 0;
     };
+
     class TextModePainter : public TermPainter
     {
         static TextModePainter* currShowing;
@@ -148,6 +137,7 @@ namespace Term
         static void init();
         TextModePainter();
         virtual void show();
+        virtual void hide();
 
         // Returns a VIRT pointer to USER-RW page
         virtual uint8_t* enableVidmap(const struct _thread_pcb* theThread);
@@ -224,7 +214,6 @@ namespace Term
         virtual void key(uint32_t kkc, bool capslock) final;
         virtual void keyDown(uint32_t kkc, bool capslock) final;
         virtual void keyUp(uint32_t kkc, bool capslock) final;
-        virtual void show();
 
         // These are used by printf in klibs
         // calling these operations WILL clear the buffer.
@@ -247,12 +236,14 @@ namespace Term
         TextModePainter painter;
 
         virtual TermPainter* getTermPainter();
+
     public:
         TextTerm();
 
         // this will switch text mode window to this term
         // this function does not help switch from GUI to text mode
-        void show();
+        virtual void show();
+        virtual void hide();
     };
 }
 

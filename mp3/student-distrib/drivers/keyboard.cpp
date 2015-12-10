@@ -298,6 +298,7 @@ bool handleShortcut(uint32_t kernelKeycode)
 
 void switchTo(size_t clientId)
 {
+    (clients[currClient])->hide();
     currClient = clientId;
     (clients[clientId])->show();
 }
