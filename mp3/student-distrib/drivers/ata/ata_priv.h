@@ -14,8 +14,14 @@
 #include <inc/klibs/lib.h>
 #include <inc/klibs/function.h>
 
+#ifndef RELEASE_BUILD
 #define dbgpf printf
 #define dbgout printf
+#else
+inline void dbgpf(const char* s, ...) {}
+inline void dbgout(const char* s, ...) {}
+#endif
+
 #define osdev_outb(port, data) outb((data), (port))
 #define osdev_outl(port, data) outl((data), (port))
 #define osdev_outw(port, data) outw((data), (port))
