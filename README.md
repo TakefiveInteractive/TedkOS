@@ -1,14 +1,11 @@
 # ECE 391 - TedkOS
 
-<object data="mp3_fa15.pdf" type="application/pdf" width="300" height="500">
-  <a href="mp3_fa15.pdf">MP3_Guides</a>
-</object>
+## We released the code for study purposes only. No copying! (should you even pondering attempting that feat)
 
-OS X users, run
+OS X and Linux users, run
 ```
-sudo sed -e 's/OPTIONS="auto_xattr,defer_permissions"/OPTIONS="auto_xattr,defer_permissions,rw+"/' -i.orig /System/Library/Filesystems/fuse-ext2.fs/fuse-ext2.util
+make
 ```
-ONCE before you start working on this.
 
 VM commands
 ```
