@@ -7,7 +7,7 @@ OS X and Linux users, run
 make
 ```
 
-VM commands
+VM commands for Linux
 ```
 alias ece391.test.mp3='qemu-system-i386 -drive file=~/ece391_common/mp3/student-distrib/output/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -S -name test-mp3'
 alias ece391.test.mp3.nodebug='qemu-system-i386 -drive file=~/ece391_common/mp3/student-distrib/output/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -name test-mp3-nodebug'
