@@ -16,7 +16,7 @@ ArrFile* ArrFile::getInstance(char *ptr) {
     ptr = ptr + (sizeof(magic) - 1);
     obj->_length = *((uint32_t *)ptr);
 
-    printf("%d\n", obj->_length);
+    // printf("%d\n", obj->_length);
 
     obj->_subArrLength = new uint32_t[obj->_length];
     obj->_subArr = new void*[obj->_length];
