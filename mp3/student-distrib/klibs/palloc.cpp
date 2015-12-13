@@ -222,9 +222,11 @@ namespace palloc
         this->cpu_cr3_lock = cpu_cr3_lock;
     }
 
-    bool MemMapManager::addCommonPage(const VirtAddr& virt, const PhysAddr& phys)
+    bool MemMapManager::addCommonPage(const VirtAddr& virt, PhysAddr phys)
     {
         AutoSpinLock lock(cpu_cr3_lock);
+        if(HAS_FLAG<PG_4MB_BASE>(phys.pde) || HAS_FLAG<PG_4KB_BASE>(phys.pde))
+            phys.pde |= PG_GLOABL;
         if(!commonMemMap.add(virt, phys))
             return false;
         if(!spareMemMaps[loadedMap].add(virt, phys))

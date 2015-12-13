@@ -20,12 +20,6 @@ using namespace scheduler;
 
 namespace syscall {
 
-template<uint32_t FLAG>
-const bool HAS_FLAG(uint32_t x)
-{
-    return (((x) & (FLAG)) == (FLAG));
-}
-
 bool validUserPointer(const void* ptr)
 {
     if (ptr == NULL)

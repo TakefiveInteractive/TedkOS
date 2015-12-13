@@ -66,6 +66,13 @@
 #include <inc/klibs/spinlock.h>
 
 #ifdef __cplusplus
+
+template<uint32_t FLAG>
+inline const bool HAS_FLAG(uint32_t x)
+{
+    return (((x) & (FLAG)) == (FLAG));
+}
+
 extern "C" {
 #endif
 

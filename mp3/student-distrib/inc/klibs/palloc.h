@@ -212,7 +212,7 @@ namespace palloc
         VirtAddr translate(const PhysAddr& addr);
         PhysAddr translate(const VirtAddr& addr);
 
-        bool addCommonPage(const VirtAddr& virt, const PhysAddr& phys);
+        bool addCommonPage(const VirtAddr& virt, PhysAddr phys);
 
         // delete the mapping ONLY.
         // to RELEASE the ACTUAL SPACE, call Phys/VirtAddrManager.freePage
