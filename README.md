@@ -2,7 +2,7 @@
 
 ## We released the code for study purposes only. No copying! (should you even contemplate attempting that feat)
 
-**NOTE**: All TA's given code is the property of University of Illinois.
+**NOTE: All TA's given code is the property of University of Illinois.**
 
 
 OS X and Linux users, run
