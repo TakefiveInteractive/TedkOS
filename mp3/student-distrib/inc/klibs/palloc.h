@@ -128,6 +128,7 @@ namespace palloc
         uint16_t phys2virt[1 << PhysIdxLength];
         volatile uint32_t virt2phys[PD_NUM_ENTRIES] __attribute__((aligned (4096)));
         inline void clear();
+        inline void resetVPage0And1();
     public:
         // Initialize an empty memory map;
         MemMap();

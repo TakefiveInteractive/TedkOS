@@ -42,17 +42,26 @@ namespace palloc
     {
         clear();
     }
-
-    inline void MemMap::clear()
+    
+    inline void MemMap::resetVPage0And1()
     {
-        memset(phys2virt, 0, sizeof(phys2virt));
-        memset((void*)virt2phys, 0, sizeof(virt2phys));
+        // clear the NULL page.
+        virt2phys[0] = 0;
+
         // load in the kernel code page.
         // That is, map 4MB ~ 8MB (index 1) in virtual memory to 4MB ~ 8MB in Physical memory
         //   We do not do the same thing for 0MB~4MB, because it is not needed,
         //      and because if we do that it will cause *NULL to run without exception.
         phys2virt[1] = 1;
-        virt2phys[1] = PhysAddr(1, 0).pde;
+        virt2phys[1] = PhysAddr(1, PG_GLOABL).pde;
+    }
+
+    inline void MemMap::clear()
+    {
+        memset(phys2virt, 0, sizeof(phys2virt));
+        memset((void*)virt2phys, 0, sizeof(virt2phys));
+
+        resetVPage0And1();
     }
 
     inline VirtAddr MemMap::translate(const PhysAddr& addr)
@@ -165,12 +174,7 @@ namespace palloc
     //      ( so that its virtual address = physical address )
     inline void MemMap::loadToCR3()
     {
-        // clear the NULL page.
-        virt2phys[0] = 0;
-
-        // load in the kernel code page.
-        phys2virt[1] = 1;
-        virt2phys[1] = PhysAddr(1, 0).pde;
+        resetVPage0And1();
 
         REDIRECT_PAGE_DIR(virt2phys);
         RELOAD_CR3();
