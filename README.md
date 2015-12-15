@@ -2,6 +2,8 @@
 
 ## We released the code for study purposes only. No copying! (should you even contemplate attempting that feat)
 
+### Update 12/14/2015: We clinched second runner-up at the design competition!
+
 OS X and Linux users, run
 ```
 make
