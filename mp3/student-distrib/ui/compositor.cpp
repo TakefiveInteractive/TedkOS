@@ -132,7 +132,7 @@ public:
 
     void descend(const Container *c)
     {
-        auto children = c->getChildren();
+        auto& children = c->getChildren();
         for (int i = children.size() - 1; i >= 0; i--)
         {
             stack.push(children[i]);
