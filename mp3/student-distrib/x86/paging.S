@@ -4,6 +4,7 @@
 
 # Constant Immidiate Values only used by enable_paging:
 ENABLE_4MB_PAGE =   0x00000010      # Use in CR4
+ENABLE_GLOBAL   =   0x00000080      # Use in CR4
 CLEAR_PAE       =   0xFFFFFFDF      # Use in CR4
 SET_PG          =   0x80000000      # Use in CR0
 
@@ -42,7 +43,7 @@ enable_paging:
 
     movl %cr4, %eax
     andl $CLEAR_PAE, %eax
-    orl  $ENABLE_4MB_PAGE, %eax
+    orl  $ENABLE_4MB_PAGE | ENABLE_GLOBAL, %eax
     movl %eax, %cr4
 
     movl %cr0, %eax
