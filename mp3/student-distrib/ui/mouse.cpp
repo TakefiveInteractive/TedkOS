@@ -77,6 +77,13 @@ void Mouse::leftClick()
     if (isDragging) return;
     isDragging = Compositor::getInstance()->getElementAtPosition(absX, absY);
     auto elem = +isDragging;
+
+    if(!elem)
+    {
+        printf("mouse out of bound!\n");
+        return;
+    }
+
     printf("clicked: %s\n", elem->getDescription());
     dragOffsetX = absX - elem->getAbsX();
     dragOffsetY = absY - elem->getAbsY();
@@ -95,6 +102,13 @@ void Mouse::drag()
 
     if (!isDragging) isDragging = Compositor::getInstance()->getElementAtPosition(absX, absY);
     auto elem = +isDragging;
+
+    if(!elem)
+    {
+        printf("mouse out of bound!\n");
+        return;
+    }
+
     printf("drag: %s\n", elem->getDescription());
     if (elem->isMovable())
         elem->updateLocation(absX - dragOffsetX, absY - dragOffsetY);
