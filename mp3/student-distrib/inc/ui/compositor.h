@@ -50,6 +50,13 @@ struct Rectangle {
     {
         return x >= x1 && x <= x2 && y >= y1 && y <= y2;
     }
+
+    bool overlapsWith(const Rectangle& r2) const
+    {
+        return hasPoint(r2.x1, r2.y1) || hasPoint(r2.x1, r2.y2) || hasPoint(r2.x2, r2.y1)
+            || hasPoint(r2.x2, r2.y2) || r2.hasPoint(x1, y1) || r2.hasPoint(x1, y2) ||
+                  r2.hasPoint(x2, y1) || r2.hasPoint(x2, y2);
+    }
 };
 
 constexpr Rectangle EmptyRectangle(-1000, -1000, -2000, -2000);

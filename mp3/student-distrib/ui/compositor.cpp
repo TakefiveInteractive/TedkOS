@@ -172,6 +172,16 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
 {
     const Rectangle &rect = _rect.bound();
     TreeIterator itr(d);
+            // Draw all drawables
+            while (auto resMaybe = itr.iterate())
+            {
+                auto c = +resMaybe;
+                if(!c->isVisible())
+                    continue;
+                if(!c->getBoundingRectangle().overlapsWith(rect))
+                    continue;
+                if(c->isDrawable())
+                {
     for (int32_t y = rect.y1; y < rect.y2; y++)
     {
         for (int32_t x = rect.x1; x < rect.x2; x++)
@@ -184,11 +194,6 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
             g = buildBuffer[y][x][1];
             b = buildBuffer[y][x][2];
 
-            itr.reinit(d);
-            // Draw all drawables
-            while (auto resMaybe = itr.iterate())
-            {
-                auto c = +resMaybe;
                 if (c->isVisible() && c->isPixelInRange(x, y))
                 {
                     if (c->isDrawable())
@@ -201,14 +206,15 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
                         g = alphaBlending(g, d->getGreen(relX, relY), alpha);
                         b = alphaBlending(b, d->getBlue(relX, relY), alpha);
                     }
-                    itr.descend(c);
                 }
-            }
             buildBuffer[y][x][0] = r;
             buildBuffer[y][x][1] = g;
             buildBuffer[y][x][2] = b;
         }
     }
+                }
+                itr.descend(c);
+            }
     if (displayMode == Video)
         drawHelper.copyRegion(videoMemory, (uint8_t *)buildBuffer, rect.x1, rect.x2, rect.y1, rect.y2);
 }
