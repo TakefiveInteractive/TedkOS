@@ -197,13 +197,13 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
 
                     if (c->isPixelInRange(x, y))
                     {
-                        auto d = reinterpret_cast<const Drawable *>(c);
-                        int32_t relX = x - d->getAbsX();
-                        int32_t relY = y - d->getAbsY();
-                        const float alpha = d->getAlpha(relX, relY) / 255.0F;
-                        r = alphaBlending(r, d->getRed(relX, relY), alpha);
-                        g = alphaBlending(g, d->getGreen(relX, relY), alpha);
-                        b = alphaBlending(b, d->getBlue(relX, relY), alpha);
+                        auto _draw = reinterpret_cast<const Drawable *>(c);
+                        int32_t relX = x - _draw->getAbsX();
+                        int32_t relY = y - _draw->getAbsY();
+                        const float alpha = _draw->getAlpha(relX, relY) / 255.0F;
+                        r = alphaBlending(r, _draw->getRed(relX, relY), alpha);
+                        g = alphaBlending(g, _draw->getGreen(relX, relY), alpha);
+                        b = alphaBlending(b, _draw->getBlue(relX, relY), alpha);
                     }
 
                     buildBuffer[y][x][0] = r;
