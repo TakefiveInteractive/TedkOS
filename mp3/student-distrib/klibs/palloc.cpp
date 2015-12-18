@@ -315,7 +315,7 @@ namespace palloc
         spareMemMaps[1 - loadedMap].loadToCR3();
         loadedMap = 1 - loadedMap;
 
-        if(proc->currTerm)
+        if(proc->currTerm && !proc->mainThreadInfo->isKernel())
             proc->currTerm->tryMapVidmap(proc->mainThreadInfo->getPCB());
         return true;
     }

@@ -85,7 +85,7 @@ Pid newDetachedProcess(int32_t parentPID, ProcessType processType)
     ProcessDesc& pd = ProcessDesc::newProcess(parentPID, processType);
 
     // TODO: FIXME: Currently all processes are binded to terminal 0
-    pd.currTerm = isFallbackTerm ? KeyB::getFirstTextTerm() : ProcessDesc::get(parentPID).currTerm;
+    pd.currTerm = (isFallbackTerm || parentPID < 0) ? KeyB::getFirstTextTerm() : ProcessDesc::get(parentPID).currTerm;
 
     return pd.getPid();
 }
@@ -250,13 +250,17 @@ target_esp0 __attribute__((used)) schedDispatchExecution(target_esp0 currentESP)
     return ans;
 }
 
+void blockNotDuringInterrupt(thread_kinfo* thread)
+{
+    AutoSpinLock lock(&sched_lock);
+    thread->getPCB()->runState = Waiting;
+}
+
 void block(thread_kinfo* thread)
 {
-    {
-        AutoSpinLock lock(&sched_lock);
-        thread->getPCB()->runState = Waiting;
-    }
-    makeDecision();
+    AutoSpinLock lock(&sched_lock);
+    thread->getPCB()->runState = Waiting;
+    makeDecisionNoLock();
 }
 
 void unblock(thread_kinfo* thread)

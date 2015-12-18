@@ -58,34 +58,7 @@ class Container {
             }
         }
 
-        virtual void updateLocation(int32_t newX, int32_t newY)
-        {
-            const int32_t oldX = absX;
-            const int32_t oldY = absY;
-
-            absX = newX;
-            absY = newY;
-
-            relX += newX - oldX;
-            relY += newY - oldY;
-
-            // recursively update child location
-            for (size_t i = 0; i < children.size(); i++)
-            {
-                children[i]->updateLocationFollowingParent(absX, absY);
-            }
-
-            // erase old drawable
-            const Rectangle & oldRectangle = Rectangle {
-                .x1 = oldX,
-                .y1 = oldY,
-                .x2 = oldX + width,
-                .y2 = oldY + height
-            };
-            Compositor::getInstance()->redraw(oldRectangle);
-            // draw ourself on new location
-            Compositor::getInstance()->drawSingle(this, getBoundingRectangle(), oldRectangle);
-        }
+        virtual void updateLocation(int32_t newX, int32_t newY);
 
         virtual bool isDrawable() const { return false; }
 

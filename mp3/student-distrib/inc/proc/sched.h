@@ -38,6 +38,7 @@ namespace scheduler {
     void makeDecision();
 
     // Cede current time slice
+    void blockNotDuringInterrupt(thread_kinfo* thread);
     void block(thread_kinfo* thread);
     void unblock(thread_kinfo* thread);
 
