@@ -57,9 +57,9 @@ struct Rectangle {
 
     bool overlapsWith(const Rectangle& r2) const
     {
-        return hasPoint(r2.x1, r2.y1) || hasPoint(r2.x1, r2.y2) || hasPoint(r2.x2, r2.y1)
-            || hasPoint(r2.x2, r2.y2) || r2.hasPoint(x1, y1) || r2.hasPoint(x1, y2) ||
-                  r2.hasPoint(x2, y1) || r2.hasPoint(x2, y2);
+        if (x1 > r2.x2 || r2.x1 > x2) return false;
+        if (y1 > r2.y2 || r2.y1 > y2) return false;
+        return true;
     }
 };
 
