@@ -176,7 +176,7 @@ namespace vbe
             vmem[1] = buildBuffer[1];
             vmem[0] = buildBuffer[2];
             vmem += 3;
-            buildBuffer += 4;
+            buildBuffer += 3;
         }
     }
 
@@ -184,15 +184,15 @@ namespace vbe
     {
         for(int y=yfrom; y<yto; y++)
         {
-            uint8_t* writer = &vmem[3*(xfrom + y*1024)];
-            uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
+            uint8_t* writer = &vmem[3 * (xfrom + y * 1024)];
+            uint8_t* reader = &buildBuffer[3 * (xfrom + y * 1024)];
             for(int x=xfrom; x<xto; x++)
             {
                 writer[2] = reader[0];
                 writer[1] = reader[1];
                 writer[0] = reader[2];
                 writer += 3;
-                reader += 4;
+                reader += 3;
             }
         }
     }
@@ -223,33 +223,27 @@ namespace vbe
 
     void RGBO_copy(uint8_t* vmem, uint8_t* buildBuffer)
     {
-        asm volatile (
-            "cld                                                    ;"
-            "movl %0, %%ecx                                         ;"
-            "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
-            : /* no outputs */
-            : "i" (1024 * 768 * 4 / 4),
-              "S" (buildBuffer),
-              "D" (vmem)
-            : "cc", "memory", "ecx"
-        );
+        for(int y = 0; y < 768; y++)
+        {
+            uint8_t* writer = &vmem[4 * (y * 1024)];
+            uint8_t* reader = &buildBuffer[3 * (y * 1024)];
+            for (int x = 0; x < 1024; x++)
+            {
+                writer[x] = reader[x];
+            }
+        }
     }
 
     void RGBO_copyRegion(uint8_t* vmem, uint8_t* buildBuffer, int xfrom, int xto, int yfrom, int yto)
     {
-        for(int y=yfrom; y<yto; y++)
+        for(int y = yfrom; y < yto; y++)
         {
-            uint8_t* writer = &vmem[4*(xfrom + y*1024)];
-            uint8_t* reader = &buildBuffer[4*(xfrom + y*1024)];
-            asm volatile (
-                "cld                                                    ;"
-                "rep movsd    # copy ECX *dword* from M[ESI] to M[EDI]  "
-                : /* no outputs */
-                : "ecx" (xto - xfrom),
-                  "S" (reader),
-                  "D" (writer)
-                : "cc", "memory"
-            );
+            uint8_t* writer = &vmem[4 * (xfrom + y * 1024)];
+            uint8_t* reader = &buildBuffer[3 * (xfrom + y * 1024)];
+            for (int x = 0; x < xto - xfrom; x++)
+            {
+                writer[x] = reader[x];
+            }
         }
     }
 

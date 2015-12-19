@@ -90,12 +90,12 @@ Compositor::Compositor()
         displayMode = Text;
 
         // TODO: free the pages allocated here.
-        buildBuffer = (PixelRow*) +virtLast1G.allocPage(true);
+        buildBuffer = (RGBPixelRow*) +virtLast1G.allocPage(true);
         cpu0_memmap.addCommonPage(VirtAddr(buildBuffer), PhysAddr((+physPages.allocPage(true)), PG_WRITABLE));
 
         drawHelper = +getMemHelp(mode);
 
-        memset(buildBuffer, 0, RGBASize<ScreenWidth, ScreenHeight>);
+        memset(buildBuffer, 0, RGBSize<ScreenWidth, ScreenHeight>);
     });
 }
 
@@ -317,7 +317,7 @@ void Compositor::key(uint32_t kkc, bool capslock)
     for(int i=0; i<40; i++)
         (all[i])->hide();
     }
-        
+
 }
 
 
@@ -370,11 +370,13 @@ Container* createButton(int32_t width, int32_t height, int32_t pos_x, int32_t po
 int32_t getMessage(void *msg)
 {
     if (!validUserPointer(msg)) return -1;
+    return 0;
 }
 
 int32_t attacheMessageHandler(Container *elem, void *args)
 {
     if (!validUserPointer(elem)) return -1;
+    return 0;
 }
 
 Container* createImage(int32_t width, int32_t height, int32_t pos_x, int32_t pos_y)
@@ -388,6 +390,7 @@ Container* createImage(int32_t width, int32_t height, int32_t pos_x, int32_t pos
 int32_t setImageData(Container *img, uint8_t *data)
 {
     if (!validUserPointer(img)) return -1;
+    return 0;
 }
 
 

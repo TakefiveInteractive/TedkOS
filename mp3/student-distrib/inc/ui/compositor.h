@@ -23,7 +23,11 @@ constexpr int32_t ScreenHeight = 768;
 template<int32_t width, int32_t height>
 constexpr size_t RGBASize = width * height * 4;
 
+template<int32_t width, int32_t height>
+constexpr size_t RGBSize = width * height * 3;
+
 constexpr size_t CalcRGBASize(int32_t width, int32_t height) { return width * height * 4; }
+constexpr size_t CalcRGBSize(int32_t width, int32_t height) { return width * height * 3; }
 
 enum DisplayMode {
     Video,
@@ -62,7 +66,9 @@ struct Rectangle {
 constexpr Rectangle EmptyRectangle(-1000, -1000, -2000, -2000);
 
 typedef uint8_t (RGBAGroup)[4];
+typedef uint8_t (RGBGroup)[3];
 typedef RGBAGroup (PixelRow)[ScreenWidth];
+typedef RGBGroup (RGBPixelRow)[ScreenWidth];
 
 class Compositor : public KeyB::IEvent {
     private:
@@ -72,7 +78,7 @@ class Compositor : public KeyB::IEvent {
         uint16_t videoModeIndex;
 
         // buildBuffer format: RGBA. + alignment.
-        PixelRow *buildBuffer;
+        RGBPixelRow *buildBuffer;
         uint8_t* videoMemory;
         DisplayMode displayMode;
 
