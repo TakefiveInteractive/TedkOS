@@ -334,26 +334,24 @@ Container* createWindow(int32_t width, int32_t height)
 
 int32_t setText(Container *elem, char *text)
 {
-    if (!validUserPointer(elem)) return -1;
+    if (!validUserPointer(text)) return -1;
     return 0;
 }
 
 int32_t getText(Container *elem, char *buffer)
 {
-    if (!validUserPointer(elem)) return -1;
+    if (!validUserPointer(buffer)) return -1;
     return 0;
 }
 
 int32_t showElement(Container *elem)
 {
-    if (!validUserPointer(elem)) return -1;
     elem->show();
     return 0;
 }
 
 int32_t hideElement(Container *elem)
 {
-    if (!validUserPointer(elem)) return -1;
     elem->hide();
     return 0;
 }
@@ -374,7 +372,6 @@ int32_t getMessage(void *msg)
 
 int32_t attacheMessageHandler(Container *elem, void *args)
 {
-    if (!validUserPointer(elem)) return -1;
     return 0;
 }
 
@@ -388,7 +385,7 @@ Container* createImage(int32_t width, int32_t height, int32_t pos_x, int32_t pos
 
 int32_t setImageData(Container *img, uint8_t *data)
 {
-    if (!validUserPointer(img)) return -1;
+    if (!validUserPointer(data)) return -1;
     return 0;
 }
 
