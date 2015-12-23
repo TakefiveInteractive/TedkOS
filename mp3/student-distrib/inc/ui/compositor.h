@@ -17,6 +17,7 @@ namespace ui {
 class Drawable;
 class Container;
 class Window;
+class Desktop;
 
 enum DisplayMode {
     Video,
@@ -52,17 +53,16 @@ class Compositor : public KeyB::IEvent {
         void enterVideoMode();
         void enterTextMode();
 
-        Container *theMouse;
-
     public:
         static Compositor* getInstance();
 
         void drawNikita();
 
-        Container *rootContainer;
+        Desktop *rootContainer;
 
         // redraw entire rectangular area (costly!)
         void redraw(const Rectangle &rect);
+        void redraw(const Rectangle &_rect, const Rectangle &_diff);
 
         // draw single element
         void drawSingle(const Container *d, const Rectangle &rect);

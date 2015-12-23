@@ -194,27 +194,26 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                 }
                 else//LEFT_BUTTON not pressed
                 {
-                    if (left_botton_pressed)//left button is already pressed before
+                    if (left_botton_pressed)    //left button is already pressed before
                     {
                         left_botton_pressed = false;
                         ui::leftReleaseHandler();
 
-                    if (!mouse_moved) {
-                        uint32_t delta_click_time;
-                        uint32_t new_click_tick = pit_gettick();
-                        delta_click_time = pit_tick2time(new_click_tick - click_tick);
-                        click_tick = new_click_tick;
-                        if (delta_click_time <= DOUBLE_CLICK_THRESHOLD)
-                        {
-                            //printf("DOUBLE CLICK handler\n");
-                            //call DOUBLE_LEFT_BUTTON click handler
+                        if (!mouse_moved) {
+                            uint32_t delta_click_time;
+                            uint32_t new_click_tick = pit_gettick();
+                            delta_click_time = pit_tick2time(new_click_tick - click_tick);
+                            click_tick = new_click_tick;
+                            if (delta_click_time <= DOUBLE_CLICK_THRESHOLD)
+                            {
+                                //printf("DOUBLE CLICK handler\n");
+                                //call DOUBLE_LEFT_BUTTON click handler
+                            }
+                            else
+                            {
+                                ui::leftClickHandler();
+                            }
                         }
-                        else
-                        {
-                            //printf("LEFT CLICK handler\n");
-                            ui::leftClickHandler();
-                        }
-                    }
                     }
                 }
                 if (flags & RIGHT_BUTTON) {

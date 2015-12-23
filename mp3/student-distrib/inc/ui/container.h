@@ -101,7 +101,7 @@ class Container {
         void show()
         {
             visible = true;
-            Compositor::getInstance()->drawSingle(this, getBoundingRectangle());
+            Compositor::getInstance()->redraw(getBoundingRectangle());
         }
 
         void hide()

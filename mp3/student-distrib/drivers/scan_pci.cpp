@@ -2,6 +2,7 @@
 #include <inc/drivers/pci.h>
 #include <inc/klibs/spinlock.h>
 #include <inc/klibs/AutoSpinLock.h>
+#include <inc/klibs/lib.h>
 
 Deque<pci::UnitDev> *PATAControllers = NULL;
 spinlock_t scanpciLock = SPINLOCK_UNLOCKED;
@@ -41,7 +42,7 @@ DEFINE_DRIVER_INIT(scanpci)
 DEFINE_DRIVER_REMOVE(scanpci)
 {
     AutoSpinLock l(&scanpciLock);
-    
+
     if(PATAControllers)
         PATAControllers->clear();
 }

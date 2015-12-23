@@ -1,7 +1,6 @@
 #include <inc/ui/compositor.h>
 #include <inc/ui/drawable.h>
 #include <inc/ui/desktop.h>
-#include <inc/ui/mouse.h>
 #include <inc/ui/window.h>
 #include <inc/ui/vbe.h>
 #include <inc/x86/err_handler.h>
@@ -147,7 +146,8 @@ Container * Compositor::getElementAtPosition(int absX, int absY)
     while (auto resMaybe = itr.iterate())
     {
         auto c = +resMaybe;
-        if (c == theMouse) continue;        // never select the mouse
+        if (c == rootContainer->theMouse) continue;        // never select the mouse
+        if (c->isVisible() == false) continue;
         if (c->isPixelInRange(absX, absY))
         {
             candidate = c;
@@ -161,6 +161,12 @@ void Compositor::redraw(const Rectangle &_rect)
 {
     if (rootContainer != nullptr)
         drawSingle(rootContainer, _rect);
+}
+
+void Compositor::redraw(const Rectangle &_rect, const Rectangle &_diff)
+{
+    if (rootContainer != nullptr)
+        drawSingle(rootContainer, _rect, _diff);
 }
 
 void Compositor::drawSingle(const Container *d, const Rectangle &_rect)
@@ -177,12 +183,13 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
     while (auto resMaybe = itr.iterate())
     {
         auto c = +resMaybe;
-        if(!c->isVisible())
+        if (c->isVisible() == false)
             continue;
-        if(!c->getBoundingRectangle().overlapsWith(rect))
+        if (c->getBoundingRectangle().overlapsWith(rect) == false)
             continue;
-        if(c->isDrawable())
+        if (c->isDrawable())
         {
+            auto _draw = reinterpret_cast<const Drawable *>(c);
             for (int32_t y = rect.y1; y < rect.y2; y++)
             {
                 for (int32_t x = rect.x1; x < rect.x2; x++)
@@ -197,7 +204,6 @@ void Compositor::drawSingle(const Container *d, const Rectangle &_rect, const Re
 
                     if (c->isPixelInRange(x, y))
                     {
-                        auto _draw = reinterpret_cast<const Drawable *>(c);
                         int32_t relX = x - _draw->getAbsX();
                         int32_t relY = y - _draw->getAbsY();
                         const float alpha = _draw->getAlpha(relX, relY) / 255.0F;
@@ -239,7 +245,6 @@ static uint8_t *renderRGBAFont(ArrFile &parser, int width, int height, char c)
     return buffer;
 }
 
-
 Drawable* Compositor::addText(int txtX, int txtY, char c)
 {
     constexpr int NumFont = 94;
@@ -272,13 +277,8 @@ void Compositor::drawNikita()
     auto wind = new Window(300, 300, 50, 50);
     rootContainer->addChild(wind);
 
-    // Mouse is at the top
-    theMouse = new Mouse();
-    rootContainer->addChild(theMouse);
-
     rootContainer->show();
     wind->show();
-    theMouse->show();
 }
 
 void Compositor::enterVideoMode()
@@ -329,7 +329,6 @@ Container* createWindow(int32_t width, int32_t height)
     auto wind = new Window(width, height, 150, 150);
     Compositor::getInstance()->rootContainer->addChild(wind);
     getCurrentThreadInfo()->getProcessDesc()->setMainWindow(wind);
-    wind->show();
     return wind;
 }
 

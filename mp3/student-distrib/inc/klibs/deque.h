@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <inc/klibs/panic.h>
 #include <inc/klibs/lib.h>
 
 // No lock.
@@ -123,7 +124,7 @@ public:
     {
         if(pos >= mSize)
         {
-            printf("Exception: Deque Access Out of Bound!\n");
+            kernelPanic("Exception: Deque Access Out of Bound!\n");
         }
         return *mContents[(mFront + pos) % mCapacity];
     }
@@ -132,7 +133,7 @@ public:
     {
         if(pos >= mSize)
         {
-            printf("Exception: Deque Access Out of Bound!\n");
+            kernelPanic("Exception: Deque Access Out of Bound!\n");
         }
         return *mContents[(mFront + pos) % mCapacity];
     }
@@ -200,6 +201,42 @@ public:
         size_t pos = (mBack + 1) % mCapacity;
         mContents[pos] = new T(val);
         mBack = pos;
+    }
+
+    void insert(const T& val, const size_t index)
+    {
+        if (index == mSize)
+        {
+            push_back(val);
+            return;
+        }
+        if (index == 0)
+        {
+            push_front(val);
+            return;
+        }
+        if(mSize == 0)
+        {
+            mContents[0] = new T(val);
+            mBack = mFront = 0;
+            mSize ++;
+            return;
+        }
+        if(mSize == mCapacity)
+            resetCap(2 * mCapacity);
+
+        mSize ++;
+
+        size_t pos = (mFront + index) % mCapacity;
+        size_t toMove = mSize - index;
+        for (size_t i = mBack, c = 0; c < toMove; c++)
+        {
+            mContents[(i + 1) % mCapacity] = mContents[i];
+            i = (i - 1 + mCapacity) % mCapacity;
+        }
+        mBack = (mBack + 1) % mCapacity;
+
+        mContents[pos] = new T(val);
     }
 
     void pop_back()

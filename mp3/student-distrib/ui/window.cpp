@@ -7,11 +7,16 @@ Window::Window(int width, int height, int x, int y) : Container(width, height, x
     bar = new TitleBar(width, 0, 0);
     body = new WindowBody(width - 4, height - bar->getHeight() - 4, 2, bar->getHeight() - 4);
 
-    addChild(body);
-    addChild(bar);
-
+    Container::addChild(body);
+    Container::addChild(bar);
     body->show();
     bar->show();
+}
+
+void Window::addChild(Container *d)
+{
+    // delegate to body
+    body->addChild(d);
 }
 
 WindowBody::WindowBody(int width, int height, int x, int y)

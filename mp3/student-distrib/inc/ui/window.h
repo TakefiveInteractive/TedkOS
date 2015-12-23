@@ -18,6 +18,8 @@ class Window : public Container {
 
         virtual bool isMovable() const { return true; }
         virtual const char * getDescription() const override { return "Window"; }
+
+        virtual void addChild(Container *d) override;
 };
 
 class WindowBody : public Drawable {

@@ -94,6 +94,7 @@ void Mouse::leftRelease()
     AutoSpinLock lock(&mouse_draw_lock);
 
     isDragging = Nothing;
+    printf("released\n");
 }
 
 void Mouse::drag()

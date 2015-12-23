@@ -2,6 +2,7 @@
 #include <inc/klibs/palloc.h>
 #include <inc/fs/filesystem.h>
 #include <inc/syscalls/filesystem_wrapper.h>
+#include <inc/ui/mouse.h>
 
 using namespace palloc;
 using namespace filesystem;
@@ -22,6 +23,21 @@ Desktop::Desktop() : Drawable(ScreenWidth, ScreenHeight, 0, 0)
     theDispatcher->open(file, "landscape");
     theDispatcher->read(file, pixelBuffer, RGBASize<ScreenWidth, ScreenHeight>);
     theDispatcher->close(file);
+
+    // Add mouse
+    theMouse = new Mouse();
+    Container::addChild(theMouse);
+    theMouse->show();
+}
+
+void Desktop::addChild(Container *d)
+{
+    // Put it below mouse
+    if (children.size() > 0)
+        children.insert(d, children.size() - 1);
+    else
+        children.push_back(d);
+    d->setParent(this);
 }
 
 }

@@ -51,7 +51,7 @@ static const struct x86_exception_metadata_t exception_metadata[0x21] = {
     { "Unwrapping maybe type", Abort },
     { "I like monkeys", Abort },
     { "CPU on fire", Abort },
-    { "CPU froze to death", Abort },
+    { "Kernel panic", Abort },
     { "Security Exception", Abort },
     { "Too much coffee", Abort },
     { "Triple Fault", Abort }
