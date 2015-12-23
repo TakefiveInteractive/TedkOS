@@ -1,6 +1,10 @@
 #include <inc/x86/paging.h>
 #include <inc/ui/vbe.h>
 #include <inc/klibs/lib.h>
+#include <inc/ui/screen.h>
+
+using ui::ScreenWidth;
+using ui::ScreenHeight;
 
 // According to inc/x86/real.h: If you want to use %es, use REAL_MODE_FREE_SEG
 
@@ -154,7 +158,7 @@ namespace vbe
             "movl %1, %%eax                                         ;"
             "rep stosb    # reset ECX *byte*                        "
             : /* no outputs */
-            : "rg" (1024 * 768 * 3),
+            : "rg" (ScreenWidth * ScreenHeight * 3),
               "rg" (val),
               "D" (vmem)
             : "cc", "memory", "ecx", "eax"
@@ -163,14 +167,14 @@ namespace vbe
 
     void BGR_put(uint8_t* vmem, uint8_t pixel, uint8_t red, uint8_t green, uint8_t blue)
     {
-        vmem[pixel*3 + 0] = blue;
-        vmem[pixel*3 + 1] = green;
-        vmem[pixel*3 + 2] = red;
+        vmem[pixel * 3 + 0] = blue;
+        vmem[pixel * 3 + 1] = green;
+        vmem[pixel * 3 + 2] = red;
     }
 
     void BGR_copy(uint8_t* vmem, uint8_t* buildBuffer)
     {
-        for(int i=0; i < 1024 * 768; i++)
+        for(int i=0; i < ScreenWidth * ScreenHeight; i++)
         {
             vmem[2] = buildBuffer[0];
             vmem[1] = buildBuffer[1];
@@ -184,8 +188,8 @@ namespace vbe
     {
         for(int y=yfrom; y<yto; y++)
         {
-            uint8_t* writer = &vmem[3 * (xfrom + y * 1024)];
-            uint8_t* reader = &buildBuffer[3 * (xfrom + y * 1024)];
+            uint8_t* writer = &vmem[3 * (xfrom + y * ScreenWidth)];
+            uint8_t* reader = &buildBuffer[3 * (xfrom + y * ScreenWidth)];
             for(int x=xfrom; x<xto; x++)
             {
                 writer[2] = reader[0];
@@ -207,7 +211,7 @@ namespace vbe
             "movl %1, %%eax                                         ;"
             "rep stosb    # reset ECX *byte*                        "
             : /* no outputs */
-            : "rg" (1024 * 768 * 4),
+            : "rg" (ScreenWidth * ScreenHeight * 4),
               "rg" (val),
               "D" (vmem)
             : "cc", "memory", "ecx", "eax"
@@ -216,18 +220,18 @@ namespace vbe
 
     void RGBO_put(uint8_t* vmem, uint8_t pixel, uint8_t red, uint8_t green, uint8_t blue)
     {
-        vmem[pixel*4 + 0] = blue;
-        vmem[pixel*4 + 1] = green;
-        vmem[pixel*4 + 2] = red;
+        vmem[pixel * 4 + 0] = blue;
+        vmem[pixel * 4 + 1] = green;
+        vmem[pixel * 4 + 2] = red;
     }
 
     void RGBO_copy(uint8_t* vmem, uint8_t* buildBuffer)
     {
-        for(int y = 0; y < 768; y++)
+        for(int y = 0; y < ScreenHeight; y++)
         {
-            uint8_t* writer = &vmem[4 * (y * 1024)];
-            uint8_t* reader = &buildBuffer[3 * (y * 1024)];
-            for (int x = 0; x < 1024; x++)
+            uint8_t* writer = &vmem[4 * (y * ScreenWidth)];
+            uint8_t* reader = &buildBuffer[3 * (y * ScreenWidth)];
+            for (int x = 0; x < ScreenWidth; x++)
             {
                 writer[x] = reader[x];
             }
@@ -238,8 +242,8 @@ namespace vbe
     {
         for(int y = yfrom; y < yto; y++)
         {
-            uint8_t* writer = &vmem[4 * (xfrom + y * 1024)];
-            uint8_t* reader = &buildBuffer[3 * (xfrom + y * 1024)];
+            uint8_t* writer = &vmem[4 * (xfrom + y * ScreenWidth)];
+            uint8_t* reader = &buildBuffer[3 * (xfrom + y * ScreenWidth)];
             for (int x = 0; x < xto - xfrom; x++)
             {
                 writer[x] = reader[x];

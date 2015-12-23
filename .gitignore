@@ -18,6 +18,7 @@ newlib-prefix/
 mp3/userland/build-newlib/
 mp3/softlinks
 *.png.conv
+mp3.vmdk
 
 .vimrc
 
