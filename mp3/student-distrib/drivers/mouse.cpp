@@ -190,7 +190,6 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                         //call DRAG handler
                         ui::dragHandler();
                     }
-
                 }
                 else//LEFT_BUTTON not pressed
                 {
@@ -209,10 +208,6 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                                 //printf("DOUBLE CLICK handler\n");
                                 //call DOUBLE_LEFT_BUTTON click handler
                             }
-                            else
-                            {
-                                ui::leftClickHandler();
-                            }
                         }
                     }
                 }
@@ -226,7 +221,6 @@ int mouse_handler(int irq, unsigned int saved_reg) {
                     {
                         right_botton_pressed = false;
                         //printf("RIGHT_BUTTON RELEASE\n");
-
                     }
                 }
                 return 0;
