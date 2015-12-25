@@ -34,7 +34,8 @@ class Container {
         int32_t getHeight() const { return height; }
 
         virtual bool isMovable() const { return false; }
-        virtual const char * getDescription() const { return "Container"; }
+        virtual bool isWindow() const { return false; }
+        virtual const char * getDescription() const = 0;
 
         const Rectangle getBoundingRectangle() const
         {

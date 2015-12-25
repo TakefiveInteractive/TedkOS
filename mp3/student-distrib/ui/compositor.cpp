@@ -320,7 +320,6 @@ void Compositor::key(uint32_t kkc, bool capslock)
 
 }
 
-
 // SYSCALLS
 //
 
@@ -328,7 +327,10 @@ Container* createWindow(int32_t width, int32_t height)
 {
     auto wind = new Window(width, height, 150, 150);
     Compositor::getInstance()->rootContainer->addChild(wind);
-    getCurrentThreadInfo()->getProcessDesc()->setMainWindow(wind);
+
+    auto proc = getCurrentThreadInfo()->getProcessDesc();
+    proc->setMainWindow(wind);
+    wind->setProcess(proc);
     return wind;
 }
 
@@ -388,6 +390,5 @@ int32_t setImageData(Container *img, uint8_t *data)
     if (!validUserPointer(data)) return -1;
     return 0;
 }
-
 
 }

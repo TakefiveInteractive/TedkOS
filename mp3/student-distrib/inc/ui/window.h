@@ -2,13 +2,14 @@
 #define _INC_UI_WINDOW_H_
 
 #include <inc/ui/container.h>
-#include <ui/title_bar.h>
+#include <inc/klibs/holds_process_reference.hpp>
 
 namespace ui {
 
 class WindowBody;
+class TitleBar;
 
-class Window : public Container {
+class Window : public Container, HoldsProcessReference {
     private:
         TitleBar *bar;
         WindowBody *body;
@@ -16,7 +17,8 @@ class Window : public Container {
     public:
         Window(int width, int height, int x, int y);
 
-        virtual bool isMovable() const { return true; }
+        virtual bool isMovable() const override { return true; }
+        virtual bool isWindow() const override { return true; }
         virtual const char * getDescription() const override { return "Window"; }
 
         virtual void addChild(Container *d) override;
