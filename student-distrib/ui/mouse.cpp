@@ -7,7 +7,6 @@
 #include <inc/klibs/AutoSpinLock.h>
 
 using namespace filesystem;
-using event::postToProcess;
 
 namespace ui {
 
@@ -94,25 +93,6 @@ void Mouse::leftRelease()
 {
     AutoSpinLock lock(&mouse_draw_lock);
 
-    releaseElementMaybe = Compositor::getInstance()->getElementAtPosition(absX, absY);
-
-    if (releaseElementMaybe && isDragging)
-    {
-        auto releaseElement = +releaseElementMaybe;
-        auto clickElement = +isDragging;
-
-        // Consider firing mouse event
-        if (releaseElement == clickElement && clickElement != nullptr)
-        {
-            auto process = getProcessOfContainer(clickElement);
-            if (process)
-            {
-                postToProcess(+process,
-                    GUIEvent { .type = MouseClick, .arg = clickElement->eventArg });
-            }
-        }
-    }
-
     isDragging = Nothing;
     printf("released\n");
 }
@@ -121,12 +101,7 @@ void Mouse::drag()
 {
     AutoSpinLock lock(&mouse_draw_lock);
 
-    bool startOfDrag = false;
-    if (!isDragging)
-    {
-        isDragging = Compositor::getInstance()->getElementAtPosition(absX, absY);
-        startOfDrag = true;
-    }
+    if (!isDragging) isDragging = Compositor::getInstance()->getElementAtPosition(absX, absY);
     auto elem = +isDragging;
 
     if(!elem)
@@ -135,9 +110,7 @@ void Mouse::drag()
         return;
     }
 
-    if (startOfDrag)
-        printf("drag: %s\n", elem->getDescription());
-
+    printf("drag: %s\n", elem->getDescription());
     if (elem->isMovable())
         elem->updateLocation(absX - dragOffsetX, absY - dragOffsetY);
 }

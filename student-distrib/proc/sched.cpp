@@ -59,7 +59,7 @@ void makeDecisionNoLock()
 
     // find the process to run
     thread_kinfo* next = *(rrQueue->front());
-    while (next->getPCB()->runState != Running)
+    while(next->getPCB()->runState != Running)
     {
         rrQueue->pop_front();
         rrQueue->push_back(next);
@@ -107,7 +107,7 @@ thread_kinfo* makeKThread(kthread_entry entry, void* arg)
     uint32_t flags = 0;
     int32_t child_upid = newDetachedProcess(-1, KERNEL_PROCESS);
 
-    if (child_upid < 0)
+    if(child_upid < 0)
     {
         printf("Error: Out of PIDs\n");
         return NULL;
