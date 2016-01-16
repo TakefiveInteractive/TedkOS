@@ -7,16 +7,16 @@ bootimg
 gcc.dmg
 gcc-strip.tar.gz
 gcc-strip-nolink.tar.gz
-mp3/student-distrib/cross
-mp3/userland/newlib-2.2.0-1/**/*.cache/
+student-distrib/cross
+userland/newlib-2.2.0-1/**/*.cache/
 i686-tedkos-ar
 i686-tedkos-as
 i686-tedkos-cc
 i686-tedkos-gcc
 i686-tedkos-ranlib
 newlib-prefix/
-mp3/userland/build-newlib/
-mp3/softlinks
+userland/build-newlib/
+softlinks
 *.png.conv
 mp3.vmdk
 

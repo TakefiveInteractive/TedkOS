@@ -11,19 +11,19 @@ make
 
 VM commands for Linux
 ```
-alias ece391.test.mp3='qemu-system-i386 -drive file=~/ece391_common/mp3/student-distrib/output/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -S -name test-mp3'
-alias ece391.test.mp3.nodebug='qemu-system-i386 -drive file=~/ece391_common/mp3/student-distrib/output/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -name test-mp3-nodebug'
+alias ece391.test.mp3='qemu-system-i386 -drive file=~/ece391_common/student-distrib/output/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -S -name test-mp3'
+alias ece391.test.mp3.nodebug='qemu-system-i386 -drive file=~/ece391_common/student-distrib/output/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -name test-mp3-nodebug'
 ```
 
 
 NOTE:
  1. Our source code is distributed under GPLv2
  2. The following files are third party libraries.
-    1. `/mp3/student-distrib/boost` uses Boost License v1
-    2. `/mp3/userland/newlib-\*`, and `/mp3/userland/clib` use GPLv2 License
+    1. `/student-distrib/boost` uses Boost License v1
+    2. `/userland/newlib-\*`, and `/userland/clib` use GPLv2 License
  3. The following files are given by TA, and are the property of University of Illinois.
-    1. `/mp3/fish`, `/mp3/syscalls` are some of our user programs
-    2. `/mp3/shared`, `/mp3/userland/syscall` are basic user-side syscall interfaces.
+    1. `/fish`, `/syscalls` are some of our user programs
+    2. `/shared`, `/userland/syscall` are basic user-side syscall interfaces.
     3. createfs, and elfconvert are helpers to create user programs and ece391 filesystem images.
 
 
