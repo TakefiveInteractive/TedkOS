@@ -4,12 +4,13 @@
 
 ### Update 12/14/2015: We clinched second runner-up at the design competition!
 
+![TedkOS](http://i.imgur.com/9i3KouD.jpg)
+
+
 OS X and Linux users, run
 ```
 make
 ```
-![TedkOS](http://i.imgur.com/9i3KouD.jpg)
-
 VM commands for Linux
 ```
 alias ece391.test.mp3='qemu-system-i386 -drive file=~/ece391_common/student-distrib/output/mp3.img,index=0,media=disk,format=raw -no-kvm -m 512 -gdb tcp:127.0.0.1:1234 -S -name test-mp3'
