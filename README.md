@@ -8,7 +8,7 @@ OS X and Linux users, run
 ```
 make
 ```
-![http://i.imgur.com/9i3KouD.jpg]
+![TedkOS](http://i.imgur.com/9i3KouD.jpg)
 
 VM commands for Linux
 ```
